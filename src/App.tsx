@@ -10,6 +10,7 @@ import { AppointmentBooking } from "@/features/appointments/components/Appointme
 import { AdminPanel } from "@/features/admin/components/AdminPanel";
 import { AuthModal } from "@/features/auth/components/AuthModal";
 import { UserProfile } from "@/features/user/components/UserProfile";
+import { ClientPurchases } from "@/features/sales/components/ClientPurchases";
 import { Toaster } from "@/shared/components/ui/sonner";
 
 function App() {
@@ -22,9 +23,9 @@ function App() {
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState(null);
   const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
 
-  // Redirect admin users to admin panel automatically
+  // Redirect admin/assistant users to admin panel automatically
   useEffect(() => {
-    if ((currentUser?.role === "admin" || currentUser?.role === "super_admin") && !isClientView) {
+    if ((currentUser?.role === "admin" || currentUser?.role === "super_admin" || currentUser?.role === "asistente") && !isClientView) {
       setCurrentView("admin");
     }
   }, [currentUser, isClientView]);
@@ -137,7 +138,8 @@ function App() {
       ],
       customer: [
         "module_appointments",
-        "module_services"
+        "module_services",
+        "module_sales"
       ]
     };
 
@@ -284,6 +286,22 @@ function App() {
               onRescheduleAppointment={handleRescheduleAppointment}
             />
           );
+        case "my-purchases":
+          // Employees should not see "My Purchases"
+          if (currentUser.role !== 'customer') {
+            return (
+              <div className="pt-20 text-center">
+                <h2 className="text-xl font-bold text-gray-700">Esta sección es exclusiva para clientes</h2>
+                <button 
+                  onClick={() => setCurrentView('home')}
+                  className="mt-4 text-pink-500 hover:underline"
+                >
+                  Volver al inicio
+                </button>
+              </div>
+            );
+          }
+          return <ClientPurchases currentUser={currentUser} />;
         case "book-appointment":
           return (
             <AppointmentBooking
@@ -342,6 +360,21 @@ function App() {
             onRescheduleAppointment={handleRescheduleAppointment}
           />
         );
+      case "my-purchases":
+        if (currentUser && currentUser.role !== 'customer') {
+          return (
+            <div className="pt-20 text-center">
+              <h2 className="text-xl font-bold text-gray-700">Esta sección es exclusiva para clientes</h2>
+              <button 
+                onClick={() => setCurrentView('home')}
+                className="mt-4 text-pink-500 hover:underline"
+              >
+                Volver al inicio
+              </button>
+            </div>
+          );
+        }
+        return <ClientPurchases currentUser={currentUser} />;
       case "book-appointment":
         return (
           <AppointmentBooking

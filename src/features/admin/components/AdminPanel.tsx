@@ -29,32 +29,13 @@ interface AdminPanelProps {
 }
 
 export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
-  // Use a state function to determine the initial active tab based on user role
-  const [activeTab, setActiveTab] = useState(() => {
-    if (currentUser?.role === 'asistente') {
-      // Find the first available menu item for an assistant
-      const assistantMenu = getMenuItemsByCategory(ADMIN_MENU_ITEMS, hasPermission, currentUser.role);
-      // Try to find any item, prioritizing 'appointments' if it exists, otherwise the very first one
-      const allItems = assistantMenu.flatMap(cat => cat.items);
-      const appointmentsItem = allItems.find(item => item.id === 'appointments');
-      return appointmentsItem?.id || allItems[0]?.id || 'appointments';
-    }
-    return 'dashboard';
-  });
+  // Use 'dashboard' as default tab for everyone
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const menuCategories = getMenuItemsByCategory(ADMIN_MENU_ITEMS, hasPermission, currentUser?.role);
 
   const renderContent = () => {
-    // Prevent rendering dashboard for assistant even if activeTab is dashboard
-    if (activeTab === 'dashboard' && currentUser?.role === 'asistente') {
-      return (
-        <div className="p-8 text-center">
-          <h2 className="text-xl font-bold text-gray-700">No tienes acceso a esta sección</h2>
-        </div>
-      );
-    }
-
     switch (activeTab) {
       case 'dashboard':
         return <DashboardOverview currentUser={currentUser} hasPermission={hasPermission} />;

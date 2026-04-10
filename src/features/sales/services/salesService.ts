@@ -77,8 +77,6 @@ function extractDateTime(dateStr: any): { date: string; time: string } {
 }
 
 function mapApiSaleToView(apiSale: any): SaleView {
-  // El ID de la venta: preferimos el campo 'id' o 'sale_number' que suele traer el prefijo VEN- o VNT-
-  // ya que según el usuario, la API parece esperar este formato o al menos es el que se muestra.
   const id =
     apiSale?.id ||
     apiSale?.sale_number ||
@@ -160,22 +158,18 @@ export const salesService = {
     for (const ep of endpoints) {
       try {
         const res = await apiClient.get<any>(ep, params);
-        
-        // Si el resultado ya tiene el formato PaginatedResponse
         if (res && res.data && Array.isArray(res.data)) {
           return {
             ...res,
             data: res.data.map(mapApiSaleToView)
           };
         }
-
-        // Fallback para cuando la API devuelve un array directamente (aunque el usuario dijo que ya se actualizó)
         if (Array.isArray(res)) {
           return {
             data: res.map(mapApiSaleToView),
             totalCount: res.length,
             page: params?.page || 1,
-            pageSize: params?.pageSize || response.length,
+            pageSize: params?.pageSize || res.length,
             totalPages: 1
           };
         }
@@ -198,30 +192,50 @@ export const salesService = {
   },
 
   async cancel(id: string | number, observacion: string): Promise<SaleView | null> {
-    // Usamos el ID tal cual viene de la SaleView (puede incluir el prefijo VEN- o VNT- si así lo devolvió la API)
-    // El error 404 sugiere que no debemos remover el prefijo si es parte del ID reconocido por el backend.
-    const cleanId = String(id);
-
-    // Formato exacto verificado por el usuario en pruebas manuales.
-    const payload: any = {
-      estado: false,
-      observacion: observacion
-    };
-
     try {
-      const res = await apiClient.put(`/api/Ventas/${cleanId}`, payload);
-      
-      if (!res || typeof res !== 'object') return null;
-      return mapApiSaleToView(res);
-    } catch (error) {
-      console.error('Error in salesService.cancel:', error);
-      throw error;
+      // Intentamos primero con el endpoint de cancelación si existe
+      const res = await apiClient.post(`/api/Ventas/${id}/cancel`, { observacion });
+      if (res) return mapApiSaleToView(res);
+    } catch (err) {
+      // Si falla, intentamos con el PUT tradicional que desactiva la venta
+      const payload = {
+        estado: false,
+        observacion: observacion
+      };
+      const res = await apiClient.put(`/api/Ventas/${id}`, payload);
+      if (res) return mapApiSaleToView(res);
     }
+    return null;
+  },
+
+  async getMyPurchases(params?: { page?: number; pageSize?: number }): Promise<PaginatedResponse<SaleView>> {
+    try {
+      const res = await apiClient.get<any>('/api/Ventas/mis-compras', params);
+      
+      if (res && res.data && Array.isArray(res.data)) {
+        return {
+          ...res,
+          data: res.data.map(mapApiSaleToView)
+        };
+      }
+
+      if (Array.isArray(res)) {
+        return {
+          data: res.map(mapApiSaleToView),
+          totalCount: res.length,
+          page: params?.page || 1,
+          pageSize: params?.pageSize || res.length,
+          totalPages: 1
+        };
+      }
+    } catch (err) {
+      console.error('Error fetching my purchases:', err);
+    }
+    return { data: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 };
   },
 
   async create(data: any): Promise<SaleView | null> {
     try {
-      // Normalizamos el payload para el backend .NET
       const payload = {
         documentoCliente: data.clienteId,
         documentoEmpleado: data.empleadoId,
@@ -231,10 +245,7 @@ export const salesService = {
         total: data.total,
         observaciones: data.observaciones,
         estado: true,
-        // Los items deben enviarse con los nombres de campos que espera el backend (productoId, servicioId, etc.)
         serviciosIds: data.items.filter(i => i.tipo === 'service').map(i => i.id),
-        // Si hay productos, el backend puede esperar algo diferente, 
-        // pero por ahora el usuario solo pidió servicios en el buscador.
         detalles: data.items.map((item: any) => ({
           productoId: item.tipo === 'product' ? item.id : null,
           servicioId: item.tipo === 'service' ? item.id : null,

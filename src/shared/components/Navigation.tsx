@@ -50,7 +50,8 @@ export function Navigation({
 
   // Menu items for authenticated users
   const authenticatedMenuItems = [
-    { id: 'my-appointments', label: 'Mis Citas', icon: Calendar, permission: 'module_appointments' }
+    { id: 'my-appointments', label: 'Mis Citas', icon: Calendar, permission: 'module_appointments' },
+    { id: 'my-purchases', label: 'Mis Compras', icon: Sparkles, permission: 'module_sales' }
   ];
 
   // Build menu items based on user permissions and view mode
@@ -66,8 +67,9 @@ export function Navigation({
     
     if (currentUser) {
       authenticatedMenuItems.forEach(item => {
-        // Only show 'my-appointments' if user is a customer
-        if (item.id === 'my-appointments' && currentUser.role !== 'customer') {
+        // Only show 'my-appointments' and 'my-purchases' if user is a customer
+        if ((item.id === 'my-appointments' || item.id === 'my-purchases') && 
+            (currentUser.role === 'admin' || currentUser.role === 'super_admin' || currentUser.role === 'asistente')) {
           return;
         }
         

@@ -330,7 +330,7 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
 
                       {/* Actions */}
                       <div className="flex flex-col sm:flex-row gap-3">
-                        {(normalizeStatusForFilter(appointment.estado) === 'confirmed' || normalizeStatusForFilter(appointment.estado) === 'pending') && isUpcoming(appointment.fechaCita, appointment.horaInicio) && (
+                        {(normalizeStatusForFilter(appointment.estado) === 'confirmed' || normalizeStatusForFilter(appointment.estado) === 'pending') && (
                           <>
                             <button 
                               onClick={() => handleCancelClick(appointment)}

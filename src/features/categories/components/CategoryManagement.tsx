@@ -634,7 +634,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre de la Categoría</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre de la Categoría *</label>
                   <div className="relative">
                     <FolderTree className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
@@ -650,7 +650,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción *</label>
                   <div className="relative">
                     <AlertCircle className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
                     <textarea

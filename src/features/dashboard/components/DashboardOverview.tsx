@@ -303,13 +303,23 @@ export function DashboardOverview({
     setAllAgenda([]);
     setAllSales([]);
     try {
+      const params = { pageSize: 1000 };
+      
+      const agendaPromise = currentUser?.role === 'asistente'
+        ? agendaService.getMisCitasEmpleado(params)
+        : agendaService.getAll(params);
+        
+      const salesPromise = currentUser?.role === 'asistente'
+        ? salesService.getMySalesEmployee(params)
+        : salesService.getAll(params);
+
       const [agenda, sales, clients, supplies, services] =
         await Promise.allSettled([
-          agendaService.getAll({ pageSize: 1000 }), // Fetch a large number for stats
-          salesService.getAll({ pageSize: 1000 }),
-          personService.getPersons("client", { pageSize: 1000 }),
-          supplyService.getSupplies({ pageSize: 1000 }),
-          serviceService.getServices({ pageSize: 1000 }),
+          agendaPromise,
+          salesPromise,
+          personService.getPersons("client", params),
+          supplyService.getSupplies(params),
+          serviceService.getServices(params),
         ]);
 
       if (agenda.status === "fulfilled") setAllAgenda(agenda.value.data || []);
@@ -397,7 +407,7 @@ export function DashboardOverview({
 
   const servicesCompleted = periodAgenda.filter(
     (a) => a.estado.toLowerCase() === "completado",
-  ).length;
+  ).length + periodSales.length;
 
   const currentStats: DashboardStats = {
     appointments: appointmentsCount,
@@ -407,10 +417,29 @@ export function DashboardOverview({
     total_income: totalIncome,
   };
 
-  const todayAgenda = safeAgenda.filter((a) => isInPeriod(a.fechaCita, "today"));
-  const upcomingAppointments = todayAgenda
-    .filter((a) => ["pendiente", "confirmado"].includes(a.estado.toLowerCase()))
-    .sort((a, b) => (a.horaInicio || "").localeCompare(b.horaInicio || ""))
+  const upcomingAppointments = safeAgenda
+    .filter((a) => {
+      const status = (a.estado || "").toLowerCase();
+      // Omitir completados y cancelados
+      if (status === "completado" || status === "cancelado") return false;
+
+      // Mantener solo citas de hoy o del futuro
+      const aptDateStr = a.fechaCita || "";
+      const aptDate = new Date(aptDateStr + (aptDateStr.includes("T") ? "" : "T00:00:00"));
+      aptDate.setHours(0, 0, 0, 0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      return aptDate >= today;
+    })
+    .sort((a, b) => {
+      // Ordenar por fecha y luego por hora
+      const dateA = a.fechaCita || "";
+      const dateB = b.fechaCita || "";
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return (a.horaInicio || "").localeCompare(b.horaInicio || "");
+    })
     .slice(0, 5);
 
   const servicioFreq: Record<string, { count: number }> = {};
@@ -608,7 +637,7 @@ export function DashboardOverview({
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-800">
-              Próximas Citas (Hoy)
+              Próximas Citas
             </h3>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <Clock className="w-4 h-4" />
@@ -632,7 +661,7 @@ export function DashboardOverview({
           ) : upcomingAppointments.length === 0 ? (
             <div className="text-center py-10 text-gray-400">
               <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No hay citas pendientes/confirmadas para hoy</p>
+              <p>No hay citas próximas programadas</p>
             </div>
           ) : (
             <div className="space-y-4">

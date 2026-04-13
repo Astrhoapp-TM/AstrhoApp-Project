@@ -33,7 +33,7 @@ interface AppointmentManagementProps {
 
 // getEstadoId now resolved dynamically inside the component using loaded estados
 
-export function AppointmentManagement({ hasPermission }: AppointmentManagementProps) {
+export function AppointmentManagement({ hasPermission, currentUser }: AppointmentManagementProps) {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
 
@@ -90,12 +90,14 @@ export function AppointmentManagement({ hasPermission }: AppointmentManagementPr
 
     for (const apt of overduePending) {
       try {
-        const serviciosIds = apt.servicios.map(name => {
-          const s = allServicios.find(sv => sv.nombre === name);
+        const serviciosIds = apt.servicios.map((nameOrObj: any) => {
+          const name = typeof nameOrObj === 'string' ? nameOrObj : (nameOrObj?.nombre || '');
+          const normalizedName = name.trim().toLowerCase();
+          const s = allServicios.find(sv => sv.nombre.trim().toLowerCase() === normalizedName);
           return s ? s.servicioId : 0;
         }).filter(id => id > 0);
 
-        const metodo = allMetodos.find(m => m.nombre === apt.metodoPago);
+        const metodo = allMetodos.find(m => m.nombre.trim().toLowerCase() === (apt.metodoPago || '').trim().toLowerCase());
         const metodoPagoId = metodo ? metodo.metodopagoId : (allMetodos[0]?.metodopagoId || 1);
 
         await agendaService.update(apt.agendaId, {
@@ -119,12 +121,18 @@ export function AppointmentManagement({ hasPermission }: AppointmentManagementPr
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
+      const params = {
+        page: currentPage,
+        pageSize: itemsPerPage,
+        search: searchTerm
+      };
+
+      const agendaPromise = currentUser?.role === 'asistente'
+        ? agendaService.getMisCitasEmpleado(params)
+        : agendaService.getAll(params);
+
       const results = await Promise.allSettled([
-        agendaService.getAll({
-          page: currentPage,
-          pageSize: itemsPerPage,
-          search: searchTerm
-        }),
+        agendaPromise,
         empleadoAgendaService.getAll(),
         servicioAgendaService.getAll(),
         metodoPagoService.getAll(),
@@ -259,20 +267,9 @@ export function AppointmentManagement({ hasPermission }: AppointmentManagementPr
   };
 
   const handleViewDetail = async (apt: AgendaItem) => {
-    try {
-      setLoading(true);
-      // Fetch full details from the specific GET endpoint /api/Agenda/{id}
-      const fullApt = await agendaService.getById(apt.agendaId);
-      setSelectedAppointment(fullApt);
-      setShowDetailModal(true);
-    } catch (error) {
-      console.error('Error fetching appointment detail:', error);
-      // Fallback: show the item from the list if the specific fetch fails
-      setSelectedAppointment(apt);
-      setShowDetailModal(true);
-    } finally {
-      setLoading(false);
-    }
+    // We avoid getById as it currently returns 405 Method Not Allowed in this API version
+    setSelectedAppointment(apt);
+    setShowDetailModal(true);
   };
 
   const handleDeleteAppointment = (apt: AgendaItem) => {
@@ -330,16 +327,29 @@ export function AppointmentManagement({ hasPermission }: AppointmentManagementPr
     const { apt, newStatusId } = appointmentToChangeStatus;
 
     try {
-      const servicioIds = apt.servicios.map((name) => {
-        const svc = servicios.find((s) => s.nombre.trim().toLowerCase() === name.trim().toLowerCase());
+      // Mapping services names to IDs robustly
+      const servicioIds = apt.servicios.map((nameOrObj: any) => {
+        // Handle if nameOrObj is already an ID (shouldn't happen with AgendaItem, but for safety)
+        if (typeof nameOrObj === 'number') return nameOrObj;
+        
+        // Extract name if it's an object or just use the string
+        const name = typeof nameOrObj === 'string' ? nameOrObj : (nameOrObj?.nombre || '');
+        const normalizedName = name.trim().toLowerCase();
+        
+        const svc = servicios.find((s) => s.nombre.trim().toLowerCase() === normalizedName);
         return svc ? svc.servicioId : 0;
       }).filter(id => id > 0);
 
-      const mp = metodosPago.find(m => m.nombre.trim().toLowerCase() === apt.metodoPago.trim().toLowerCase());
-      const metodoPagoId = mp ? mp.metodopagoId : (metodosPago.length > 0 ? metodosPago[0].metodopagoId : 0);
+      // Resolve metodoPagoId from name
+      const mpName = (apt.metodoPago || '').trim().toLowerCase();
+      const mp = metodosPago.find(m => m.nombre.trim().toLowerCase() === mpName);
+      const metodoPagoId = mp ? mp.metodopagoId : (metodosPago.length > 0 ? metodosPago[0].metodopagoId : 1);
 
-      const observaciones = (apt as any).observaciones || 'Cambio de estado manual';
-      const hora = apt.horaInicio.length === 5 ? apt.horaInicio + ':00' : apt.horaInicio;
+      // Formatting time to HH:mm:ss
+      let hora = apt.horaInicio || '09:00:00';
+      if (hora.length === 5) hora = hora + ':00';
+      
+      // Formatting date to YYYY-MM-DD
       const fecha = apt.fechaCita.split('T')[0];
 
       const payload = {
@@ -348,7 +358,7 @@ export function AppointmentManagement({ hasPermission }: AppointmentManagementPr
         fechaCita: fecha,
         horaInicio: hora,
         metodoPagoId: metodoPagoId,
-        observaciones: observaciones,
+        observaciones: (apt as any).observaciones || 'Cambio de estado manual',
         serviciosIds: servicioIds,
         estadoId: newStatusId,
       };
@@ -596,6 +606,7 @@ export function AppointmentManagement({ hasPermission }: AppointmentManagementPr
       {showCreateModal && (
         <AppointmentModal
           appointment={selectedAppointment}
+          currentUser={currentUser}
           serviciosAPI={servicios}
           metodosPago={metodosPago}
           horariosEmpleado={horariosEmpleado}
@@ -679,6 +690,7 @@ export function AppointmentManagement({ hasPermission }: AppointmentManagementPr
 
 interface AppointmentModalProps {
   appointment: AgendaItem | null;
+  currentUser: any;
   serviciosAPI: ServicioAPI[];
   metodosPago: MetodoPago[];
   horariosEmpleado: HorarioEmpleado[];
@@ -723,6 +735,7 @@ const formatTo12Hour = (timeStr: string): string => {
 
 function AppointmentModal({
   appointment,
+  currentUser,
   serviciosAPI,
   metodosPago,
   horariosEmpleado,
@@ -762,9 +775,23 @@ function AppointmentModal({
     return mp ? mp.metodopagoId : (metodosPago.length > 0 ? metodosPago[0].metodopagoId : 0);
   };
 
+  // Determine the default employee document based on user role and data
+   const getDefaultEmployeeDoc = () => {
+     // If editing, use existing employee
+     if (appointment?.documentoEmpleado) return appointment.documentoEmpleado;
+     
+     // If assistant, always default to current user
+     if (currentUser?.role === 'asistente' && currentUser?.documentId) {
+       return currentUser.documentId;
+     }
+     
+     // Default from props if provided
+     return initialEmployee !== 'all' ? initialEmployee : '';
+   };
+
   const [formData, setFormData] = useState({
     documentoCliente: appointment?.documentoCliente || '',
-    documentoEmpleado: appointment?.documentoEmpleado || (initialEmployee !== 'all' ? initialEmployee : ''),
+    documentoEmpleado: getDefaultEmployeeDoc(),
     fechaCita: appointment?.fechaCita || formatDateToYYYYMMDD(new Date()),
     horaInicio: appointment?.horaInicio ? appointment.horaInicio.substring(0, 5) : '09:00',
     metodoPagoId: getInitialMetodoPagoId(),
@@ -772,6 +799,13 @@ function AppointmentModal({
     serviciosIds: getInitialServiceIds(),
     estadoId: appointment ? resolveEstadoId(appointment.estado) : 1,
   });
+
+  // Ensure assistant's document is set if it was loaded asynchronously
+  useEffect(() => {
+    if (!isEdit && currentUser?.role === 'asistente' && currentUser?.documentId && !formData.documentoEmpleado) {
+      setFormData(prev => ({ ...prev, documentoEmpleado: currentUser.documentId }));
+    }
+  }, [currentUser, isEdit, formData.documentoEmpleado]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -1169,10 +1203,13 @@ function AppointmentModal({
                       onSelect={(emp) => setFormData({ ...formData, documentoEmpleado: emp.documentoEmpleado })}
                       checkEmployeeOccupied={checkEmployeeOccupied}
                       checkEmployeeHasSchedule={checkEmployeeHasSchedule}
-                      disabled={isCompleted}
+                      disabled={isCompleted || currentUser?.role === 'asistente'}
                       error={!!errors.documentoEmpleado}
                     />
                     {errors.documentoEmpleado && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.documentoEmpleado}</p>}
+                    {currentUser?.role === 'asistente' && !isCompleted && (
+                      <p className="text-[9px] text-pink-500 mt-1 ml-1 font-medium italic">* Tu usuario está seleccionado automáticamente</p>
+                    )}
                   </div>
 
                   {totalDuration > 0 && formData.horaInicio && (
@@ -1195,7 +1232,7 @@ function AppointmentModal({
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Scissors className="w-4 h-4 text-pink-400" />
-                  <h4 className="font-bold text-gray-700 text-sm">Servicios de la Cita</h4>
+                  <h4 className="font-bold text-gray-700 text-sm">Servicios de la Cita *</h4>
                 </div>
                 <button
                   type="button"

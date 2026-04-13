@@ -12,6 +12,7 @@ import { AuthModal } from "@/features/auth/components/AuthModal";
 import { UserProfile } from "@/features/user/components/UserProfile";
 import { ClientPurchases } from "@/features/sales/components/ClientPurchases";
 import { Toaster } from "@/shared/components/ui/sonner";
+import { userService } from "@/features/users/services/userService";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -22,6 +23,30 @@ function App() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState(null);
   const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
+
+  // Fetch full user person data when logged in
+  useEffect(() => {
+    const fetchFullUserData = async () => {
+      if (currentUser && !currentUser.documentId) {
+        try {
+          const person = await userService.getPersonForUser(currentUser);
+          if (person && person.documentId) {
+            setCurrentUser(prev => ({
+              ...prev,
+              documentId: person.documentId,
+              name: person.name || prev.name,
+              firstName: person.name ? person.name.split(' ')[0] : prev.firstName,
+              lastName: person.name ? person.name.split(' ').slice(1).join(' ') : prev.lastName,
+              phone: person.phone || prev.phone
+            }));
+          }
+        } catch (error) {
+          console.error("Error fetching full user data in App:", error);
+        }
+      }
+    };
+    fetchFullUserData();
+  }, [currentUser]);
 
   // Redirect admin/assistant users to admin panel automatically
   useEffect(() => {

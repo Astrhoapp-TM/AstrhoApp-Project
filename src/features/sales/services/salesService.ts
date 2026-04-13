@@ -234,6 +234,32 @@ export const salesService = {
     return { data: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 };
   },
 
+  async getMySalesEmployee(params?: { page?: number; pageSize?: number; search?: string }): Promise<PaginatedResponse<SaleView>> {
+    try {
+      const res = await apiClient.get<any>('/api/Ventas/mis-ventas-empleado', params);
+      
+      if (res && res.data && Array.isArray(res.data)) {
+        return {
+          ...res,
+          data: res.data.map(mapApiSaleToView)
+        };
+      }
+
+      if (Array.isArray(res)) {
+        return {
+          data: res.map(mapApiSaleToView),
+          totalCount: res.length,
+          page: params?.page || 1,
+          pageSize: params?.pageSize || res.length,
+          totalPages: 1
+        };
+      }
+    } catch (err) {
+      console.error('Error fetching my sales employee:', err);
+    }
+    return { data: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 };
+  },
+
   async create(data: any): Promise<SaleView | null> {
     try {
       const payload = {

@@ -127,7 +127,7 @@ export const getMenuItemsByCategory = (
 
   // Role-based filtering
   if (userRole === 'asistente') {
-    const allowedIds = ['dashboard', 'appointments', 'schedules'];
+    const allowedIds = ['dashboard', 'appointments', 'schedules', 'sales'];
     visibleItems = visibleItems.filter(item => allowedIds.includes(item.id));
   }
 

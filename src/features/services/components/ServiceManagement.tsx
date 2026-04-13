@@ -948,7 +948,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                 </div>
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Servicio</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Servicio *</label>
                     <div className="relative">
                       <Scissors className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -966,7 +966,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Duración (Minutos)</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Duración (Minutos) *</label>
                       <div className="relative">
                         <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -981,7 +981,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Precio (COP)</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Precio (COP) *</label>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input

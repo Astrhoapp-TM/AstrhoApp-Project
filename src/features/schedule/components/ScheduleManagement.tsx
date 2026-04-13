@@ -78,6 +78,13 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
 
+  // Permission helpers
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+  const isAssistant = currentUser?.role === 'asistente';
+  const canManageSchedules = isAdmin; // Only admin can register, edit, delete, toggle
+  const canViewSchedules = hasPermission('manage_schedules') || isAdmin || isAssistant;
+  const canRegisterMotivo = isAdmin || isAssistant;
+
   // Alert state
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
@@ -583,24 +590,24 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
               <RefreshCw className="w-5 h-5" />
             </button>
 
-            {hasPermission('manage_schedules') && (
-              <>
-                <button
-                  onClick={handleCreateMotivo}
-                  className="w-full md:w-auto bg-gradient-to-r from-blue-400 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
-                >
-                  <Clock className="w-5 h-5" />
-                  <span>Registrar Motivo</span>
-                </button>
-                
-                <button
-                  onClick={handleCreateSchedule}
-                  className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span>Registrar Horario</span>
-                </button>
-              </>
+            {canRegisterMotivo && (
+              <button
+                onClick={handleCreateMotivo}
+                className="w-full md:w-auto bg-gradient-to-r from-blue-400 to-indigo-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+              >
+                <Clock className="w-5 h-5" />
+                <span>Registrar Motivo</span>
+              </button>
+            )}
+
+            {canManageSchedules && (
+              <button
+                onClick={handleCreateSchedule}
+                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Registrar Horario</span>
+              </button>
             )}
           </div>
         </div>
@@ -686,9 +693,9 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                       </div>
                     </div>
 
-                    {hasPermission('manage_schedules') && (
-                      <div className="flex items-center space-x-2 ml-6">
-                        {/* Estado Toggle */}
+                    <div className="flex items-center space-x-2 ml-6">
+                      {/* Estado Toggle */}
+                      {canManageSchedules && (
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
@@ -702,8 +709,10 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                             {group.estado ? 'Activo' : 'Inactivo'}
                           </span>
                         </label>
+                      )}
 
-                        {/* Ver detalle */}
+                      {/* Ver detalle */}
+                      {canViewSchedules && (
                         <button
                           onClick={() => handleViewDetail(group)}
                           className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
@@ -711,8 +720,10 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                         >
                           <Eye className="w-5 h-5" />
                         </button>
+                      )}
 
-                        {/* Editar */}
+                      {/* Editar */}
+                      {canManageSchedules && (
                         <button
                           onClick={() => handleEditSchedule(group)}
                           className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
@@ -720,8 +731,10 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                         >
                           <Edit className="w-5 h-5" />
                         </button>
+                      )}
 
-                        {/* Eliminar */}
+                      {/* Eliminar */}
+                      {canManageSchedules && (
                         <button
                           onClick={() => handleDeleteSchedule(group)}
                           className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
@@ -729,8 +742,8 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -741,7 +754,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                 <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-600 mb-2">No hay horarios configurados</h3>
                 <p className="text-gray-500 mb-6">Crea el primer horario para organizar el trabajo del salón</p>
-                {hasPermission('manage_schedules') && (
+                {canManageSchedules && (
                   <button
                     onClick={handleCreateSchedule}
                     className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"

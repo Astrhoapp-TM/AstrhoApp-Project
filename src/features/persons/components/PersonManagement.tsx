@@ -876,7 +876,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                 <div className="p-6 space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo de Documento</label>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo de Documento *</label>
                                             <div className="relative">
                                                 <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <select
@@ -893,7 +893,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Número Documento</label>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Número Documento *</label>
                                             <div className="relative">
                                                 <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input
@@ -910,7 +910,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo *</label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
@@ -954,7 +954,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                 </div>
                                 <div className="p-6 space-y-4">
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono Móvil</label>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono Móvil *</label>
                                         <div className="relative">
                                             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
@@ -984,7 +984,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
 
                                     {!editingPerson && (
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico</label>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico {!editingPerson && '*'}</label>
                                             <div className="relative">
                                                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input

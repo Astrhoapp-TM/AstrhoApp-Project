@@ -261,6 +261,34 @@ export const agendaService = {
     return raw.map(normalizeAgendaItem);
   },
 
+  async getMisCitasEmpleado(params?: { page?: number; pageSize?: number; search?: string }): Promise<PaginatedResponse<AgendaItem>> {
+    try {
+      const res = await apiClient.get<any>("/api/Agenda/mis-citas-empleado", params);
+      
+      if (res && res.data && Array.isArray(res.data)) {
+        return {
+          ...res,
+          data: res.data.map(normalizeAgendaItem)
+        };
+      }
+
+      if (Array.isArray(res)) {
+        return {
+          data: res.map(normalizeAgendaItem),
+          totalCount: res.length,
+          page: params?.page || 1,
+          pageSize: params?.pageSize || res.length,
+          totalPages: 1
+        };
+      }
+      
+      return { data: [], totalCount: 0, page: 1, pageSize: 10, totalPages: 0 };
+    } catch (error) {
+      console.error("Error fetching my appointments employee:", error);
+      throw error;
+    }
+  },
+
   async getById(id: number): Promise<AgendaItem> {
     const res = await apiClient.get(`/api/Agenda/${id}`);
     return normalizeAgendaItem(res);

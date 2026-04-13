@@ -42,11 +42,19 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
     setLoading(true);
     setError(null);
     try {
-      const response = await salesService.getAll({
+      const params = {
         page: currentPage,
         pageSize: itemsPerPage,
         search: searchTerm
-      });
+      };
+
+      let response;
+      if (currentUser?.role === 'asistente') {
+        response = await salesService.getMySalesEmployee(params);
+      } else {
+        response = await salesService.getAll(params);
+      }
+
       setSales(response.data || []);
       setTotalCount(response.totalCount || 0);
       setTotalPages(response.totalPages || 0);
@@ -499,10 +507,13 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
 
   // Set default employee if currentUser is an employee
   useEffect(() => {
-    if (currentUser?.documento) {
-      setSelectedEmployeeId(currentUser.documento);
+    if (currentUser?.role === 'asistente' && currentUser?.documentId && !selectedEmployeeId) {
+      setSelectedEmployeeId(currentUser.documentId);
+    } else if (currentUser?.documentId && !selectedEmployeeId) {
+      // For other employees, also default if not set
+      setSelectedEmployeeId(currentUser.documentId);
     }
-  }, [currentUser]);
+  }, [currentUser, selectedEmployeeId]);
 
   const addService = (service: any) => {
     // Permite servicios duplicados en ventas si se desea, 
@@ -667,8 +678,12 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
                       checkEmployeeOccupied={() => false} // No validamos ocupación en ventas directas
                       checkEmployeeHasSchedule={() => true} // Siempre permitimos vender
                       error={!!errors.empleado}
+                      disabled={currentUser?.role === 'asistente'}
                     />
                     {errors.empleado && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.empleado}</p>}
+                    {currentUser?.role === 'asistente' && (
+                      <p className="text-[9px] text-pink-500 mt-1 ml-1 font-medium italic">* Tu usuario está seleccionado automáticamente</p>
+                    )}
                   </div>
 
                   <div className="bg-purple-50/30 p-4 rounded-2xl border border-purple-100 min-h-[100px]">

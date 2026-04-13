@@ -803,7 +803,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                 </div>
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Insumo</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Insumo *</label>
                     <div className="relative">
                       <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -814,36 +814,37 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                         className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
                           errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
-                        placeholder="Ej: Shampoo Keratina"
+                        placeholder="Ej: Champú Profesional"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Referencia</label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <input
-                        type="text"
-                        name="sku"
-                        value={formData.sku}
-                        onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
-                          errors.sku ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                        }`}
-                        placeholder="Ej: SHP-KER-001"
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código *</label>
+                      <div className="relative">
+                        <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                          type="text"
+                          name="sku"
+                          value={formData.sku}
+                          onChange={handleInputChange}
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                            errors.sku ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                          }`}
+                          placeholder="INV-001"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría *</label>
+                      <CategorySearchSelect
+                        initialData={categories}
+                        selectedId={formData.categoryId}
+                        onSelect={(cat: any) => setFormData({ ...formData, categoryId: String(cat.categoriaId) })}
+                        error={!!errors.categoryId}
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">CATEGORÍA</label>
-                    <CategorySearchSelect
-                      selectedId={formData.categoryId}
-                      onSelect={(cat: any) => setFormData({ ...formData, categoryId: cat.categoriaId })}
-                      error={!!errors.categoryId}
-                      initialData={categories}
-                    />
                   </div>
                 </div>
               </div>

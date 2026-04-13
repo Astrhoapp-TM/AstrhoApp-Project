@@ -1000,7 +1000,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                 </div>
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Rol del Sistema</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Rol del Sistema *</label>
                     <div className="relative">
                       <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <select
@@ -1021,7 +1021,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico *</label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -1071,7 +1071,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                 </div>
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo *</label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -1091,7 +1091,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo Doc.</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo Doc. *</label>
                       <div className="relative">
                         <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <select
@@ -1109,7 +1109,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Número Doc.</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Número Doc. *</label>
                       <div className="relative">
                         <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -1132,7 +1132,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono *</label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input

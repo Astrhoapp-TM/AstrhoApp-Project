@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ADMIN_MENU_ITEMS, getMenuItemsByCategory } from '@/shared/data/adminConstants';
 import {
@@ -32,6 +32,22 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
   // Use 'dashboard' as default tab for everyone
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top when tab changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+    // Also scroll window just in case the layout varies on different screens
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, [activeTab]);
 
   const menuCategories = getMenuItemsByCategory(ADMIN_MENU_ITEMS, hasPermission, currentUser?.role);
 
@@ -149,7 +165,7 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-auto">
+        <div ref={scrollContainerRef} className="flex-1 overflow-auto">
           {renderContent()}
         </div>
       </div>

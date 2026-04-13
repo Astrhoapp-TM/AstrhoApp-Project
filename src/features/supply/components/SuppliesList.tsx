@@ -1,8 +1,9 @@
 import React, { useEffect, useState  } from 'react';
 import { X, 
   Package, Edit, Trash2, Eye, Search, Filter, Plus,
-  AlertCircle, CheckCircle, Clock, Archive, Tag, TrendingUp, Truck, MapPin, FileText
+  AlertCircle, CheckCircle, Clock, Archive, Tag, TrendingUp, Truck, MapPin, FileText, Info
 } from 'lucide-react';
+import { cn } from '@/shared/components/ui/utils';
 import {
   Pagination,
   PaginationContent,
@@ -145,18 +146,12 @@ interface SuppliesListProps {
 }
 
 export function SuppliesList({ hasPermission }: SuppliesListProps) {
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
-  // Auto-hide success alert after 4 seconds
-  useEffect(() => {
-    if (showSuccessAlert) {
-      const timer = setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessAlert]);
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   const [supplies, setSupplies] = useState(mockSupplies);
   const [selectedSupply, setSelectedSupply] = useState(null);
@@ -210,6 +205,7 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
       setSupplies(supplies.filter(s => s.id !== supplyToDelete.id));
       setShowDeleteModal(false);
       setSupplyToDelete(null);
+      showAlert('success', 'Insumo eliminado exitosamente');
     }
   };
 
@@ -801,20 +797,27 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
         </div>
       )}
 
-      {/* Success Alert */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[9999] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
             <div className="flex-shrink-0">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
               </div>
             </div>
             <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
+              <p className="font-semibold">{alert.message}</p>
             </div>
             <button
-              onClick={() => setShowSuccessAlert(false)}
+              onClick={() => setAlert(null)}
               className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
             >
               <X className="w-5 h-5" />

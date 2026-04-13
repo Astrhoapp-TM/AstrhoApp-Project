@@ -3,9 +3,10 @@ import {
     Users, Plus, Search, Filter, Eye, Edit, Calendar,
     Phone, Mail, MapPin, Heart, Scissors, ShoppingBag,
     X, Save, AlertCircle, Star, TrendingUp, Clock, Trash2, CheckCircle,
-    Briefcase, Shield, User, UserCheck, IdCard, Loader2, RefreshCw
+    Briefcase, Shield, User, UserCheck, IdCard, Loader2, RefreshCw, Info
 } from 'lucide-react';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
+import { cn } from '@/shared/components/ui/utils';
 import { personService, type Person, type CreatePersonData } from '../services/personService';
 import { authService } from '@/features/auth/services/authService';
 import { userService } from '@/features/users/services/userService';
@@ -37,8 +38,12 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
     const [totalCount, setTotalCount] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-    const [alertMessage, setAlertMessage] = useState('');
+    const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+    const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+        setAlert({ type, message });
+        setTimeout(() => setAlert(null), 4000);
+    };
 
     // Fetch data when personType, page or search changes
     useEffect(() => {
@@ -78,16 +83,6 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
         }
     };
 
-    // Auto-hide success alert after 4 seconds
-    useEffect(() => {
-        if (showSuccessAlert) {
-            const timer = setTimeout(() => {
-                setShowSuccessAlert(false);
-            }, 4000);
-            return () => clearTimeout(timer);
-        }
-    }, [showSuccessAlert]);
-
     // Reset page when search changes
     useEffect(() => {
         setCurrentPage(1);
@@ -108,6 +103,19 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
         try {
             setLoading(true);
             const fullPerson = await personService.getPersonByDocument(person.documentId, person.type);
+            
+            // Si el correo no está presente pero hay un usuarioId, intentamos obtenerlo del servicio de usuarios
+            if (!fullPerson.email && fullPerson.usuarioId) {
+                try {
+                    const userDetail = await userService.getById(fullPerson.usuarioId);
+                    if (userDetail && userDetail.email) {
+                        fullPerson.email = userDetail.email;
+                    }
+                } catch (userError) {
+                    console.error('Error fetching associated user email:', userError);
+                }
+            }
+            
             setSelectedPerson(fullPerson);
             setShowPersonModal(true);
         } catch (error) {
@@ -203,17 +211,15 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 }
 
                 setPersons(persons.filter(p => p.documentId !== personToDelete.documentId));
-                setShowSuccessAlert(true);
-                setAlertMessage(`${personType === 'client' ? 'Cliente' : 'Empleado'} eliminado exitosamente`);
+                showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} eliminado exitosamente`);
             } catch (error: any) {
                 console.error('Error deleting person:', error);
                 // Handle 404 gracefully if it was already deleted by cascade
                 if (error?.response?.status === 404) {
                     setPersons(persons.filter(p => p.documentId !== personToDelete.documentId));
-                    setShowSuccessAlert(true);
-                    setAlertMessage(`${personType === 'client' ? 'Cliente' : 'Empleado'} eliminado exitosamente`);
+                    showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} eliminado exitosamente`);
                 } else {
-                    alert('Error al eliminar. Verifique que no existan dependencias activas.');
+                    showAlert('error', 'Error al eliminar. Verifique que no existan dependencias activas.');
                 }
             } finally {
                 setLoading(false);
@@ -230,7 +236,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             if (!editingPerson && email) {
                 const { emailExists } = await authService.checkDuplicates(email);
                 if (emailExists) {
-                    alert('Error: El correo electrónico ya está registrado.');
+                    showAlert('error', 'Error: El correo electrónico ya está registrado.');
                     return;
                 }
                 const selectedRoleId = roleId || (personType === 'client' ? 2 : 3);
@@ -243,7 +249,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                     usuarioId = await authService.getUserIdByEmail(email);
                 }
                 if (!usuarioId) {
-                    alert('No se pudo obtener el ID del usuario creado. Intenta nuevamente.');
+                    showAlert('error', 'No se pudo obtener el ID del usuario creado. Intenta nuevamente.');
                     return;
                 }
                 (personOnlyData as any).usuarioId = usuarioId;
@@ -260,19 +266,17 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 setPersons(persons.map(p =>
                     p.documentId === editingPerson.documentId ? { ...updatedRaw, status: editingPerson.status } : p // Merge status back if API response lacks it based on spec
                 ));
-                setShowSuccessAlert(true);
-                setAlertMessage(`${personType === 'client' ? 'Cliente' : 'Empleado'} actualizado exitosamente`);
+                showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} actualizado exitosamente`);
             } else {
                 // Create
                 personOnlyData.type = personType;
                 const newPerson = await personService.createPerson(personOnlyData);
                 setPersons([...persons, newPerson]);
-                setShowSuccessAlert(true);
-                setAlertMessage(`${personType === 'client' ? 'Cliente' : 'Empleado'} registrado exitosamente`);
+                showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} registrado exitosamente`);
             }
         } catch (error) {
             console.error('Error saving person:', error);
-            alert('Error al guardar datos. Por favor revise la consola.');
+            showAlert('error', 'Error al guardar datos. Por favor revise la consola.');
         } finally {
             setShowNewPersonModal(false);
             setEditingPerson(null);
@@ -294,14 +298,55 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             setPersons(persons.map(p =>
                 p.documentId === personId ? { ...p, status: newStatus } : p
             ));
+            showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} ${newStatus === 'active' ? 'activado' : 'inactivado'} correctamente`);
         } catch (error) {
             console.error('Error toggling status:', error);
-            alert('Error al cambiar el estado');
+            showAlert('error', 'Error al cambiar el estado');
         }
     };
 
+    if (loading && persons.length === 0) {
+        return (
+            <div className="p-8 flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600 text-lg">Cargando personas...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="p-8">
+            {/* Notification Banner */}
+            {alert && (
+                <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+                    <div className={cn(
+                        "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+                        alert.type === 'success' ? "from-pink-400 to-purple-500" :
+                            alert.type === 'error' ? "from-red-500 to-pink-600" :
+                                "from-blue-400 to-indigo-500"
+                    )}>
+                        <div className="flex-shrink-0">
+                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+                            </div>
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-semibold">{alert.message}</p>
+                        </div>
+                        <button
+                            onClick={() => setAlert(null)}
+                            className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
@@ -353,10 +398,11 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                     <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
                         <button
                             onClick={fetchPersons}
-                            className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+                            disabled={loading}
+                            className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
                             title="Recargar datos"
                         >
-                            <RefreshCw className="w-5 h-5" />
+                            <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
                         </button>
 
                         {hasPermission('manage_clients') && (
@@ -386,7 +432,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                     </p>
                 </div>
 
-                <div className="overflow-x-auto relative">
+                <div className="overflow-x-auto relative min-h-[400px]">
                     {loading && (
                         <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
@@ -612,28 +658,6 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                     personType={personType}
                     roles={roles}
                 />
-            )}
-
-            {/* Success Alert */}
-            {showSuccessAlert && (
-                <div className="fixed bottom-4 right-4 z-[9999] animate-in slide-in-from-bottom-5 duration-300">
-                    <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
-                        <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                                <CheckCircle className="w-6 h-6 text-white" />
-                            </div>
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold">{alertMessage}</p>
-                        </div>
-                        <button
-                            onClick={() => setShowSuccessAlert(false)}
-                            className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                </div>
             )}
         </div>
     );

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Calendar, Clock, User, ChevronLeft, ChevronRight, Plus,
   ArrowLeft, ArrowRight, CheckCircle, X, Save, Scissors,
-  Loader2, Star, ShieldCheck, Search, Info, ShoppingBag
+  Loader2, Star, ShieldCheck, Search, Info, ShoppingBag,
+  Wallet, Banknote, ArrowRightLeft, Smartphone, CreditCard
 } from 'lucide-react';
 import { serviceService } from '@/features/services/services/serviceService';
 import { agendaService, empleadoAgendaService, metodoPagoService, type AgendaItem } from '../services/agendaService';
@@ -532,10 +533,10 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   // Step 1: Select Services
   if (step === 1) {
     return (
-      <section className="py-20 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-[950px] mx-auto px-4 sm:px-6">
           {/* Progress Header */}
-          <div className="mb-12">
+          <div className="mb-10">
             <div className="flex items-center justify-between max-w-2xl mx-auto">
               {[1, 2, 3].map((num) => (
                 <div key={num} className="flex items-center flex-1 last:flex-none">
@@ -559,247 +560,263 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             </div>
           </div>
 
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">
-              Selecciona tus Servicios
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
+              Selecciona tus <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">Servicios</span>
             </h2>
-            <p className="text-xl text-gray-600">
-              Puedes elegir uno o varios servicios para tu cita
+            <p className="text-base text-gray-600 font-medium">
+              Elige los servicios que deseas para tu próxima cita
             </p>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-xl p-8">
-            {isLoadingServices ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-12 h-12 text-pink-500 animate-spin mb-4" />
-                <p className="text-gray-600 font-medium">Cargando servicios disponibles...</p>
-              </div>
-            ) : services.length > 0 ? (
-              <>
-                {/* Search Bar for Services */}
-                <div className="mb-10 relative group">
-                  <div className="absolute top-1/2 -translate-y-1/2 left-5 pointer-events-none">
-                    <Search className="h-6 w-6 text-gray-400 group-focus-within:text-pink-500 transition-colors" />
+          <div className="bg-white rounded-[2rem] shadow-2xl shadow-pink-100/10 border border-gray-100 p-6 sm:p-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+              {/* Left Panel: Services */}
+              <div className="md:border-r border-black/10 md:pr-5 space-y-6">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-9 h-9 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center">
+                    <Scissors className="w-5 h-5" />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Buscar servicios por nombre, descripción o categoría..."
-                    value={serviceSearchTerm}
-                    onChange={(e) => setServiceSearchTerm(e.target.value)}
-                    className="block w-full pl-14 pr-12 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 focus:bg-white transition-all text-lg shadow-sm"
-                  />
-                  {serviceSearchTerm && (
-                    <button 
-                      onClick={() => setServiceSearchTerm('')}
-                      className="absolute top-1/2 -translate-y-1/2 right-4 flex items-center justify-center text-gray-400 hover:text-pink-500 bg-gray-100 hover:bg-pink-100 h-8 w-8 rounded-full transition-colors"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  )}
+                  <h3 className="text-lg font-bold text-gray-900">Servicios</h3>
                 </div>
 
-                {services.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-                    {services.map((service) => {
-                      const isSelected = selectedServices.some(s => s.id === service.id);
-                      return (
-                        <div
-                          key={service.id}
-                          onClick={() => toggleServiceSelection(service)}
-                          className={`p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${isSelected
-                            ? 'border-pink-500 bg-pink-50 shadow-lg scale-105'
-                            : 'border-gray-200 hover:border-pink-300'
+                {isLoadingServices ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-pink-100 border-t-pink-500 rounded-full animate-spin" />
+                      <Scissors className="w-6 h-6 text-pink-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="mt-4 text-gray-500 font-semibold">Buscando servicios...</p>
+                  </div>
+                ) : services.length > 0 ? (
+                  <>
+                    <div className="relative group mb-6">
+                      <Search className="absolute left-[20px] top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500 transition-colors" />
+                      <input
+                        type="text"
+                        placeholder="¿Qué servicio buscas?"
+                        value={serviceSearchTerm}
+                        onChange={(e) => setServiceSearchTerm(e.target.value)}
+                        className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-2 border-transparent focus:border-pink-200 focus:bg-white rounded-xl outline-none transition-all text-gray-700 font-medium text-xs"
+                      />
+                    </div>
+
+                    <div className="flex flex-col space-y-2 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                      {services.map((service) => {
+                        const isSelected = selectedServices.some(s => s.id === service.id);
+                        return (
+                          <div
+                            key={service.id}
+                            onClick={() => toggleServiceSelection(service)}
+                            className={`group p-3 rounded-xl border-2 transition-all duration-300 cursor-pointer flex items-center justify-between ${
+                              isSelected
+                                ? 'border-pink-500 bg-pink-50/50 ring-4 ring-pink-500/10 shadow-md shadow-pink-200/20'
+                                : 'border-gray-50 bg-white hover:border-pink-100 hover:shadow-sm'
                             }`}
-                        >
-                          <div className="flex items-start space-x-4">
-                            <div className="mt-1">
-                              <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${isSelected
-                                ? 'bg-pink-500 border-pink-500'
-                                : 'border-gray-300'
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                                isSelected ? 'bg-pink-500 text-white' : 'bg-pink-50 text-pink-500 group-hover:bg-pink-100'
+                              }`}>
+                                <Scissors className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className={`font-bold text-sm leading-tight truncate transition-colors ${
+                                  isSelected ? 'text-pink-900' : 'text-gray-800'
                                 }`}>
-                                {isSelected && <CheckCircle className="w-5 h-5 text-white" />}
+                                  {service.name}
+                                </h4>
+                                <div className="flex items-center text-[10px] text-gray-500 font-medium mt-0.5">
+                                  <Clock className="w-3 h-3 mr-1 opacity-60" />
+                                  {service.duration} min
+                                </div>
                               </div>
                             </div>
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-3 mb-3">
-                                <div className={`w-10 h-10 ${service.color} rounded-full flex items-center justify-center`}>
-                                  <Clock className="w-5 h-5 text-white" />
-                                </div>
-                                <h4 className="font-bold text-gray-800 text-lg">{service.name}</h4>
+
+                            <div className="flex items-center gap-3 ml-4">
+                              <div className={`font-black text-sm ${
+                                isSelected ? 'text-pink-600' : 'text-gray-900'
+                              }`}>
+                                ${service.price.toLocaleString()}
                               </div>
-                              <div className="flex items-center justify-between text-sm text-gray-600">
-                                <span className="flex items-center space-x-1">
-                                  <Clock className="w-4 h-4" />
-                                  <span>{service.duration} min</span>
-                                </span>
-                                <span className="font-bold text-pink-600 text-lg">
-                                  ${service.price.toLocaleString()}
-                                </span>
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                                isSelected ? 'bg-pink-500 border-pink-500' : 'border-gray-200 group-hover:border-pink-200'
+                              }`}>
+                                {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
                               </div>
                             </div>
                           </div>
+                        );
+                      })}
+                    </div>
+
+                    {totalServicePages > 1 && (
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => setServicePage(p => Math.max(1, p - 1))}
+                          disabled={servicePage === 1}
+                          className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 transition-all"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <div className="flex space-x-1.5">
+                          {[...Array(totalServicePages)].map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setServicePage(i + 1)}
+                              className={`min-w-[32px] h-8 px-2 rounded-lg font-bold text-xs transition-all ${
+                                servicePage === i + 1 ? 'bg-pink-500 text-white shadow-sm' : 'text-gray-400 hover:bg-gray-50'
+                              }`}
+                            >
+                              {i + 1}
+                            </button>
+                          ))}
                         </div>
-                      );
-                    })}
-                  </div>
+                        <button
+                          onClick={() => setServicePage(p => Math.min(totalServicePages, p + 1))}
+                          disabled={servicePage === totalServicePages}
+                          className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30 transition-all"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <div className="text-center py-12 bg-gray-50 rounded-2xl mb-8">
-                    <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 font-medium">No se encontraron servicios que coincidan con tu búsqueda</p>
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-8 h-8 text-gray-300" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800">No hay servicios</h3>
+                    <p className="text-sm text-gray-500">Prueba con otra búsqueda</p>
                   </div>
                 )}
+              </div>
 
-                {/* Pagination for Services */}
-                {totalServicePages > 1 && (
-                  <div className="flex items-center justify-center space-x-4 mb-8">
-                    <button
-                      onClick={() => {
-                        setServicePage(p => Math.max(1, p - 1));
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      disabled={servicePage === 1}
-                      className={`p-2 rounded-xl transition-all ${
-                        servicePage === 1 
-                          ? 'text-gray-300 cursor-not-allowed' 
-                          : 'text-pink-500 hover:bg-pink-50'
-                      }`}
-                    >
-                      <ChevronLeft className="w-8 h-8" />
-                    </button>
-                    
-                    <div className="flex items-center space-x-2">
-                      {[...Array(totalServicePages)].map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => {
-                            setServicePage(i + 1);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                          className={`w-10 h-10 rounded-xl font-bold transition-all ${
-                            servicePage === i + 1
-                              ? 'bg-pink-500 text-white shadow-md'
-                              : 'text-gray-500 hover:bg-gray-100'
+              {/* Right Panel: Payment + Summary */}
+              <div className="md:pl-5 space-y-10">
+                {/* Payment Methods */}
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center">
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <h3 className="text-base font-bold text-gray-900">Método de Pago</h3>
+                  </div>
+
+                  <div className="flex flex-row flex-wrap gap-3">
+                    {metodosPago.map((metodo) => {
+                      const id = metodo.metodopagoId || metodo.metodoPagoId;
+                      const isSelected = (selectedMetodoPago?.metodopagoId || selectedMetodoPago?.metodoPagoId) === id;
+                      const isCash = metodo.nombre.toLowerCase().includes('efectivo') || metodo.nombre.toLowerCase().includes('cash');
+                      
+                      return (
+                        <div
+                          key={id}
+                          onClick={() => setSelectedMetodoPago(metodo)}
+                          className={`p-3 px-4 rounded-xl border transition-all duration-300 cursor-pointer flex items-center gap-3 w-fit ${
+                            isSelected
+                              ? 'bg-pink-600 border-pink-600 text-white shadow-md scale-[1.02]'
+                              : 'border-gray-200 bg-white hover:border-pink-200 text-gray-700'
                           }`}
                         >
-                          {i + 1}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setServicePage(p => Math.min(totalServicePages, p + 1));
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      disabled={servicePage === totalServicePages}
-                      className={`p-2 rounded-xl transition-all ${
-                        servicePage === totalServicePages 
-                          ? 'text-gray-300 cursor-not-allowed' 
-                          : 'text-pink-500 hover:bg-pink-50'
-                      }`}
-                    >
-                      <ChevronRight className="w-8 h-8" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Payment Method Selection */}
-                <div className="mb-10 border-t border-gray-100 pt-10">
-                  <div className="flex items-center space-x-3 mb-6">
-                    <div className="w-10 h-10 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                      <Info className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-black text-gray-800 leading-none mb-1">Método de Pago</h3>
-                      <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">¿Cómo prefieres pagar tu cita?</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {metodosPago.map((metodo) => {
-                      const isSelected = selectedMetodoPago?.metodopagoId === (metodo.metodopagoId || metodo.metodoPagoId);
-                      return (
-                        <div
-                          key={metodo.metodopagoId || metodo.metodoPagoId}
-                          onClick={() => setSelectedMetodoPago(metodo)}
-                          className={`p-4 rounded-2xl border-2 cursor-pointer transition-all duration-300 flex flex-col items-center text-center space-y-2 ${isSelected
-                            ? 'border-blue-500 bg-blue-50 shadow-md scale-105'
-                            : 'border-gray-100 hover:border-blue-200 bg-gray-50/50'
-                            }`}
-                        >
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isSelected ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
-                            <ShoppingBag className="w-5 h-5" />
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
+                            isSelected ? 'bg-white/20 text-white' : 'bg-pink-50 text-pink-500'
+                          }`}>
+                            {isCash ? <Banknote className="w-5 h-5" /> : <ArrowRightLeft className="w-5 h-5" />}
                           </div>
-                          <span className={`text-sm font-black ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
-                            {metodo.nombre}
-                          </span>
+                          <div className="text-left">
+                            <h4 className="font-bold text-[11px] leading-tight">{metodo.nombre}</h4>
+                          </div>
+                          {isSelected && <CheckCircle className="w-3.5 h-3.5 text-white shrink-0" />}
                         </div>
                       );
                     })}
                   </div>
                 </div>
-              </>
-            ) : (
-              <div className="text-center py-20">
-                <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Scissors className="w-10 h-10 text-pink-500" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">No hay servicios disponibles</h3>
-                <p className="text-gray-600">Lo sentimos, no pudimos cargar los servicios en este momento.</p>
-              </div>
-            )}
 
-            {/* Selected Services Summary */}
-            {selectedServices.length > 0 && (
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 mb-6">
-                <h4 className="font-bold text-gray-800 mb-4">Resumen de Servicios Seleccionados</h4>
-                <div className="space-y-2 mb-4">
-                  {selectedServices.map((service, index) => (
-                    <div key={service.id} className="flex justify-between items-center text-sm">
-                      <span className="text-gray-700">{index + 1}. {service.name}</span>
-                      <span className="text-gray-600">{service.duration} min • ${service.price.toLocaleString()}</span>
+                {/* Summary and Navigation */}
+                <div className="border-t border-gray-100 pt-10 space-y-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center">
+                      <ShoppingBag className="w-4 h-4" />
                     </div>
-                  ))}
-                </div>
-                <div className="border-t border-pink-200 pt-3 flex justify-between items-center">
-                  <div>
-                    <span className="text-gray-600">Duración Total: </span>
-                    <span className="font-bold text-gray-800">{getTotalDuration()} min</span>
+                    <h3 className="text-base font-bold text-gray-900">Resumen</h3>
                   </div>
-                  <div>
-                    <span className="text-gray-600">Precio Total: </span>
-                    <span className="font-bold text-pink-600 text-xl">${getTotalPrice().toLocaleString()}</span>
-                  </div>
+                  
+                  {selectedServices.length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="bg-gray-50/50 rounded-2xl p-4 space-y-3">
+                        <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
+                          {selectedServices.map((service) => (
+                            <div key={service.id} className="flex justify-between items-center text-xs group">
+                              <div className="flex items-center gap-2 pr-2 min-w-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-pink-400 shrink-0" />
+                                <span className="font-bold text-gray-800 truncate">{service.name}</span>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <span className="text-gray-500 font-medium">{service.duration} min</span>
+                                <span className="font-bold text-gray-900">${service.price.toLocaleString()}</span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); toggleServiceSelection(service); }}
+                                  className="p-1 hover:bg-pink-100 rounded-lg transition-colors"
+                                >
+                                  <X className="w-3 h-3 text-pink-500" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="pt-3 border-t border-gray-200/50 space-y-2">
+                          <div className="flex justify-between items-center text-[10px] font-medium text-gray-500">
+                            <span>Tiempo estimado</span>
+                            <span className="text-gray-900 font-bold">{getTotalDuration()} min</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-gray-900">Total</span>
+                            <p className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+                              ${getTotalPrice().toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row items-center justify-between gap-4 mt-5">
+                        {onBack && (
+                          <button
+                            onClick={onBack}
+                            className="flex-1 border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                          >
+                            <ArrowLeft className="w-4 h-4" />
+                            <span>Volver</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setStep(2)}
+                          className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        >
+                          <span>Continuar</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-10 text-center bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
+                      <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+                      <p className="text-sm text-gray-400 font-medium">No hay servicios seleccionados</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
-
-            <div className="flex justify-between items-center">
-              {onBack && (
-                <button
-                  onClick={onBack}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 font-semibold"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  <span>Volver a Mis Citas</span>
-                </button>
-              )}
-
-              {selectedServices.length > 0 && (
-                <button
-                  onClick={() => setStep(2)}
-                  className="ml-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center space-x-2"
-                >
-                  <span>Continuar</span>
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              )}
             </div>
           </div>
+
         </div>
       </section>
     );
   }
+
 
   // Step 2: Select Professional
   if (step === 2) {
@@ -1113,11 +1130,11 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                         onClick={() => !isDisabled && setSelectedDate(dateString)}
                         disabled={isDisabled}
                         className={`group relative p-4 text-center rounded-2xl transition-all duration-300 ${
-                          isDisabled ? 'opacity-30 cursor-not-allowed grayscale' : 'cursor-pointer'
-                        } ${
-                          isActive 
-                            ? 'bg-pink-500 text-white shadow-xl scale-110 z-10' 
-                            : 'bg-gray-50 text-gray-700 hover:bg-pink-100 hover:text-pink-600'
+                          isDisabled 
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-transparent' 
+                            : isActive 
+                              ? 'bg-pink-500 text-white shadow-xl scale-110 z-10 cursor-pointer' 
+                              : 'bg-gray-50 text-gray-700 hover:bg-pink-100 hover:text-pink-600 cursor-pointer'
                         }`}
                       >
                         <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-pink-500'}`}>
@@ -1128,11 +1145,6 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                         </div>
                         {isToday && !isActive && (
                           <div className="absolute top-2 right-2 w-2 h-2 bg-pink-500 rounded-full ring-4 ring-pink-100"></div>
-                        )}
-                        {!worksToday && !isPast && (
-                          <div className="absolute -top-1 -right-1 bg-red-100 text-red-600 p-1 rounded-lg text-[8px] font-black uppercase transform rotate-12 shadow-sm border border-red-200">
-                            Libre
-                          </div>
                         )}
                         {isActive && (
                           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-white rounded-full"></div>
@@ -1231,102 +1243,13 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 </div>
               </div>
             </div>
-
-            {/* Selection Summary */}
-
-            {/* Selection Summary - Improved Contrast and Visibility */}
-            <div className="bg-white rounded-3xl shadow-2xl border-2 border-pink-100 overflow-hidden relative">
-              {/* Top Accent Bar */}
-              <div className="h-3 bg-gradient-to-r from-pink-500 via-purple-600 to-pink-600 w-full"></div>
-              
-              <div className="p-8">
-                <div className="flex flex-col lg:flex-row gap-10 items-stretch">
-                  {/* Left: Professional Info */}
-                  <div className="lg:w-1/4 flex flex-col items-center lg:items-start lg:border-r-2 lg:border-gray-100 lg:pr-8">
-                    <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center uppercase tracking-tighter">
-                      <ShieldCheck className="w-6 h-6 text-pink-600 mr-2" />
-                      Tu Selección
-                    </h3>
-                    
-                    <div className="w-full bg-pink-50 p-4 rounded-2xl border-2 border-pink-100/50 flex flex-col space-y-3">
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-black text-pink-600 uppercase tracking-widest mb-0.5">Profesional</p>
-                        <p className="font-black text-gray-900 text-lg truncate">{selectedProfessional?.name}</p>
-                        <p className="text-xs text-gray-500 font-bold truncate">{selectedProfessional?.role}</p>
-                      </div>
-                      <div className="pt-2 border-t border-pink-100/50">
-                        <p className="text-[10px] font-black text-pink-600 uppercase tracking-widest mb-1">Método de Pago</p>
-                        <div className="flex items-center space-x-2 bg-white/50 p-2 rounded-xl">
-                          <ShoppingBag className="w-4 h-4 text-pink-500" />
-                          <span className="text-sm font-bold text-gray-800">{selectedMetodoPago?.nombre || 'No seleccionado'}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Center: Services List */}
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-6">
-                      <p className="text-[10px] font-black text-pink-600 uppercase tracking-[0.2em]">Servicios Seleccionados</p>
-                      <span className="bg-pink-100/50 text-pink-700 text-[10px] font-black px-2 py-1 rounded-full uppercase border border-pink-200">
-                        {selectedServices.length} {selectedServices.length === 1 ? 'Servicio' : 'Servicios'}
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
-                      {selectedServices.map(s => (
-                        <div key={s.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-200 hover:border-pink-300 transition-all group">
-                          <div className="flex items-center space-x-3 min-w-0">
-                            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm shrink-0 group-hover:scale-110 transition-transform">
-                              <Scissors className="w-4 h-4 text-pink-500" />
-                            </div>
-                            <span className="text-sm font-black text-gray-800 truncate">{s.name}</span>
-                          </div>
-                          <span className="text-xs font-black text-pink-600 ml-4 bg-white px-2 py-1 rounded-lg border border-pink-50 shadow-sm shrink-0">
-                            ${s.price.toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Right: Totals (High Contrast Light Theme) */}
-                  <div className="lg:w-1/4">
-                    <div className="h-full bg-gradient-to-br from-gray-50 to-pink-50/30 rounded-2xl p-6 border-2 border-pink-100 shadow-xl flex flex-col justify-center relative overflow-hidden group">
-                      {/* Decorative background circle */}
-                      <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-pink-500/5 rounded-full blur-2xl group-hover:bg-pink-500/10 transition-colors"></div>
-                      
-                      <div className="relative z-10 space-y-6">
-                        <div className="flex items-center justify-between border-b-2 border-pink-100/50 pb-4">
-                          <div className="flex items-center space-x-2">
-                            <Clock className="w-5 h-5 text-pink-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-pink-600">Duración</span>
-                          </div>
-                          <span className="text-xl font-black text-gray-900">{getTotalDuration()} min</span>
-                        </div>
-                        
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-black text-pink-600 uppercase tracking-[0.3em] mb-1">Total Final</p>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-black text-pink-500">$</span>
-                            <span className="text-5xl font-black text-gray-900 tracking-tighter">
-                              {getTotalPrice().toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
         {/* Booking Confirmation Modal */}
         {showBookingModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-300">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-500 ease-out animate-in fade-in zoom-in-95 slide-in-from-bottom-10">
               <div className="bg-gradient-to-r from-pink-400 to-purple-500 p-8 text-white">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-2xl font-bold">Confirmar Cita</h3>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { clearAuthToken } from "@/shared/services/apiClient";
-import { AlertCircle, LogOut } from "lucide-react";
+import { AlertCircle, LogOut, Scissors } from "lucide-react";
 import { Navigation } from "@/shared/components/Navigation";
 import { Hero } from "@/shared/components/Hero";
 import { ServiceList } from "@/features/services/components/ServiceList";

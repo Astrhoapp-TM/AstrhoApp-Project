@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Plus, Search, Edit, Trash2, Eye, Package, Wrench, AlertTriangle, X, Loader2, Tag, TrendingUp, FileText, AlertCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, Plus, Search, Edit, Trash2, Eye, Package, Wrench, AlertTriangle, X, Loader2, Tag, TrendingUp, FileText, AlertCircle, RefreshCw, Info } from 'lucide-react';
 import { supplyService, type Supply } from '../services/supplyService';
 import { supplierService } from '@/features/suppliers/services/supplierService';
 import { SupplyEditModal } from './modals/SupplyEditModal';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
+import { cn } from '@/shared/components/ui/utils';
 
 interface SupplyManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -29,8 +30,12 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
   const [itemsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   // ── Fetch data from API ──
   const fetchSupplies = async () => {
@@ -63,16 +68,6 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
     fetchSuppliers();
   }, []);
 
-  // Auto-hide success alert after 4 seconds
-  useEffect(() => {
-    if (showSuccessAlert) {
-      const timer = setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessAlert]);
-
   // Reset a página 1 cuando cambia búsqueda
   useEffect(() => {
     setCurrentPage(1);
@@ -103,6 +98,17 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
   const goToPage = (page: number) => setCurrentPage(page);
   const goToPreviousPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
   const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+
+  if (loading && supplies.length === 0) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Cargando insumos...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleCreateSupply = () => {
     setSelectedSupply(null);
@@ -138,12 +144,10 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
       await fetchSupplies();
       setShowDeleteModal(false);
       setSupplyToDelete(null);
-      setShowSuccessAlert(true);
-      setAlertMessage('Insumo eliminado exitosamente');
+      showAlert('success', 'Insumo eliminado exitosamente');
     } catch (err) {
       console.error('Error deleting supply:', err);
-      setShowSuccessAlert(true);
-      setAlertMessage('Error al eliminar el insumo');
+      showAlert('error', 'Error al eliminar el insumo');
     }
   };
 
@@ -171,17 +175,44 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
 
       await fetchSupplies();
       setShowEditModal(false);
-      setShowSuccessAlert(true);
-      setAlertMessage(selectedSupply ? 'Insumo actualizado exitosamente' : 'Insumo creado exitosamente');
+      showAlert('success', selectedSupply ? 'Insumo actualizado exitosamente' : 'Insumo creado exitosamente');
     } catch (err) {
       console.error('Error saving supply:', err);
-      setShowSuccessAlert(true);
-      setAlertMessage('Error al guardar el insumo');
+      showAlert('error', 'Error al guardar el insumo');
     }
   };
 
   return (
     <div className="p-8">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -215,10 +246,11 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={fetchSupplies}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={loading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
             </button>
 
             {hasPermission('manage_supplies') && (
@@ -525,28 +557,6 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Success Alert */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[9999] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
-            </div>
-            <button
-              onClick={() => setShowSuccessAlert(false)}
-              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
         </div>
       )}

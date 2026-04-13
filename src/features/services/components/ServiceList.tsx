@@ -66,6 +66,11 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
   const [selectedService, setSelectedService] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [favorites, setFavorites] = useState<number[]>([]);
+  
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(3); // Cambiado de 6 a 3 para forzar la paginación si hay pocos servicios
+  const [totalRecords, setTotalRecords] = useState(0);
 
   // Helper avanzado para procesar cualquier formato de imagen del backend
   const processImageSource = (raw: any): string => {
@@ -214,19 +219,30 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
   const fetchServices = async () => {
     setIsLoading(true);
     try {
-      const data = await serviceService.getServices();
+      // Usar los parámetros de paginación de la API
+      const data = await serviceService.getServices({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        search: searchTerm || undefined
+      });
+      
       console.log('Raw API Data:', data);
 
-      // Handle both standard array, { data: [] } and { $values: [] } formats
       let servicesArray = [];
+      let total = 0;
+
       if (Array.isArray(data)) {
         servicesArray = data;
+        total = data.length;
       } else if (data && typeof data === 'object') {
+        // Soporte para PaginatedResponse { data, totalCount, pageNumber, totalPages }
         servicesArray = (data as any).data || (data as any).$values || [];
+        total = (data as any).totalCount || (data as any).total || servicesArray.length;
       }
       
-      console.log('Services API Data (Processed):', servicesArray);
+      console.log('Services API Data (Processed):', servicesArray, 'Total:', total);
       setServices(servicesArray.map(mapAPIServiceToUI));
+      setTotalRecords(total);
     } catch (error) {
       console.error('Error fetching services:', error);
       toast.error('Error al cargar servicios');
@@ -237,12 +253,15 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
 
   useEffect(() => {
     fetchServices();
-  }, []);
+  }, [currentPage, searchTerm, filterCategory]);
 
-  // Filter services
+  // Resetear la página a 1 cuando cambien los filtros
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterCategory]);
+
+  // Filter services (Client-side secondary filter if needed, but primarily using API)
   const filteredServices = services.filter(service => {
-    const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'Todos' || service.category === filterCategory;
     
     // Robust isActive check
@@ -251,10 +270,17 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                      service.isActive === '1' || 
                      service.isActive === 'Activo' || 
                      service.isActive === 'activo' ||
-                     service.isActive === undefined; // If undefined, assume active for now
+                     service.isActive === undefined;
                      
-    return matchesSearch && matchesCategory && isActive;
+    return matchesCategory && isActive;
   });
+
+  // Paginación lógica (Ahora usamos directamente los servicios devueltos por la API)
+  const totalPages = Math.ceil(totalRecords / itemsPerPage);
+  // NOTA: No filtramos de nuevo paginatedServices aquí porque ya vienen paginados de la API
+  // pero si el usuario tiene menos servicios que itemsPerPage, totalPages será 1 y la paginación no se verá.
+  // Forzamos al menos 2 páginas para testear si hay datos suficientes o ajustamos itemsPerPage
+  const paginatedServices = services; 
 
   const handleServiceBooking = (service: any) => {
     onBookAppointment(service);
@@ -288,21 +314,15 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {isLoading ? (
-            // Loading skeleton or spinner
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-lg overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-6">
-                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                  <div className="h-10 bg-gray-200 rounded w-full"></div>
-                </div>
-              </div>
-            ))
-          ) : filteredServices.length > 0 ? (
-            filteredServices.map((service) => {
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 relative min-h-[400px]">
+          {isLoading && (
+            <div className="col-span-full py-20 flex justify-center items-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
+            </div>
+          )}
+          
+          {!isLoading && paginatedServices.length > 0 ? (
+            paginatedServices.map((service) => {
               const Icon = service.icon;
               return (
                 <div
@@ -395,6 +415,53 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
             </div>
           )}
         </div>
+
+        {/* Paginación Mejorada para Landing */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-2 mb-16">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${
+                currentPage === 1 
+                ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50' 
+                : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
+              }`}
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span className="hidden sm:inline font-bold text-sm">Anterior</span>
+            </button>
+            
+            <div className="flex items-center bg-white p-1.5 rounded-2xl border-2 border-pink-50 shadow-inner space-x-1">
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`min-w-[40px] h-10 px-3 rounded-xl font-black text-sm transition-all duration-300 flex items-center justify-center ${
+                    currentPage === i + 1 
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-200 scale-105' 
+                    : 'text-gray-500 hover:bg-pink-50 hover:text-pink-600 hover:scale-110 active:scale-90'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${
+                currentPage === totalPages 
+                ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50' 
+                : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
+              }`}
+            >
+              <span className="hidden sm:inline font-bold text-sm">Siguiente</span>
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        )}
 
         {/* CTA Section */}
         <div className="text-center">

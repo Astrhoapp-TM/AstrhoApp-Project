@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   Truck, Plus, Edit, Trash2, Eye, Search, Phone, Mail,
-  MapPin, Package, X, Save, AlertCircle, CheckCircle, Loader2, AlertTriangle, RefreshCw
+  MapPin, Package, X, Save, AlertCircle, CheckCircle, Loader2, AlertTriangle, RefreshCw, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supplierService } from '../services/supplierService';
 import { purchaseService } from '@/features/purchases/services/purchaseService';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
+import { cn } from '@/shared/components/ui/utils';
 
 const mapApiToFrontend = (rawApiData: any) => {
   if (!rawApiData) return null;
@@ -69,6 +70,13 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
+
   const [checkingPurchases, setCheckingPurchases] = useState(false);
   const [supplierHasPurchases, setSupplierHasPurchases] = useState(false);
 
@@ -174,10 +182,10 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       await supplierService.delete(supplierId);
       // Remove from local state immediately after successful API call
       setSuppliers(prev => prev.filter(s => s.id !== supplierId));
-      toast.success(`Proveedor "${supplierName}" eliminado correctamente`);
+      showAlert('success', `Proveedor "${supplierName}" eliminado correctamente`);
     } catch (error) {
       console.error('Error deleting supplier:', error);
-      toast.error(`No se pudo eliminar a "${supplierName}". Es posible que tenga registros asociados (ej. Compras) en la base de datos.`);
+      showAlert('error', `No se pudo eliminar a "${supplierName}". Es posible que tenga registros asociados (ej. Compras) en la base de datos.`);
       // Re-sync from API to restore consistent state
       await loadSuppliers();
     }
@@ -189,23 +197,15 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
     const newStatus = supplier.status === 'active' ? 'inactive' : 'active';
 
     try {
-      const apiPayload = mapFrontendToApi({ ...supplier, status: newStatus }, false);
-      await supplierService.update(supplier.id, apiPayload);
-
-      setSuppliers(suppliers.map(s =>
-        s.id === supplierId
-          ? { ...s, status: newStatus, updatedAt: new Date().toISOString().split('T')[0] }
-          : s
-      ));
-
-      if (newStatus === 'active') {
-        toast.success(`Proveedor "${supplier.name}" activado correctamente`);
-      } else {
-        toast.info(`Proveedor "${supplier.name}" inactivado correctamente`);
-      }
+      await supplierService.update(supplierId, {
+        ...mapFrontendToApi(supplier),
+        estado: newStatus === 'active'
+      });
+      setSuppliers(prev => prev.map(s => s.id === supplierId ? { ...s, status: newStatus } : s));
+      showAlert('success', `Proveedor "${supplier.name}" ${newStatus === 'active' ? 'activado' : 'inactivado'} correctamente`);
     } catch (error) {
-      console.error('Error updating supplier status:', error);
-      toast.error('Error al cambiar el estado del proveedor');
+      console.error('Error toggling status:', error);
+      showAlert('error', 'Error al cambiar el estado del proveedor');
     }
   };
 
@@ -248,7 +248,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
           };
 
           setSuppliers([...suppliers, mergedSupplier]);
-          toast.success(`Proveedor "${supplierData.name}" registrado correctamente`);
+          showAlert('success', `Proveedor "${supplierData.name}" registrado correctamente`);
         }
 
         // Fully sync from server to ensure correct DB ID
@@ -257,7 +257,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       setShowEditModal(false);
     } catch (error) {
       console.error('Error saving supplier:', error);
-      toast.error('Error al guardar el proveedor. Verifica los datos o conexión.');
+      showAlert('error', 'Error al guardar el proveedor. Verifica los datos o conexión.');
       throw error; // Rethrow to let the modal know it failed
     }
   };
@@ -302,8 +302,48 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
     }
   };
 
+  if (isLoading && currentSuppliers.length === 0) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Cargando proveedores...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -331,10 +371,11 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={loadSuppliers}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={isLoading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
             </button>
 
             {hasPermission('manage_suppliers') && (

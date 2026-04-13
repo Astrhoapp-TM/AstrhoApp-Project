@@ -40,8 +40,13 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [deliveryToCancel, setDeliveryToCancel] = useState<Delivery | null>(null);
   const [cancelReason, setCancelReason] = useState('');
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
+
   const [isProcessing, setIsProcessing] = useState(false);
 
   const fetchData = async (isRefreshing = false) => {
@@ -89,16 +94,6 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
 
   // Ya no filtramos en el cliente, usamos lo que viene de la API
   const paginatedDeliveries = deliveries;
-
-  // Auto-hide success alert after 4 seconds
-  useEffect(() => {
-    if (showSuccessAlert) {
-      const timer = setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessAlert]);
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
@@ -211,13 +206,11 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
       await fetchData();
 
       setShowCreateModal(false);
-      setAlertMessage('Entrega registrada exitosamente');
-      setShowSuccessAlert(true);
+      showAlert('success', 'Entrega registrada exitosamente');
     } catch (error: any) {
       console.error('Error creating delivery:', error);
       const errorMessage = error.message || 'Error desconocido';
-      setAlertMessage(`Error al crear la entrega: ${errorMessage}`);
-      setShowSuccessAlert(true);
+      showAlert('error', `Error al crear la entrega: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
     }
@@ -273,8 +266,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
       await deliveryService.updateDelivery(deliveryId, payload);
 
       const actionWord = normalizedNewStatus === 'Completado' ? 'completada' : 'cancelada';
-      setAlertMessage(`Entrega ${actionWord} exitosamente`);
-      setShowSuccessAlert(true);
+      showAlert('success', `Entrega ${actionWord} exitosamente`);
 
       // Final Sync: always refresh from backend to ensure consistency
       await fetchData(true);
@@ -282,8 +274,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
     } catch (error) {
       console.error('Error updating status:', error);
       setDeliveries(previousDeliveries);
-      setAlertMessage('Ocurrió un error al actualizar el estado.');
-      setShowSuccessAlert(true);
+      showAlert('error', 'Ocurrió un error al actualizar el estado.');
     } finally {
       setIsProcessing(false);
     }
@@ -395,15 +386,46 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
 
   if (loading && deliveries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <Loader2 className="w-12 h-12 text-pink-500 animate-spin" />
-        <p className="text-gray-600 font-medium italic">Cargando entregas...</p>
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Cargando entregas...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="p-8">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -434,10 +456,11 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={() => fetchData(true)}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={loading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
             </button>
 
             {hasPermission('manage_deliveries') && (
@@ -592,7 +615,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                     <AlertCircle className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold leading-tight">Confirmar Anulación</h3>
+                    <h3 className="text-xl font-bold leading-tight">Confirmar Cancelación</h3>
                     <p className="text-red-100 text-xs font-medium">Esta acción no se puede deshacer</p>
                   </div>
                 </div>
@@ -616,10 +639,10 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                   <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
                 </div>
                 <h4 className="text-lg font-bold text-gray-800 mb-2">
-                  ¿Anular entrega #{deliveryToCancel.id}?
+                  ¿Cancelar entrega #{deliveryToCancel.id}?
                 </h4>
                 <p className="text-sm text-gray-500 leading-relaxed mb-6">
-                  Estás a punto de anular esta entrega. Se devolverá el stock a los insumos correspondientes.
+                  Estás a punto de cancelar esta entrega. Se devolverá el stock a los insumos correspondientes.
                 </p>
                 
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col space-y-2 mb-6">
@@ -638,7 +661,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                 </div>
 
                 <div className="text-left space-y-2">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Motivo de Anulación *</label>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Motivo de Cancelación *</label>
                   <textarea
                     value={cancelReason}
                     onChange={(e) => setCancelReason(e.target.value)}
@@ -660,7 +683,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                   disabled={isProcessing}
                   className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest disabled:opacity-50"
                 >
-                  Cancelar
+                  Volver
                 </button>
                 <button
                   onClick={confirmCancelDelivery}
@@ -672,7 +695,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                   ) : (
                     <X className="w-3.5 h-3.5" />
                   )}
-                  <span>Anular</span>
+                  <span>Cancelar Entrega</span>
                 </button>
               </div>
             </div>
@@ -699,28 +722,6 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
           responsible={getUserInfo(selectedDelivery.documentoEmpleado)}
           getSupplyInfo={getSupplyInfo}
         />
-      )}
-
-      {/* Success Alert - rendered at root level for highest z-index */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[2147483647] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
-            </div>
-            <button
-              onClick={() => setShowSuccessAlert(false)}
-              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

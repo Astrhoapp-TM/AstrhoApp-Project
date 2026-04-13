@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Scissors, Plus, Edit, Trash2, Eye, Search, Filter, Clock, DollarSign,
   Package, X, Save, AlertCircle, TrendingUp, Calendar, Tag, Star, Users,
-  Image as ImageIcon, CheckCircle, FileText, RefreshCw
+  Image as ImageIcon, CheckCircle, FileText, RefreshCw, Loader2, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { serviceService, type Service as APIService } from '../services/serviceService';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
+import { cn } from '@/shared/components/ui/utils';
 
 const API_ORIGIN = 'http://www.astrhoapp.somee.com';
 const DEFAULT_SERVICE_IMAGE = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop';
@@ -64,8 +65,13 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
   const [itemsPerPage] = useState(5);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
+
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
 
@@ -239,20 +245,10 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
     fetchServices();
   }, [currentPage, searchTerm]); // Se ejecuta cuando cambia la página o el término de búsqueda
 
-  // Reset page when search changes
+  // Auto-hide success alert after 4 seconds
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
-
-  // Auto-hide success alert after 4 seconds
-  useEffect(() => {
-    if (showSuccessAlert) {
-      const timer = setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessAlert]);
 
   // Ya no filtramos en el cliente, usamos lo que viene de la API
   const paginatedServices = services;
@@ -295,8 +291,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
       setServices(services.filter(s => s.id !== selectedService.id));
       setShowDeleteModal(false);
       setSelectedService(null);
-      setAlertMessage(`Servicio "${selectedService.name}" eliminado exitosamente`);
-      setShowSuccessAlert(true);
+      showAlert('success', `Servicio "${selectedService.name}" eliminado exitosamente`);
     } catch (error) {
       console.error('Error deleting service:', error);
       setErrorModalMessage('No se pudo eliminar el servicio. Es posible que existan dependencias.');
@@ -328,8 +323,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
           : s
       ));
 
-      setAlertMessage(`Estado de "${service.name}" actualizado a ${updatedStatus ? 'Activo' : 'Inactivo'}`);
-      setShowSuccessAlert(true);
+      showAlert('success', `Estado de "${service.name}" actualizado a ${updatedStatus ? 'Activo' : 'Inactivo'}`);
     } catch (error) {
       console.error('Error toggling service status:', error);
       setErrorModalMessage('Error al cambiar el estado del servicio. Verifique su conexión.');
@@ -394,17 +388,16 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
             ? mapServiceToUI(result)
             : s
         ));
-        setAlertMessage(`Servicio "${serviceData.name}" actualizado exitosamente`);
+        showAlert('success', `Servicio "${serviceData.name}" actualizado exitosamente`);
       } else {
         // Create new service
         const formData = mapUIToFormData(serviceData);
         const result = await serviceService.createService(formData);
 
         setServices([mapServiceToUI(result), ...services]);
-        setAlertMessage(`Servicio "${serviceData.name}" creado exitosamente`);
+        showAlert('success', `Servicio "${serviceData.name}" creado exitosamente`);
       }
       setShowEditModal(false);
-      setShowSuccessAlert(true);
     } catch (error: any) {
       console.error('Error saving service:', error);
       const isDuplicate = error.message?.toLowerCase().includes('ya existe') ||
@@ -430,8 +423,48 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
   const totalServices = services.length;
   const activeServices = services.filter(s => s.status === 'active').length;
 
+  if (isLoading && services.length === 0) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Cargando servicios...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <React.Fragment>
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -460,10 +493,11 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
             <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={fetchServices}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={isLoading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
             </button>
 
             {hasPermission('manage_services') && (
@@ -621,50 +655,6 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
           />
         )}
       </div>
-
-      {/* Success Alert positioned absolutely at the root level to circumvent stacking bounds */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[2147483647] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
-            </div>
-            <button
-              onClick={() => setShowSuccessAlert(false)}
-              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Success Alert */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[9999] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
-            </div>
-            <button
-              onClick={() => setShowSuccessAlert(false)}
-              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
     </React.Fragment>
   );
 }

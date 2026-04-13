@@ -4,10 +4,11 @@ import {
   CheckCircle, UserCheck, UserX, Settings, Eye, Trash2, Search,
   LayoutDashboard, Calendar, Scissors, ShoppingCart,
   ShoppingBag, Truck, Box, UsersRound, Tag, Clock, Boxes,
-  PackageCheck, Loader2, Briefcase, Lock, RefreshCw
+  PackageCheck, Loader2, Briefcase, Lock, RefreshCw, Info
 } from 'lucide-react';
 import { mockRoles, mockPermissions } from '@/shared/data/management';
 import { roleService, type RolListDto, type RolResponseDto } from '../services/roleService';
+import { cn } from '@/shared/components/ui/utils';
 import {
   Pagination,
   PaginationContent,
@@ -49,8 +50,12 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
   const [itemsPerPage] = useState(5);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   // Mapping for permissions (Frontend Strings <-> Backend IDs)
   const PERMISSION_MAP = {
@@ -145,16 +150,6 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
     'sales',          // Ventas (ID 13)
     'dashboard'       // Dashboard (ID 14)
   ];
-
-  // Auto-hide success alert after 4 seconds
-  useEffect(() => {
-    if (showSuccessAlert) {
-      const timer = setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessAlert]);
 
   // Agrupar permisos por módulo
   const groupPermissionsByModule = () => {
@@ -302,8 +297,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
     const normalizedName = newRoleData.name.trim().toLowerCase();
     if (normalizedName.includes('super')) {
-      setAlertMessage('No se puede crear un rol de tipo Super Admin');
-      setShowSuccessAlert(true);
+      showAlert('error', 'No se puede crear un rol de tipo Super Admin');
       return;
     }
 
@@ -324,8 +318,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
       await roleService.createRole(payload);
 
-      setAlertMessage('Rol creado exitosamente');
-      setShowSuccessAlert(true);
+      showAlert('success', 'Rol creado exitosamente');
       setShowCreateModal(false);
       setNewRoleData({ name: '', description: '', permissions: [] });
       await fetchRoles();
@@ -335,8 +328,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       // Extract the HTTP error body from the message if present
       const bodyMatch = msg.match(/\(\d+\): (.+)$/);
       const detail = bodyMatch ? bodyMatch[1] : msg;
-      setAlertMessage(`Error al crear el rol: ${detail}`);
-      setShowSuccessAlert(true);
+      showAlert('error', `Error al crear el rol: ${detail}`);
     } finally {
       setLoading(false);
     }
@@ -385,8 +377,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
         estado: editingRole.status === 'active'
       });
 
-      setAlertMessage('Rol actualizado exitosamente');
-      setShowSuccessAlert(true);
+      showAlert('success', 'Rol actualizado exitosamente');
       setEditingRole(null);
       await fetchRoles();
     } catch (error: any) {
@@ -394,8 +385,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       const msg = error?.message || '';
       const bodyMatch = msg.match(/\(\d+\): (.+)$/);
       const detail = bodyMatch ? bodyMatch[1] : msg;
-      setAlertMessage(`Error al actualizar el rol: ${detail}`);
-      setShowSuccessAlert(true);
+      showAlert('error', `Error al actualizar el rol: ${detail}`);
     } finally {
       setLoading(false);
     }
@@ -426,8 +416,10 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       });
 
       await fetchRoles();
+      showAlert('success', `Estado de "${role.name}" cambiado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
     } catch (error) {
       console.error('Error toggling status:', error);
+      showAlert('error', 'Error al cambiar el estado del rol');
     } finally {
       setLoading(false);
     }
@@ -447,8 +439,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       setLoading(true);
       await roleService.deleteRole(parseInt(roleToDelete.id));
 
-      setAlertMessage('Rol eliminado exitosamente');
-      setShowSuccessAlert(true);
+      showAlert('success', 'Rol eliminado exitosamente');
       setShowDeleteModal(false);
       setRoleToDelete(null);
       await fetchRoles();
@@ -457,15 +448,54 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       const msg = error?.message || '';
       const bodyMatch = msg.match(/\(\d+\): (.+)$/);
       const detail = bodyMatch ? bodyMatch[1] : msg;
-      setAlertMessage(`Error al eliminar el rol: ${detail}`);
-      setShowSuccessAlert(true);
+      showAlert('error', `Error al eliminar el rol: ${detail}`);
     } finally {
       setLoading(false);
     }
   };
 
+  if (loading && roles.length === 0) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Cargando roles...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -493,10 +523,11 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={fetchRoles}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={loading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
             </button>
 
             {hasPermission('module_roles') && (
@@ -1480,28 +1511,6 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                 Entendido
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Success Alert */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[60] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
-            </div>
-            <button
-              onClick={() => setShowSuccessAlert(false)}
-              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
         </div>
       )}

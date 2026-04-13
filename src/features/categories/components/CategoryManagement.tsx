@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   FolderTree, Plus, Edit, Trash2, Search, AlertCircle, X, Save,
-  Eye, CheckCircle, Star, RefreshCw
+  Eye, CheckCircle, Star, RefreshCw, Loader2, Info
 } from 'lucide-react';
 import { mockProducts } from '@/shared/data/management';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
+import { cn } from '@/shared/components/ui/utils';
 import { supplyCategoryService, type Category as APICategory } from '../services/supplyCategoryService';
 
 // Helper: ASP.NET with ReferenceHandler.Preserve wraps arrays in { $values: [...] }
@@ -42,10 +43,14 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
   const [itemsPerPage] = useState(5);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
+
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   // Map API category to UI category
   const mapCategoryToUI = (apiCat: APICategory) => ({
@@ -66,15 +71,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
     estado: uiCat.status === 'active'
   });
 
-  // Auto-hide success alert after 4 seconds
-  useEffect(() => {
-    if (showSuccessAlert) {
-      const timer = setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessAlert]);
+
 
   const fetchCategories = async () => {
     setIsLoading(true);
@@ -154,8 +151,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
       setSelectedCategory(null);
 
       // Mostrar alerta de eliminación exitosa
-      setShowSuccessAlert(true);
-      setAlertMessage(`Categoría "${categoryName}" eliminada correctamente`);
+      showAlert('success', `Categoría "${categoryName}" eliminada correctamente`);
     } catch (err) {
       console.error('Error deleting category:', err);
       setErrorModalMessage('No se pudo eliminar la categoría. Es posible que existan dependencias en el sistema.');
@@ -180,8 +176,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
           : c
       ));
 
-      setAlertMessage(`Estado de "${category.name}" actualizado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
-      setShowSuccessAlert(true);
+      showAlert('success', `Estado de "${category.name}" actualizado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
     } catch (err) {
       console.error('Error toggling category status:', err);
       setErrorModalMessage('No se pudo actualizar el estado de la categoría. Verifique su conexión e intente de nuevo.');
@@ -221,14 +216,13 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
             ? mapCategoryToUI(updatedAPI)
             : c
         ));
-        setAlertMessage(`Categoría "${categoryData.name}" actualizada correctamente`);
+        showAlert('success', `Categoría "${categoryData.name}" actualizada correctamente`);
       } else {
         // Create new category
         const createdAPI = await supplyCategoryService.createCategory(mapCategoryToAPI(categoryData) as APICategory);
         setCategories([...categories, mapCategoryToUI(createdAPI)]);
-        setAlertMessage(`Categoría "${categoryData.name}" creada correctamente`);
+        showAlert('success', `Categoría "${categoryData.name}" creada correctamente`);
       }
-      setShowSuccessAlert(true);
       setShowEditModal(false);
     } catch (err: any) {
       console.error('Error saving category:', err);
@@ -271,8 +265,48 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
   const totalCategories = categories.length;
   const activeCategories = categories.filter(c => c.status === 'active');
 
+  if (isLoading && categories.length === 0) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Cargando categorías...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -300,10 +334,11 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={fetchCategories}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={isLoading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
             </button>
 
             {hasPermission('manage_categories') && (
@@ -332,16 +367,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                      <div className="w-12 h-12 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin"></div>
-                      <p className="text-gray-500 font-medium">Cargando categorías...</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : error ? (
+              {error ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center space-y-4 text-red-500">
@@ -482,28 +508,6 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
           onClose={() => setShowDeleteModal(false)}
           onConfirm={confirmDeleteCategory}
         />
-      )}
-
-      {/* Success Alert */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[9999] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
-            </div>
-            <button
-              onClick={() => setShowSuccessAlert(false)}
-              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Error Modal */}

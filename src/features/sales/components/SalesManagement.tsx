@@ -4,7 +4,7 @@ import {
   DollarSign, Plus, Search, Filter, Eye, X, Calendar,
   CreditCard, TrendingUp, Users, User,
   Ban, FileText, Scissors,
-  AlertCircle, Save, Clock, ShoppingBag, Phone, Loader2,
+  AlertCircle, Save, Clock, ShoppingBag, Phone, Loader2, Info,
   Check, ChevronsUpDown, Trash2, Briefcase, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -37,6 +37,12 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -93,9 +99,9 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
 
   if (loading && sales.length === 0) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[300px]">
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-pink-300 border-t-transparent animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando ventas...</p>
         </div>
       </div>
@@ -151,12 +157,12 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
           setSelectedSale(updatedSale);
         }
 
-        toast.success(`Venta ${saleToCancel.id} anulada correctamente`);
+        showAlert('success', `Venta ${saleToCancel.id} anulada correctamente`);
         setCancelModal(false);
         setSaleToCancel(null);
       } catch (err) {
         console.error('Error al anular venta:', err);
-        toast.error('Error al anular la venta. Verifique la conexión o el ID.');
+        showAlert('error', 'Error al anular la venta. Verifique la conexión o el ID.');
       } finally {
         setLoading(false);
       }
@@ -176,14 +182,14 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
           setCurrentPage(1);
         }
         
-        toast.success(`Venta ${createdSale.id} registrada correctamente`);
+        showAlert('success', `Venta ${createdSale.id} registrada correctamente`);
         setShowNewSaleModal(false);
       } else {
         throw new Error('No se pudo registrar la venta');
       }
     } catch (err) {
       console.error('Error creating sale:', err);
-      toast.error('Error al registrar la venta. Verifique los datos.');
+      showAlert('error', 'Error al registrar la venta. Verifique los datos.');
     } finally {
       setLoading(false);
     }
@@ -280,6 +286,35 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
 
   return (
     <div className="p-8">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -307,10 +342,11 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={load}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={loading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
             </button>
 
             {hasPermission('manage_sales') && (
@@ -403,7 +439,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
                                 <FileText className="w-4 h-4" />
                               </button>
 
-                              {sale.status === 'completed' && (
+                              {sale.status === 'completed' && (currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
                                 <button
                                   onClick={() => handleCancelSale(sale)}
                                   className="p-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors"

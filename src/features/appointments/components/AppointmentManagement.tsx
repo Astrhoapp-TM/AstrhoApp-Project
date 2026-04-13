@@ -34,18 +34,12 @@ interface AppointmentManagementProps {
 // getEstadoId now resolved dynamically inside the component using loaded estados
 
 export function AppointmentManagement({ hasPermission, currentUser }: AppointmentManagementProps) {
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
-  // Auto-hide success alert after 4 seconds
-  useEffect(() => {
-    if (showSuccessAlert) {
-      const timer = setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccessAlert]);
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   // ── Data from API ──
   const [appointments, setAppointments] = useState<AgendaItem[]>([]);
@@ -286,13 +280,13 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     if (!selectedAppointment) return;
     try {
       await agendaService.delete(selectedAppointment.agendaId);
-      toast.success(`Cita de ${selectedAppointment.cliente} eliminada correctamente`);
+      showAlert('success', `Cita de ${selectedAppointment.cliente} eliminada correctamente`);
       setShowDeleteModal(false);
       setSelectedAppointment(null);
       await loadData();
     } catch (err) {
       console.error('Error deleting appointment:', err);
-      toast.error('Error al eliminar la cita');
+      showAlert('error', 'Error al eliminar la cita');
     }
   };
 
@@ -300,20 +294,19 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     try {
       if (isEdit && agendaId != null) {
         await agendaService.update(agendaId, data);
-        toast.success('Cita actualizada correctamente');
+        showAlert('success', 'Cita actualizada correctamente');
         if (data?.estadoId === completadoId) {
-          setAlertMessage('Venta creada automáticamente a partir de la cita completada');
-          setShowSuccessAlert(true);
+          showAlert('info', 'Venta creada automáticamente a partir de la cita completada');
         }
       } else {
         await agendaService.create(data);
-        toast.success('Cita registrada correctamente');
+        showAlert('success', 'Cita registrada correctamente');
       }
       setShowCreateModal(false);
       await loadData();
     } catch (err) {
       console.error('Error saving appointment:', err);
-      toast.error('Error al guardar la cita');
+      showAlert('error', 'Error al guardar la cita');
     }
   };
 
@@ -386,20 +379,27 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
   return (
     <div className="p-8">
-      {/* Success Alert */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[9999] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
             <div className="flex-shrink-0">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
               </div>
             </div>
             <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
+              <p className="font-semibold">{alert.message}</p>
             </div>
             <button
-              onClick={() => setShowSuccessAlert(false)}
+              onClick={() => setAlert(null)}
               className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -435,10 +435,11 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={loadData}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={loading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
             </button>
 
             {hasPermission('manage_appointments') && (

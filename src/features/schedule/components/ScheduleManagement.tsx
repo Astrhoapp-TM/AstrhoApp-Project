@@ -6,6 +6,7 @@ import {
   Save, X, Loader2, RefreshCw, Copy, UserPlus, UserMinus, FileText, Search, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
+import { cn } from '@/shared/components/ui/utils';
 import {
   horarioService, horarioEmpleadoService, empleadoService,
   type Horario, type HorarioEmpleado, type Empleado, type CreateHorarioData, type CreateHorarioEmpleadoData,
@@ -88,6 +89,11 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
   // Alert state
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
+
   // ── Data Loading ──
 
   const loadData = async () => {
@@ -146,13 +152,6 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
   useEffect(() => {
     loadData();
   }, []);
-
-  // ── Alert Helper ──
-
-  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
-    setAlert({ type, message });
-    setTimeout(() => setAlert(null), 4000);
-  };
 
   // ── CRUD Handlers ──
 
@@ -537,23 +536,32 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
 
   return (
     <div className="p-8">
-      {/* ── Alert Banner ── */}
+      {/* Notification Banner */}
       {alert && (
-        <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-3 text-white font-semibold min-w-[340px] max-w-[600px] animate-fade-in ${alert.type === 'success'
-            ? 'bg-gradient-to-r from-green-500 to-emerald-600'
-            : alert.type === 'error'
-              ? 'bg-gradient-to-r from-red-500 to-pink-600'
-              : 'bg-gradient-to-r from-blue-500 to-cyan-600'
-            }`}
-        >
-          {alert.type === 'success' && <Save className="w-5 h-5 flex-shrink-0" />}
-          {alert.type === 'error' && <AlertCircle className="w-5 h-5 flex-shrink-0" />}
-          {alert.type === 'info' && <AlertCircle className="w-5 h-5 flex-shrink-0" />}
-          <span className="flex-1">{alert.message}</span>
-          <button onClick={() => setAlert(null)} className="ml-2 hover:opacity-80">
-            <X className="w-4 h-4" />
-          </button>
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -584,10 +592,11 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             <button
               onClick={loadData}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+              disabled={loading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
               title="Recargar datos"
             >
-              <RefreshCw className="w-5 h-5" />
+              <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
             </button>
 
             {canRegisterMotivo && (
@@ -859,23 +868,23 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
   
   return (
     <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Custom Header with high contrast */}
-      <div className="bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 p-8 md:p-10 text-white relative overflow-hidden rounded-t-3xl shadow-inner">
-        {/* Decorations */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-[100px] opacity-40 animate-pulse pointer-events-none"></div>
-        <div className="absolute bottom-0 left-10 w-72 h-72 bg-indigo-500 rounded-full filter blur-[100px] opacity-30 pointer-events-none"></div>
+      {/* Custom Header with improved contrast and reduced spacing */}
+      <div className="bg-white p-6 md:p-8 border-b border-gray-100 relative overflow-hidden rounded-t-3xl shadow-sm">
+        {/* Subtle Decorations */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full filter blur-[60px] opacity-60 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-10 w-48 h-48 bg-purple-50 rounded-full filter blur-[60px] opacity-50 pointer-events-none"></div>
         
         <div className="relative z-10">
-          <div className="inline-flex items-center space-x-2 bg-gray-900/40 backdrop-blur-md px-4 py-2 rounded-full border border-gray-700/50 mb-5 shadow-sm">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
-            <span className="text-xs font-bold tracking-widest text-white uppercase drop-shadow-sm">Horario Oficial</span>
+          <div className="inline-flex items-center space-x-2 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 mb-3 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+            <span className="text-[10px] font-bold tracking-widest text-indigo-700 uppercase">Horario Oficial</span>
           </div>
           
-          <h3 className="text-3xl sm:text-4xl font-extrabold mb-4 flex items-center space-x-4 tracking-tight drop-shadow-md text-white">
-            <Calendar className="w-8 h-8 sm:w-10 sm:h-10 text-purple-300 drop-shadow-sm" />
+          <h3 className="text-2xl sm:text-3xl font-extrabold mb-2 flex items-center space-x-3 tracking-tight text-gray-900">
+            <Calendar className="w-7 h-7 sm:w-8 sm:h-8 text-indigo-600" />
             <span>Mi Semana Laboral</span>
           </h3>
-          <p className="text-indigo-50 max-w-2xl text-base sm:text-lg leading-relaxed drop-shadow-sm font-medium">
+          <p className="text-gray-600 max-w-2xl text-sm sm:text-base leading-relaxed font-medium">
             Revisa tus turnos y tiempos de descanso asignados. Este esquema es tu base recurrente para los días habilitados en la sucursal.
           </p>
         </div>
@@ -904,11 +913,11 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
 
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h4 className={`text-lg font-bold tracking-tight ${isWorking ? 'text-gray-800' : 'text-gray-400'}`}>
+                    <h4 className={`text-lg font-bold tracking-tight ${isWorking ? 'text-gray-900' : 'text-gray-500'}`}>
                       {dia}
                     </h4>
                     {isWorking && (
-                       <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-full border border-indigo-100">
+                       <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-full border border-indigo-200">
                          Turno
                        </span>
                     )}
@@ -921,28 +930,28 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
                           <Clock className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Horario</p>
-                          <div className="font-extrabold text-gray-800 text-[15px]">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Horario</p>
+                          <div className="font-extrabold text-gray-900 text-[15px]">
                             {shift ? formatTo12Hour(shift.horaInicio || '') : ''} 
-                            <span className="text-gray-300 mx-2">-</span> 
+                            <span className="text-gray-400 mx-2">-</span> 
                             {shift ? formatTo12Hour(shift.horaFin || '') : ''}
                           </div>
                         </div>
                       </div>
                       
                       <div className="pt-4 border-t border-gray-100">
-                        <div className="flex items-center space-x-2 text-sm font-medium text-emerald-600 bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100/50 w-full justify-center">
+                        <div className="flex items-center space-x-2 text-sm font-medium text-emerald-700 bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100/50 w-full justify-center">
                           <CheckCircle className="w-4 h-4" />
                           <span>Jornada Confirmada</span>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center py-6 h-full min-h-[140px] text-gray-400">
+                    <div className="flex flex-col items-center justify-center py-6 h-full min-h-[140px] text-gray-500">
                       <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                         <Calendar className="w-6 h-6 text-gray-300 opacity-50" />
+                         <Calendar className="w-6 h-6 text-gray-400 opacity-60" />
                       </div>
-                      <span className="text-sm font-semibold tracking-wide uppercase">Día Libre</span>
+                      <span className="text-sm font-semibold tracking-wide uppercase">Día sin Horario</span>
                     </div>
                   )}
                 </div>

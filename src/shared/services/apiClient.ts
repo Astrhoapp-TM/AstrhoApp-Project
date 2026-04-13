@@ -210,25 +210,12 @@ export const apiClient = {
         try {
             const response = await fetch(`${BASE_URL}${endpoint}`, {
                 method: 'DELETE',
-                headers: getHeaders()
+                headers: getHeaders(),
             });
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error(`DELETE Error Status: ${response.status}, Endpoint: ${endpoint}, Body:`, errorText);
                 throw new Error(`API DELETE Error: ${endpoint} -> Status ${response.status}: ${errorText || response.statusText}`);
-            }
-            // Handle 204 No Content or empty body
-            if (response.status === 204 || response.headers.get('content-length') === '0') {
-                return null;
-            }
-            const text = await response.text();
-            if (!text || text.trim() === '') {
-                return null;
-            }
-            try {
-                const json = JSON.parse(text);
-                return normalizeResponse(json);
-            } catch {
-                return text;
             }
         } catch (error) {
             console.error(`API DELETE error on ${endpoint}:`, error);
@@ -241,14 +228,14 @@ export const apiClient = {
             const isFormData = data instanceof FormData;
             const extra: Record<string, string> = {};
 
-            if (!isFormData && data) {
+            if (!isFormData) {
                 extra['Content-Type'] = 'application/json';
             }
 
             const response = await fetch(`${BASE_URL}${endpoint}`, {
                 method: 'PATCH',
                 headers: getHeaders(extra),
-                body: data ? (isFormData ? data : JSON.stringify(data)) : undefined,
+                body: isFormData ? data : JSON.stringify(data),
             });
             if (!response.ok) {
                 const errorText = await response.text();
@@ -264,6 +251,7 @@ export const apiClient = {
                 return null;
             }
             
+            // Try parsing as JSON, fall back to original text if fails
             try {
                 return JSON.parse(text);
             } catch {

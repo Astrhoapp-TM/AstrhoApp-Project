@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Package, Plus, Edit, Trash2, Search, AlertCircle, X, Save,
-  Eye, CheckCircle, TrendingUp, FileText, Star, Loader2, ChevronsUpDown, FolderTree, RefreshCw
+  Eye, CheckCircle, TrendingUp, FileText, Star, Loader2, ChevronsUpDown, FolderTree, RefreshCw, Info
 } from 'lucide-react';
 import { mockProducts } from '@/shared/data/management';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
@@ -77,8 +77,12 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
   const [itemsPerPage] = useState(5);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 4000);
+  };
 
   // Map API Supply to UI model
   const mapSupplyToUI = (supply: APISupply, fallbackCategory?: string): Product => ({
@@ -162,6 +166,17 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
   // Pagination totalPages se obtiene de la API
   // const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
+  if (isLoading && products.length === 0) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Cargando insumos...</p>
+        </div>
+      </div>
+    );
+  }
+
   const handleViewDetail = async (product: any) => {
     try {
       setIsLoading(true);
@@ -200,8 +215,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
     try {
       await supplyService.deleteSupply(productId);
       setProducts(products.filter(p => p.id !== productId));
-      setAlertMessage(`Insumo "${productName}" eliminado correctamente`);
-      setShowSuccessAlert(true);
+      showAlert('success', `Insumo "${productName}" eliminado correctamente`);
     } catch (error) {
       console.error('Error deleting supply:', error);
       setErrorModalMessage('No se pudo eliminar el insumo. Por favor, intente de nuevo.');
@@ -237,8 +251,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
       setProducts(prev => prev.map(p =>
         p.id === product.id ? mapSupplyToUI(updatedSupply, product.category) : p
       ));
-      setAlertMessage(`Estado de "${product.name}" cambiado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
-      setShowSuccessAlert(true);
+      showAlert('success', `Estado de "${product.name}" cambiado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
     } catch (error) {
       // Revert optimistic update on failure
       setProducts(prev => prev.map(p => p.id === product.id ? product : p));
@@ -260,8 +273,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
         setProducts(prev => prev.map(p =>
           p.id === selectedProduct.id ? mapSupplyToUI(updatedSupply, categoryName) : p
         ));
-        setAlertMessage(`Insumo "${productData.name}" actualizado correctamente`);
-        setShowSuccessAlert(true);
+        showAlert('success', `Insumo "${productData.name}" actualizado correctamente`);
       } else {
         const apiData = mapUIToSupply(productData);
         // Omit insumoId for creation if the service expects Omit<Supply, 'insumoId'>
@@ -272,8 +284,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
           (c) => c.categoriaId === Number(productData.categoryId)
         )?.nombre || 'Sin categoría';
         setProducts(prev => [mapSupplyToUI(newSupply, categoryName), ...prev]);
-        setAlertMessage(`Insumo "${productData.name}" registrado correctamente`);
-        setShowSuccessAlert(true);
+        showAlert('success', `Insumo "${productData.name}" registrado correctamente`);
       }
       setShowProductModal(false);
     } catch (error: any) {
@@ -296,6 +307,34 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
 
   return (
     <div className="p-8">
+      {/* Notification Banner */}
+      {alert && (
+        <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
+          <div className={cn(
+            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
+            alert.type === 'success' ? "from-pink-400 to-purple-500" :
+              alert.type === 'error' ? "from-red-500 to-pink-600" :
+                "from-blue-400 to-indigo-500"
+          )}>
+            <div className="flex-shrink-0">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
+              </div>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">{alert.message}</p>
+            </div>
+            <button
+              onClick={() => setAlert(null)}
+              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -331,10 +370,11 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
               <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
                 <button
                   onClick={fetchInitialData}
-                  className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center"
+                  disabled={isLoading}
+                  className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
                   title="Recargar datos"
                 >
-                  <RefreshCw className="w-5 h-5" />
+                  <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
                 </button>
 
                 {hasPermission('manage_products') && (
@@ -483,28 +523,6 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
           message={errorModalMessage}
           onClose={() => setShowErrorModal(false)}
         />
-      )}
-
-      {/* Success Alert - rendered at root level for highest z-index */}
-      {showSuccessAlert && (
-        <div className="fixed bottom-4 right-4 z-[2147483647] animate-in slide-in-from-bottom-5 duration-300">
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px]">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold">{alertMessage}</p>
-            </div>
-            <button
-              onClick={() => setShowSuccessAlert(false)}
-              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
       )}
 
     </div>

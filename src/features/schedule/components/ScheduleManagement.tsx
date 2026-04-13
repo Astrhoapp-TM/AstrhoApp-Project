@@ -613,6 +613,13 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
         </div>
       </div>
 
+      {isAssistant ? (
+        <AssistantScheduleView 
+          currentUser={currentUser} 
+          horarioEmpleados={horarioEmpleados} 
+        />
+      ) : (
+      <>
       {/* ── Schedules List ── */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
@@ -780,6 +787,8 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
           )}
         </div>
       </div>
+      </>
+      )}
 
       {/* ── Modals ── */}
 
@@ -835,6 +844,113 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
           saving={saving}
         />
       )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// Assistant Schedule View
+// ══════════════════════════════════════════
+function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser: any, horarioEmpleados: HorarioEmpleado[] }) {
+  const docId = String(currentUser?.documentId || '');
+  const myAssignments = horarioEmpleados.filter(a => String(a.documentoEmpleado) === docId);
+
+  const DIAS_ORDER = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  
+  return (
+    <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Custom Header with high contrast */}
+      <div className="bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 p-8 md:p-10 text-white relative overflow-hidden rounded-t-3xl shadow-inner">
+        {/* Decorations */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-[100px] opacity-40 animate-pulse pointer-events-none"></div>
+        <div className="absolute bottom-0 left-10 w-72 h-72 bg-indigo-500 rounded-full filter blur-[100px] opacity-30 pointer-events-none"></div>
+        
+        <div className="relative z-10">
+          <div className="inline-flex items-center space-x-2 bg-gray-900/40 backdrop-blur-md px-4 py-2 rounded-full border border-gray-700/50 mb-5 shadow-sm">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+            <span className="text-xs font-bold tracking-widest text-white uppercase drop-shadow-sm">Horario Oficial</span>
+          </div>
+          
+          <h3 className="text-3xl sm:text-4xl font-extrabold mb-4 flex items-center space-x-4 tracking-tight drop-shadow-md text-white">
+            <Calendar className="w-8 h-8 sm:w-10 sm:h-10 text-purple-300 drop-shadow-sm" />
+            <span>Mi Semana Laboral</span>
+          </h3>
+          <p className="text-indigo-50 max-w-2xl text-base sm:text-lg leading-relaxed drop-shadow-sm font-medium">
+            Revisa tus turnos y tiempos de descanso asignados. Este esquema es tu base recurrente para los días habilitados en la sucursal.
+          </p>
+        </div>
+      </div>
+
+      <div className="p-8 md:p-10 bg-gray-50/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {DIAS_ORDER.map((dia, index) => {
+            const shift = myAssignments.find(a => normalizeDay(a.diaSemana) === normalizeDay(dia));
+            const isWorking = !!shift;
+
+            return (
+              <div 
+                key={dia}
+                style={{ animationDelay: `${index * 50}ms` }}
+                className={`relative group overflow-hidden rounded-2xl transition-all duration-300 ${
+                  isWorking 
+                    ? 'bg-white border-2 border-indigo-50 shadow-md hover:shadow-xl hover:-translate-y-1 hover:border-indigo-200' 
+                    : 'bg-gray-50 border-2 border-dashed border-gray-200 opacity-80'
+                }`}
+              >
+                {/* Accent line for working days */}
+                {isWorking && (
+                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500" />
+                )}
+
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h4 className={`text-lg font-bold tracking-tight ${isWorking ? 'text-gray-800' : 'text-gray-400'}`}>
+                      {dia}
+                    </h4>
+                    {isWorking && (
+                       <span className="bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-full border border-indigo-100">
+                         Turno
+                       </span>
+                    )}
+                  </div>
+                  
+                  {isWorking ? (
+                    <div className="space-y-5">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-100 transition-all">
+                          <Clock className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Horario</p>
+                          <div className="font-extrabold text-gray-800 text-[15px]">
+                            {shift ? formatTo12Hour(shift.horaInicio || '') : ''} 
+                            <span className="text-gray-300 mx-2">-</span> 
+                            {shift ? formatTo12Hour(shift.horaFin || '') : ''}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-4 border-t border-gray-100">
+                        <div className="flex items-center space-x-2 text-sm font-medium text-emerald-600 bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100/50 w-full justify-center">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Jornada Confirmada</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-6 h-full min-h-[140px] text-gray-400">
+                      <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                         <Calendar className="w-6 h-6 text-gray-300 opacity-50" />
+                      </div>
+                      <span className="text-sm font-semibold tracking-wide uppercase">Día Libre</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

@@ -32,7 +32,7 @@ export function useServicios(pageSize: number = 6) {
         setTotalCount(response.totalCount || response.data.length);
       }
 
-      const activeServices = servicesArray
+      let activeServices = servicesArray
         .filter((s: any) => {
           const estado = s.estado !== undefined ? s.estado : s.Estado;
           return estado === true || 
@@ -52,6 +52,26 @@ export function useServicios(pageSize: number = 6) {
           icon: Scissors,
           color: 'bg-pink-500'
         }));
+
+      // Apply client-side search and pagination if it's a raw array response
+      if (Array.isArray(response)) {
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          activeServices = activeServices.filter(s => 
+            s.name.toLowerCase().includes(term) || 
+            s.description.toLowerCase().includes(term) ||
+            s.category.toLowerCase().includes(term)
+          );
+        }
+        
+        const totalFiltered = activeServices.length;
+        setTotalPages(Math.ceil(totalFiltered / pageSize) || 1);
+        setTotalCount(totalFiltered);
+        
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        activeServices = activeServices.slice(start, end);
+      }
 
       setData(activeServices);
     } catch (error: any) {
@@ -122,7 +142,7 @@ export function useEmpleados(pageSize: number = 6) {
         setTotalCount(response.totalCount || response.data.length);
       }
 
-      const activeProfessionals = employeesArray
+      let activeProfessionals = employeesArray
         .filter((p: any) => {
           const est = p.estado !== undefined ? p.estado : p.Estado;
           return est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
@@ -135,6 +155,25 @@ export function useEmpleados(pageSize: number = 6) {
           color: ['bg-rose-500', 'bg-violet-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'][index % 5],
           avatar: (p.nombre || p.Nombre || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
         }));
+
+      // Apply client-side search and pagination if it's a raw array response
+      if (Array.isArray(response)) {
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          activeProfessionals = activeProfessionals.filter((p: any) => 
+            p.name.toLowerCase().includes(term) || 
+            p.role.toLowerCase().includes(term)
+          );
+        }
+        
+        const totalFiltered = activeProfessionals.length;
+        setTotalPages(Math.ceil(totalFiltered / pageSize) || 1);
+        setTotalCount(totalFiltered);
+        
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        activeProfessionals = activeProfessionals.slice(start, end);
+      }
 
       setData(activeProfessionals);
     } catch (error: any) {

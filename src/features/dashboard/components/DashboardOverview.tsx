@@ -35,7 +35,7 @@ interface DashboardOverviewProps {
   hasPermission: (permission: string) => boolean;
 }
 
-type Period = "today" | "week" | "month";
+type Period = "today" | "week" | "month" | "year" | "all";
 
 interface DashboardStats {
   appointments: number;
@@ -87,8 +87,16 @@ function getMonthStart(): Date {
   return d;
 }
 
+function getYearStart(): Date {
+  const d = new Date();
+  d.setMonth(0, 1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 function isInPeriod(dateStr: string, period: Period): boolean {
   if (!dateStr) return false;
+  if (period === "all") return true;
   // Handle "YYYY-MM-DD" or ISO strings. Ensure local time comparison.
   const date = new Date(dateStr + (dateStr.includes("T") ? "" : "T00:00:00"));
   date.setHours(0, 0, 0, 0);
@@ -104,6 +112,9 @@ function isInPeriod(dateStr: string, period: Period): boolean {
   }
   if (period === "month") {
     return date >= getMonthStart();
+  }
+  if (period === "year") {
+    return date >= getYearStart();
   }
   return false;
 }
@@ -241,6 +252,32 @@ function groupSalesByWeek(sales: SaleView[]): ChartPoint[] {
     .map(([name, value]) => ({ name, value }));
 }
 
+const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+function groupSalesByMonth(sales: SaleView[]): ChartPoint[] {
+  const map: Record<string, number> = {};
+  MONTH_NAMES.forEach((m) => (map[m] = 0));
+  sales.forEach((s) => {
+    if (!s.date) return;
+    const monthIdx = new Date(s.date + "T00:00:00").getMonth();
+    const label = MONTH_NAMES[monthIdx];
+    if (label !== undefined) map[label] = (map[label] || 0) + s.total;
+  });
+  return MONTH_NAMES.map((m) => ({ name: m, value: map[m] }));
+}
+
+function groupAgendaByMonth(items: AgendaItem[]): ChartPoint[] {
+  const map: Record<string, number> = {};
+  MONTH_NAMES.forEach((m) => (map[m] = 0));
+  items.forEach((i) => {
+    if (!i.fechaCita) return;
+    const monthIdx = new Date(i.fechaCita + "T00:00:00").getMonth();
+    const label = MONTH_NAMES[monthIdx];
+    if (label !== undefined) map[label] = (map[label] || 0) + 1;
+  });
+  return MONTH_NAMES.map((m) => ({ name: m, value: map[m] }));
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Stat Card
@@ -282,6 +319,7 @@ export function DashboardOverview({
   currentUser,
   hasPermission,
 }: DashboardOverviewProps) {
+  const isAsistente = currentUser?.role === 'asistente';
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("today");
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -376,7 +414,9 @@ export function DashboardOverview({
       ? groupSalesByHour(periodSales)
       : selectedPeriod === "week"
         ? groupSalesByDay(periodSales)
-        : groupSalesByWeek(periodSales);
+        : selectedPeriod === "month"
+          ? groupSalesByWeek(periodSales)
+          : groupSalesByMonth(periodSales);
 
   // Appointments chart
   const appointmentsChartData: ChartPoint[] =
@@ -384,7 +424,9 @@ export function DashboardOverview({
       ? groupAgendaByHour(periodAgenda)
       : selectedPeriod === "week"
         ? groupAgendaByDay(periodAgenda)
-        : groupAgendaByWeek(periodAgenda);
+        : selectedPeriod === "month"
+          ? groupAgendaByWeek(periodAgenda)
+          : groupAgendaByMonth(periodAgenda);
 
   // ── Compute Stats ──
   const appointmentsCount = appointmentsChartData.reduce((sum, p) => sum + p.value, 0);
@@ -472,7 +514,11 @@ export function DashboardOverview({
       ? "Hoy"
       : selectedPeriod === "week"
         ? "Esta Semana"
-        : "Este Mes";
+        : selectedPeriod === "month"
+          ? "Este Mes"
+          : selectedPeriod === "year"
+            ? "Este Año"
+            : "Todos los Registros";
 
   return (
     <div className="p-8 pb-32 flex flex-col gap-8 min-h-screen bg-gray-50/30">
@@ -520,6 +566,8 @@ export function DashboardOverview({
             <option value="today">Hoy</option>
             <option value="week">Esta Semana</option>
             <option value="month">Este Mes</option>
+            <option value="year">Este Año</option>
+            <option value="all">Todos</option>
           </select>
         </div>
       </div>
@@ -549,13 +597,15 @@ export function DashboardOverview({
           color="border-purple-500"
           loading={isLoading}
         />
-        <StatCard
-          title="Clientes Activos"
-          value={totalClients}
-          icon={<Users className="w-7 h-7" />}
-          color="border-blue-500"
-          loading={isLoading}
-        />
+        {!isAsistente && (
+          <StatCard
+            title="Clientes Activos"
+            value={totalClients}
+            icon={<Users className="w-7 h-7" />}
+            color="border-blue-500"
+            loading={isLoading}
+          />
+        )}
         <StatCard
           title="Servicios Completados"
           value={currentStats.services_completed}
@@ -632,7 +682,7 @@ export function DashboardOverview({
       </div>
 
       {/* Two Column: Upcoming Appointments + Top Services */}
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className={`grid gap-8 ${isAsistente ? "" : "lg:grid-cols-2"}`}>
         {/* Upcoming Appointments */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
@@ -709,6 +759,7 @@ export function DashboardOverview({
         </div>
 
         {/* Top Services */}
+        {!isAsistente && (
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-6">
             Servicios Más Populares
@@ -787,6 +838,7 @@ export function DashboardOverview({
             </>
           )}
         </div>
+        )}
       </div>
     </div>
   );

@@ -65,7 +65,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     search: serviceSearchTerm, 
     setSearch: setServiceSearchTerm,
     totalPages: totalServicePages
-  } = useServicios(6);
+  } = useServicios(4);
 
   const { 
     data: professionals, 
@@ -533,7 +533,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   if (step === 1) {
     return (
       <section className="py-20 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Progress Header */}
           <div className="mb-12">
             <div className="flex items-center justify-between max-w-2xl mx-auto">
@@ -577,21 +577,21 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             ) : services.length > 0 ? (
               <>
                 {/* Search Bar for Services */}
-                <div className="mb-8 relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400 group-focus-within:text-pink-500 transition-colors" />
+                <div className="mb-10 relative group">
+                  <div className="absolute top-1/2 -translate-y-1/2 left-5 pointer-events-none">
+                    <Search className="h-6 w-6 text-gray-400 group-focus-within:text-pink-500 transition-colors" />
                   </div>
                   <input
                     type="text"
                     placeholder="Buscar servicios por nombre, descripción o categoría..."
                     value={serviceSearchTerm}
                     onChange={(e) => setServiceSearchTerm(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 focus:bg-white transition-all text-lg"
+                    className="block w-full pl-14 pr-12 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 focus:bg-white transition-all text-lg shadow-sm"
                   />
                   {serviceSearchTerm && (
                     <button 
                       onClick={() => setServiceSearchTerm('')}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-pink-500"
+                      className="absolute top-1/2 -translate-y-1/2 right-4 flex items-center justify-center text-gray-400 hover:text-pink-500 bg-gray-100 hover:bg-pink-100 h-8 w-8 rounded-full transition-colors"
                     >
                       <X className="h-5 w-5" />
                     </button>
@@ -599,7 +599,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 </div>
 
                 {services.length > 0 ? (
-                  <div className="grid md:grid-cols-2 gap-6 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
                     {services.map((service) => {
                       const isSelected = selectedServices.some(s => s.id === service.id);
                       return (
@@ -805,7 +805,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   if (step === 2) {
     return (
       <section className="py-20 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Progress Header */}
           <div className="mb-12">
             <div className="flex items-center justify-between max-w-2xl mx-auto">
@@ -1009,7 +1009,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   if (step === 3) {
     return (
       <section className="py-20 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Progress Header */}
           <div className="mb-12">
             <div className="flex items-center justify-between max-w-2xl mx-auto">

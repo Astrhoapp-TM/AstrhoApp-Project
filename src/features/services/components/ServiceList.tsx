@@ -423,8 +423,8 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
               className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${currentPage === 1
-                  ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50'
-                  : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
+                ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50'
+                : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
                 }`}
             >
               <ChevronLeft className="w-5 h-5" />
@@ -437,8 +437,8 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                   key={i}
                   onClick={() => setCurrentPage(i + 1)}
                   className={`min-w-[40px] h-10 px-3 rounded-xl font-black text-sm transition-all duration-300 flex items-center justify-center ${currentPage === i + 1
-                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-200 scale-105'
-                      : 'text-gray-500 hover:bg-pink-50 hover:text-pink-600 hover:scale-110 active:scale-90'
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-200 scale-105'
+                    : 'text-gray-500 hover:bg-pink-50 hover:text-pink-600 hover:scale-110 active:scale-90'
                     }`}
                 >
                   {i + 1}
@@ -450,8 +450,8 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
               className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${currentPage === totalPages
-                  ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50'
-                  : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
+                ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50'
+                : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
                 }`}
             >
               <span className="hidden sm:inline font-bold text-sm">Siguiente</span>

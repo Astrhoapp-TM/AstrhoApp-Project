@@ -24,15 +24,15 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
   // Form states
   const [userForm, setUserForm] = useState({
     email: user.email || '',
+  });
 
+  const [personForm, setPersonForm] = useState({
+    nombre: '',
+    telefono: '',
+    direccion: '',
+  });
 
-    const [personForm, setPersonForm] = useState({
-      nombre: '',
-      telefono: '',
-      direccion: '',
-    });
-
-    useEffect(() => {
+  useEffect(() => {
     if (user?.email) {
       setUserForm(prev => ({ ...prev, email: user.email }));
     }

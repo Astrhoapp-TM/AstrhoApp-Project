@@ -302,10 +302,6 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
                                 <User className="w-4 h-4" />
                                 <span>con {appointment.empleado}</span>
                               </span>
-                              <span className="flex items-center space-x-1">
-                                <MapPin className="w-4 h-4" />
-                                <span>Cll 55 #42-16 Medellín</span>
-                              </span>
                             </div>
                             {appointment.observaciones && (
                               <div className="flex items-start space-x-1 text-sm text-gray-600">
@@ -313,17 +309,6 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
                                 <span>{appointment.observaciones}</span>
                               </div>
                             )}
-                          </div>
-                          
-                          <div className="text-right">
-                            <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(appointment.estado)}`}>
-                              {getStatusIcon(appointment.estado)}
-                              <span>{getStatusLabel(appointment.estado)}</span>
-                            </div>
-                            {/* Metodo de pago si aplica */}
-                            <div className="text-sm font-medium text-gray-500 mt-2">
-                              {appointment.metodoPago}
-                            </div>
                           </div>
                         </div>
                       </div>
@@ -543,16 +528,8 @@ function AppointmentDetailModal({
           `}</style>
           
           <div className="max-w-5xl mx-auto space-y-6">
-            {/* Status Section */}
-            <div className="flex justify-center mb-4">
-              <div className={`inline-flex items-center space-x-3 px-6 py-2 rounded-full text-lg font-bold border shadow-sm ${getStatusColor(appointment.estado)}`}>
-                {getStatusIcon(appointment.estado)}
-                <span>{getStatusLabel(appointment.estado)}</span>
-              </div>
-            </div>
-
             {/* Info Cards Row */}
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-2 gap-4">
               {/* Client/Professional Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-pink-500 mb-3">
@@ -588,24 +565,6 @@ function AppointmentDetailModal({
                   <p className="text-purple-600 font-bold flex items-center">
                     <Clock className="w-4 h-4 mr-1" />
                     {appointment.horaInicio ? formatTo12Hour(appointment.horaInicio.substring(0, 5)) : '--:--'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Payment Card */}
-              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-blue-500 mb-3">
-                  <Info className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información</h4>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-gray-600 text-sm">
-                    <span className="font-bold text-gray-400 uppercase text-[10px] mr-1">Método:</span>
-                    <span className="font-bold text-gray-800">{appointment.metodoPago || 'No especificado'}</span>
-                  </p>
-                  <p className="text-gray-600 text-sm">
-                    <span className="font-bold text-gray-400 uppercase text-[10px] mr-1">Ubicación:</span>
-                    <span className="font-bold text-gray-800">Cll 55 #42-16 Medellín</span>
                   </p>
                 </div>
               </div>

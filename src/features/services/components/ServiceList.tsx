@@ -66,7 +66,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
   const [selectedService, setSelectedService] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [favorites, setFavorites] = useState<number[]>([]);
-  
+
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(3); // Cambiado de 6 a 3 para forzar la paginación si hay pocos servicios
@@ -225,7 +225,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
         pageSize: itemsPerPage,
         search: searchTerm || undefined
       });
-      
+
       console.log('Raw API Data:', data);
 
       let servicesArray = [];
@@ -239,7 +239,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
         servicesArray = (data as any).data || (data as any).$values || [];
         total = (data as any).totalCount || (data as any).total || servicesArray.length;
       }
-      
+
       console.log('Services API Data (Processed):', servicesArray, 'Total:', total);
       setServices(servicesArray.map(mapAPIServiceToUI));
       setTotalRecords(total);
@@ -263,15 +263,15 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
   // Filter services (Client-side secondary filter if needed, but primarily using API)
   const filteredServices = services.filter(service => {
     const matchesCategory = filterCategory === 'Todos' || service.category === filterCategory;
-    
+
     // Robust isActive check
-    const isActive = service.isActive === true || 
-                     service.isActive === 1 || 
-                     service.isActive === '1' || 
-                     service.isActive === 'Activo' || 
-                     service.isActive === 'activo' ||
-                     service.isActive === undefined;
-                     
+    const isActive = service.isActive === true ||
+      service.isActive === 1 ||
+      service.isActive === '1' ||
+      service.isActive === 'Activo' ||
+      service.isActive === 'activo' ||
+      service.isActive === undefined;
+
     return matchesCategory && isActive;
   });
 
@@ -280,7 +280,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
   // NOTA: No filtramos de nuevo paginatedServices aquí porque ya vienen paginados de la API
   // pero si el usuario tiene menos servicios que itemsPerPage, totalPages será 1 y la paginación no se verá.
   // Forzamos al menos 2 páginas para testear si hay datos suficientes o ajustamos itemsPerPage
-  const paginatedServices = services; 
+  const paginatedServices = services;
 
   const handleServiceBooking = (service: any) => {
     onBookAppointment(service);
@@ -320,7 +320,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
             </div>
           )}
-          
+
           {!isLoading && paginatedServices.length > 0 ? (
             paginatedServices.map((service) => {
               const Icon = service.icon;
@@ -422,26 +422,24 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
-              className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${
-                currentPage === 1 
-                ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50' 
-                : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
-              }`}
+              className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${currentPage === 1
+                  ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50'
+                  : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
+                }`}
             >
               <ChevronLeft className="w-5 h-5" />
               <span className="hidden sm:inline font-bold text-sm">Anterior</span>
             </button>
-            
+
             <div className="flex items-center bg-white p-1.5 rounded-2xl border-2 border-pink-50 shadow-inner space-x-1">
               {Array.from({ length: totalPages }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentPage(i + 1)}
-                  className={`min-w-[40px] h-10 px-3 rounded-xl font-black text-sm transition-all duration-300 flex items-center justify-center ${
-                    currentPage === i + 1 
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-200 scale-105' 
-                    : 'text-gray-500 hover:bg-pink-50 hover:text-pink-600 hover:scale-110 active:scale-90'
-                  }`}
+                  className={`min-w-[40px] h-10 px-3 rounded-xl font-black text-sm transition-all duration-300 flex items-center justify-center ${currentPage === i + 1
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-200 scale-105'
+                      : 'text-gray-500 hover:bg-pink-50 hover:text-pink-600 hover:scale-110 active:scale-90'
+                    }`}
                 >
                   {i + 1}
                 </button>
@@ -451,11 +449,10 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
             <button
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
-              className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${
-                currentPage === totalPages 
-                ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50' 
-                : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
-              }`}
+              className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${currentPage === totalPages
+                  ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50'
+                  : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
+                }`}
             >
               <span className="hidden sm:inline font-bold text-sm">Siguiente</span>
               <ChevronRight className="w-5 h-5" />
@@ -463,28 +460,8 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
           </div>
         )}
 
-        {/* CTA Section */}
-        <div className="text-center">
-          <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-3xl p-8">
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">
-              ¿No encuentras lo que buscas?
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Contáctanos y te ayudaremos a encontrar el servicio perfecto para ti
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => onBookAppointment()}
-                className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300"
-              >
-                Consultar Disponibilidad
-              </button>
-              <button className="border-2 border-pink-300 text-pink-600 px-8 py-3 rounded-xl font-semibold hover:bg-pink-50 transition-all duration-300">
-                Contactar por WhatsApp
-              </button>
-            </div>
-          </div>
-        </div>
+
+
       </div>
 
       {/* Service Detail Modal */}

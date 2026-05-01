@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Star, Sparkles, Heart, MapPin } from 'lucide-react';
+import { Calendar, Sparkles, Heart, MapPin } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 interface HeroProps {
@@ -26,10 +26,10 @@ export function Hero({ onBookAppointment }: HeroProps) {
                 AsthroApp
               </span>
             </h1>
-            
+
             <p className="text-xl text-gray-600 mb-4 leading-relaxed">
-              Tu salón de belleza de confianza en Medellín. Dirigido por 
-              <span className="font-semibold text-pink-600"> Astrid Eugenia Hoyos</span>, 
+              Tu salón de belleza de confianza en Medellín. Dirigido por
+              <span className="font-semibold text-pink-600"> Astrid Eugenia Hoyos</span>,
               especialista en cuidado capilar y tratamientos de belleza.
             </p>
 
@@ -39,14 +39,14 @@ export function Hero({ onBookAppointment }: HeroProps) {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-              <button 
+              <button
                 onClick={() => onBookAppointment()}
                 className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
               >
                 <Calendar className="w-5 h-5" />
                 <span>Agendar Cita</span>
               </button>
-              <button 
+              <button
                 onClick={() => {
                   const servicesSection = document.getElementById('services-section');
                   if (servicesSection) {
@@ -61,21 +61,10 @@ export function Hero({ onBookAppointment }: HeroProps) {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 text-center">
+            <div className="flex justify-center text-center">
               <div>
-                <div className="text-3xl font-bold text-pink-600 mb-2">500+</div>
-                <div className="text-sm text-gray-600">Clientes Felices</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-purple-600 mb-2">8+</div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">+25</div>
                 <div className="text-sm text-gray-600">Años de Experiencia</div>
-              </div>
-              <div>
-                <div className="flex items-center justify-center space-x-1 mb-2">
-                  <span className="text-3xl font-bold text-pink-600">4.9</span>
-                  <Star className="w-6 h-6 text-yellow-400 fill-current" />
-                </div>
-                <div className="text-sm text-gray-600">Calificación</div>
               </div>
             </div>
           </div>
@@ -88,7 +77,7 @@ export function Hero({ onBookAppointment }: HeroProps) {
                 alt="AsthroApp - Salón de belleza en Medellín"
                 className="w-full h-96 object-cover rounded-2xl"
               />
-              
+
               {/* Floating Cards */}
               <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-lg">
                 <div className="flex items-center space-x-2">
@@ -96,7 +85,7 @@ export function Hero({ onBookAppointment }: HeroProps) {
                   <span className="text-sm font-semibold text-gray-700">Cuidado Premium</span>
                 </div>
               </div>
-              
+
               <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-2xl p-4 shadow-lg">
                 <div className="text-sm font-semibold">Astrid Eugenia Hoyos</div>
                 <div className="text-xs opacity-90">Especialista en Belleza</div>

@@ -229,8 +229,6 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         const updatePayload = {
           rolId: userData.rolId,
           email: userData.email,
-          contrasena: selectedUser.contrasena || 'placeholder',
-          confirmarContrasena: selectedUser.contrasena || 'placeholder',
           estado: userData.estado !== undefined ? userData.estado : selectedUser.estado,
         };
 
@@ -372,8 +370,6 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
       await userService.update(userId, {
         rolId: detail.rol.rolId,
         email: detail.email,
-        contrasena: detail.contrasena || 'placeholder',
-        confirmarContrasena: detail.contrasena || 'placeholder',
         estado: newEstado,
       });
       showAlert('success', 'Estado de usuario actualizado correctamente');

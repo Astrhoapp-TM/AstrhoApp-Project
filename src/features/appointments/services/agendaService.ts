@@ -119,7 +119,8 @@ export function isEmployeeOccupied(
   }
 
   // 2. Check existing appointments
-  const NON_BLOCKING_STATES = ["cancelado", "cancelled", "sin agendar", "sin_agendar"];
+  // Solo citas canceladas liberan el espacio.
+  const NON_BLOCKING_STATES = ["cancelado", "cancelled", "canceled"];
 
   for (const apt of allAppointments) {
     // Skip the appointment being edited
@@ -129,7 +130,7 @@ export function isEmployeeOccupied(
     if (String(apt.documentoEmpleado) !== String(employeeDoc)) continue;
     if (apt.fechaCita !== date) continue;
 
-    // Skip cancelled / unscheduled appointments — they free up the slot
+    // Skip only cancelled appointments — they free up the slot
     const estadoLower = (apt.estado || "").toLowerCase().trim();
     if (NON_BLOCKING_STATES.includes(estadoLower)) continue;
 

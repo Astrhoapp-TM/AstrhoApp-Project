@@ -6,7 +6,7 @@ import {
   Wallet, Banknote, ArrowRightLeft, Smartphone, CreditCard, Users
 } from 'lucide-react';
 import { serviceService } from '@/features/services/services/serviceService';
-import { agendaService, empleadoAgendaService, metodoPagoService, type AgendaItem } from '../services/agendaService';
+import { agendaService, empleadoAgendaService, metodoPagoService, servicioAgendaService, type AgendaItem } from '../services/agendaService';
 import { userService } from '@/features/users/services/userService';
 import { personService } from '@/features/persons/services/personService';
 import { horarioEmpleadoService, type HorarioEmpleado } from '@/features/schedule/services/scheduleService';
@@ -42,6 +42,14 @@ const formatTo12Hour = (timeStr: string): string => {
   hour = hour ? hour : 12; // La hora '0' debe ser '12'
   return `${hour}:${minuteStr} ${ampm}`;
 };
+
+const buildDateTime = (date: string, time: string): Date => {
+  const safeDate = (date || '').split('T')[0];
+  const safeTime = time.length === 5 ? `${time}:00` : time;
+  return new Date(`${safeDate}T${safeTime}`);
+};
+
+const normalizeDateOnly = (dateValue: string): string => (dateValue || '').split('T')[0];
 
 interface AppointmentBookingProps {
   currentUser?: any;
@@ -160,6 +168,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
   // Service Map for duration lookup
   const [serviciosMap, setServiciosMap] = useState<Map<string, number>>(new Map());
+  const [serviciosCatalogMap, setServiciosCatalogMap] = useState<Map<string, number>>(new Map());
 
   // Update serviciosMap whenever services change
   useEffect(() => {
@@ -197,9 +206,35 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const fetchAllAppointmentsForSchedule = async (): Promise<AgendaItem[]> => {
+          const pageSize = 200;
+          let page = 1;
+          let totalPages = 1;
+          const all: AgendaItem[] = [];
+
+          do {
+            const response = await agendaService.getAll({ page, pageSize });
+            const chunk = Array.isArray(response)
+              ? response
+              : Array.isArray((response as any)?.data)
+              ? (response as any).data
+              : [];
+
+            all.push(...chunk);
+            totalPages = Array.isArray(response) ? 1 : ((response as any)?.totalPages || 1);
+            page += 1;
+          } while (page <= totalPages);
+
+          const uniqueById = new Map<number, AgendaItem>();
+          all.forEach((apt) => {
+            if (apt?.agendaId != null) uniqueById.set(apt.agendaId, apt);
+          });
+          return [...uniqueById.values()];
+        };
+
         // Individual catch for each promise to avoid Promise.all failing completely
-        const [appointmentsData, metodosData, horariosData, motivosData] = await Promise.all([
-          agendaService.getAll().catch(err => {
+        const [appointmentsData, metodosData, horariosData, motivosData, serviciosCatalogData] = await Promise.all([
+          fetchAllAppointmentsForSchedule().catch(err => {
             console.error('Error fetching appointments:', err);
             return [];
           }),
@@ -214,7 +249,11 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
           motivoService.getAll().catch(err => {
             console.error('Error fetching motives:', err);
             return [];
-          })
+          }),
+          servicioAgendaService.getAll().catch(err => {
+            console.error('Error fetching services catalog for schedule:', err);
+            return [];
+          }),
         ]);
 
         // Process Motivos
@@ -243,6 +282,16 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
           metodosArray = (metodosData as any).data || (metodosData as any).$values || [];
         }
         setMetodosPago(metodosArray);
+
+        const catalogMap = new Map<string, number>();
+        if (Array.isArray(serviciosCatalogData)) {
+          serviciosCatalogData.forEach((s: any) => {
+            const name = (s.nombre || s.Nombre || '').toString().trim();
+            const dur = Number(s.duracion ?? s.Duracion ?? 0);
+            if (name) catalogMap.set(name, dur > 0 ? dur : 30);
+          });
+        }
+        setServiciosCatalogMap(catalogMap);
         
         // Initial selected payment method (prefer Cash/Efectivo)
         if (metodosArray.length > 0) {
@@ -469,21 +518,28 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   // Check if time slot is available
   const isTimeSlotAvailable = (date: string, time: string, professionalId: string, duration: number) => {
     const appointments = existingAppointments.filter(apt =>
-      apt.fechaCita === date && String(apt.documentoEmpleado) === String(professionalId)
+      normalizeDateOnly(apt.fechaCita) === date && String(apt.documentoEmpleado) === String(professionalId)
     );
 
     const [hours, minutes] = time.split(':').map(Number);
     const slotStart = hours * 60 + minutes;
     const slotEnd = slotStart + duration;
+    const slotStartDate = buildDateTime(date, time);
+    const now = new Date();
+    const minLead = new Date(now.getTime() + 90 * 60 * 1000);
+
+    // Regla: solo citas futuras y con al menos 1h 30m de anticipación
+    if (slotStartDate <= now) return false;
+    if (slotStartDate < minLead) return false;
 
     // Check salon closing time (example: 20:00)
     if (slotEnd > 20 * 60) return false;
 
-    // States that do NOT block the schedule (freed slots)
-    const NON_BLOCKING_STATES = ["cancelado", "cancelled", "sin agendar", "sin_agendar"];
+    // Solo citas canceladas liberan espacio.
+    const NON_BLOCKING_STATES = ["cancelado", "cancelled", "canceled"];
 
     const hasAppointmentOverlap = appointments.some(apt => {
-      // Skip cancelled / unscheduled appointments
+      // Skip only cancelled appointments
       const estadoLower = (apt.estado || "").toLowerCase().trim();
       if (NON_BLOCKING_STATES.includes(estadoLower)) return false;
 
@@ -493,7 +549,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       // Compute existing appointment's duration from its services
       let aptDuration = 0;
       for (const svcName of apt.servicios) {
-        aptDuration += serviciosMap.get(svcName) ?? 30; // fallback 30 min
+        aptDuration += serviciosCatalogMap.get(svcName) ?? serviciosMap.get(svcName) ?? 30; // fallback 30 min
       }
       if (aptDuration <= 0) aptDuration = 30;
 
@@ -547,10 +603,10 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   // Get appointment for specific slot
   const getAppointmentForSlot = (date: string, time: string, professionalId: string) => {
     return existingAppointments.find(apt => {
-      if (apt.fechaCita !== date || String(apt.documentoEmpleado) !== String(professionalId)) return false;
+      if (normalizeDateOnly(apt.fechaCita) !== date || String(apt.documentoEmpleado) !== String(professionalId)) return false;
 
-      // Skip cancelled / unscheduled appointments
-      const NON_BLOCKING_STATES = ["cancelado", "cancelled", "sin agendar", "sin_agendar"];
+      // Skip only cancelled appointments
+      const NON_BLOCKING_STATES = ["cancelado", "cancelled", "canceled"];
       const estadoLower = (apt.estado || "").toLowerCase().trim();
       if (NON_BLOCKING_STATES.includes(estadoLower)) return false;
 
@@ -562,7 +618,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       
       let aptDuration = 0;
       for (const svcName of apt.servicios) {
-        aptDuration += serviciosMap.get(svcName) ?? 30;
+        aptDuration += serviciosCatalogMap.get(svcName) ?? serviciosMap.get(svcName) ?? 30;
       }
       if (aptDuration <= 0) aptDuration = 30;
       
@@ -596,6 +652,18 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
     setIsBooking(true);
     try {
+      const appointmentStartAt = buildDateTime(selectedDate, selectedTime);
+      const now = new Date();
+      const minLead = new Date(now.getTime() + 90 * 60 * 1000);
+      if (appointmentStartAt <= now) {
+        alert('La cita debe agendarse en una fecha y hora futura.');
+        return;
+      }
+      if (appointmentStartAt < minLead) {
+        alert('Debes agendar con al menos 1 hora y 30 minutos de anticipación.');
+        return;
+      }
+
       // Use selected payment method ID
       const finalMetodoPagoId = selectedMetodoPago?.metodopagoId || selectedMetodoPago?.metodoPagoId || 1;
 

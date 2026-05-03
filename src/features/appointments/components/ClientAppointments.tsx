@@ -48,12 +48,66 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
     const loadData = async () => {
       try {
         setLoading(true);
-        const [appointmentsData, servicesData, metodosData, empleadosResult] = await Promise.all([
+        let [appointmentsData, servicesData, metodosData, empleadosResult] = await Promise.all([
           agendaService.getMisCitas(),
           servicioAgendaService.getAll(),
           metodoPagoService.getAll(),
           empleadoAgendaService.getAll({ pageSize: 100 }) // fetch employees to map names
         ]);
+
+        const normalizeEstado = (status: string) =>
+          (status || '').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const toDateTime = (fecha: string, hora: string) => {
+          const safeDate = (fecha || '').split('T')[0];
+          const safeHour = (hora || '').length === 5 ? `${hora}:00` : hora;
+          return new Date(`${safeDate}T${safeHour}`);
+        };
+        const serviceDurationMap = new Map<string, number>();
+        servicesData.forEach((s) => serviceDurationMap.set(s.nombre, s.duracion));
+
+        const now = new Date();
+        const toCancel = appointmentsData.filter((apt) => {
+          const estado = normalizeEstado(apt.estado);
+          if (estado === 'cancelado' || estado === 'cancelled' || estado === 'completado' || estado === 'completed') {
+            return false;
+          }
+
+          const startAt = toDateTime(apt.fechaCita, apt.horaInicio);
+          const duration = apt.servicios.reduce((acc, svc) => acc + (serviceDurationMap.get(svc) ?? 30), 0) || 30;
+          const endAt = new Date(startAt.getTime() + duration * 60_000);
+          const completeLimit = new Date(endAt.getTime() + 24 * 60 * 60 * 1000);
+          const isConfirmed = estado === 'confirmado' || estado === 'confirmed';
+
+          if (!isConfirmed && now >= startAt) return true;
+          if (now > completeLimit) return true;
+          return false;
+        });
+
+        if (toCancel.length > 0) {
+          for (const apt of toCancel) {
+            const serviceIds = apt.servicios.map(name => {
+              const normalizedName = name.trim().toLowerCase();
+              const svc = servicesData.find(s => s.nombre.trim().toLowerCase() === normalizedName);
+              return svc ? svc.servicioId : 0;
+            }).filter(id => id > 0);
+
+            const mp = metodosData.find(m => m.nombre.trim().toLowerCase() === (apt.metodoPago || '').trim().toLowerCase());
+            const metodoPagoId = mp ? (mp.metodopagoId || (mp as any).metodoPagoId) : (metodosData.length > 0 ? (metodosData[0].metodopagoId || (metodosData[0] as any).metodoPagoId) : 1);
+
+            await agendaService.update(apt.agendaId, {
+              agendaId: apt.agendaId,
+              documentoCliente: apt.documentoCliente,
+              documentoEmpleado: apt.documentoEmpleado,
+              fechaCita: apt.fechaCita.split('T')[0],
+              horaInicio: apt.horaInicio.length === 5 ? `${apt.horaInicio}:00` : apt.horaInicio,
+              metodoPagoId: Number(metodoPagoId),
+              observaciones: apt.observaciones || 'Cancelación automática por reglas de negocio',
+              serviciosIds: serviceIds,
+              estadoId: 3
+            });
+          }
+          appointmentsData = await agendaService.getMisCitas();
+        }
         
         // Extract array of employees
         const empleados = Array.isArray(empleadosResult) 

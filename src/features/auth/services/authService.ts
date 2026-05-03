@@ -190,8 +190,8 @@ export const authService = {
             return { user: userResponse, client: clientResponse };
         } catch (error: any) {
             console.error('Error creating client:', error);
-            // Optionally, delete the user if client creation fails, but leaving it is safer without knowing API constraints
-            throw new Error(error?.response?.data || 'Error al guardar los datos del cliente.');
+            const errorMessage = error.message || error.body || 'Error al guardar los datos del cliente.';
+            throw new Error(errorMessage);
         }
     },
 

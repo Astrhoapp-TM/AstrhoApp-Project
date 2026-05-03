@@ -92,10 +92,8 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
       // 1. Update User (Email and other basics if needed)
       const userUpdatePayload = {
         email: userForm.email,
-        rolId: user.rolId || (user.role === 'customer' ? 2 : 1), // Fallback to common role IDs
+        rolId: user.rolId || (user.role === 'customer' ? 2 : 1),
         estado: true,
-        contrasena: "placeholder",
-        confirmarContrasena: "placeholder"
       };
 
       await apiClient.put(`/api/Usuarios/${userId}`, userUpdatePayload);

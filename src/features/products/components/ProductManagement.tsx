@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Package, Plus, Edit, Trash2, Search, AlertCircle, X, Save,
   Eye, CheckCircle, TrendingUp, FileText, Star, Loader2, ChevronsUpDown, FolderTree, RefreshCw, Info
@@ -6,6 +6,8 @@ import {
 import { mockProducts } from '@/shared/data/management';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
 import { cn } from '@/shared/components/ui/utils';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 import { supplyCategoryService, type Category as APICategory } from '@/features/categories/services/supplyCategoryService';
 import { supplyService, type Supply as APISupply } from '@/features/supply/services/supplyService';
 import { toast } from 'sonner';
@@ -63,7 +65,8 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<APICategory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -99,6 +102,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
   const fetchInitialData = async () => {
     setIsLoading(true);
     try {
+      showSectionLoading("Preparando inventario...");
       const response = await supplyCategoryService.getCategories({ pageSize: 100 });
       const categoriesData = response.data || [];
       setCategories(unwrapValues(categoriesData));
@@ -109,12 +113,14 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
       setShowErrorModal(true);
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
+      showSectionLoading("Obteniendo insumos...");
       const response = await supplyService.getSupplies({
         page: currentPage,
         pageSize: itemsPerPage,
@@ -134,6 +140,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
       setShowErrorModal(true);
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -166,19 +173,10 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
   // Pagination totalPages se obtiene de la API
   // const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
-  if (isLoading && products.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando insumos...</p>
-        </div>
-      </div>
-    );
-  }
 
   const handleViewDetail = async (product: any) => {
     try {
+      showSectionLoading("Cargando detalle del insumo...");
       setIsLoading(true);
       const fullSupply = await supplyService.getSupplyById(product.id);
       setSelectedProduct(mapSupplyToUI(fullSupply));
@@ -188,6 +186,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
       toast.error('No se pudo cargar el detalle del insumo');
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -213,6 +212,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
     const productId = productToDelete.id;
 
     try {
+      showSectionLoading("Eliminando insumo...");
       await supplyService.deleteSupply(productId);
       setProducts(products.filter(p => p.id !== productId));
       showAlert('success', `Insumo "${productName}" eliminado correctamente`);
@@ -223,6 +223,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
     } finally {
       setShowDeleteModal(false);
       setProductToDelete(null);
+      hideSectionLoading();
     }
   };
 
@@ -245,6 +246,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
     const optimisticProduct: Product = { ...product, status: newStatus };
     setProducts(prev => prev.map(p => p.id === product.id ? optimisticProduct : p));
     try {
+      showSectionLoading("Cambiando estado...");
       const apiData = mapUIToSupply({ ...product, status: newStatus }, product.id);
       const updatedSupply = await supplyService.updateSupply(product.id, apiData);
       // Sync with API response, preserving category name if API doesn't return it
@@ -258,11 +260,14 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
       console.error('Error toggling status:', error);
       setErrorModalMessage('No se pudo cambiar el estado. Por favor, intente de nuevo.');
       setShowErrorModal(true);
+    } finally {
+      hideSectionLoading();
     }
   };
 
   const handleSaveProduct = async (productData: any) => {
     try {
+      showSectionLoading("Guardando cambios...");
       if (selectedProduct) {
         const apiData = mapUIToSupply(productData, selectedProduct.id);
         const updatedSupply = await supplyService.updateSupply(selectedProduct.id, apiData);
@@ -298,6 +303,8 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
         ? 'Este registro ya existe. por favor ingrese otro diferente'
         : 'Error al guardar el insumo. Por favor, verifique que todos los campos sean válidos e intente de nuevo.');
       setShowErrorModal(true);
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -346,49 +353,42 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20 translate-y-10">
-          <div className="w-16 h-16 border-4 border-brand-periwinkle border-t-pink-500 rounded-full animate-spin mb-4"></div>
-          <p className="text-gray-500 font-medium animate-pulse">Cargando insumos...</p>
-        </div>
-      ) : (
-        <>
-          {/* Search and Register */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="w-full md:max-w-md relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Buscar por nombre o SKU..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
-                />
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                <button
-                  onClick={fetchInitialData}
-                  disabled={isLoading}
-                  className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
-                  title="Recargar datos"
-                >
-                  <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
-                </button>
-
-                {hasPermission('manage_products') && (
-                  <button
-                    onClick={handleCreateProduct}
-                    className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
-                  >
-                    <Plus className="w-5 h-5" />
-                    <span>Registrar Insumo</span>
-                  </button>
-                )}
-              </div>
-            </div>
+      {/* Search and Register */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="w-full md:max-w-md relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre o SKU..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
+            />
           </div>
+
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            <button
+              onClick={fetchInitialData}
+              disabled={isLoading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
+              title="Recargar datos"
+            >
+              <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
+            </button>
+
+            {hasPermission('manage_products') && (
+              <button
+                onClick={handleCreateProduct}
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Registrar Insumo</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
           {/* Table */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -484,8 +484,6 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
               />
             </div>
           </div>
-        </>
-      )}
 
       {/* Modales */}
       {showProductModal && (

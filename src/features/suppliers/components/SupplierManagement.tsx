@@ -3,6 +3,8 @@ import {
   Truck, Plus, Edit, Trash2, Eye, Search, Phone, Mail,
   MapPin, Package, X, Save, AlertCircle, CheckCircle, Loader2, AlertTriangle, RefreshCw, Info
 } from 'lucide-react';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 import { toast } from 'sonner';
 import { supplierService } from '../services/supplierService';
 import { purchaseService } from '@/features/purchases/services/purchaseService';
@@ -70,6 +72,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
@@ -83,6 +86,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
   const loadSuppliers = async () => {
     try {
       setIsLoading(true);
+      showSectionLoading("Cargando proveedores...");
       const response = await supplierService.getAll({
         page: currentPage,
         pageSize: itemsPerPage,
@@ -101,6 +105,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       toast.error('Error al cargar proveedores');
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -119,6 +124,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
   const handleViewDetail = async (supplier) => {
     try {
       setIsLoading(true);
+      showSectionLoading("Cargando detalle...");
       const fullSupplier = await supplierService.getById(supplier.id);
       setSelectedSupplier(mapApiToFrontend(fullSupplier));
       setShowDetailModal(true);
@@ -138,6 +144,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
   const handleDeleteSupplier = async (supplier) => {
     setSelectedSupplier(supplier);
     setCheckingPurchases(true);
+    showSectionLoading("Verificando compras...");
     setSupplierHasPurchases(false);
     setShowDeleteModal(true);
 
@@ -166,6 +173,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       setSupplierHasPurchases(false);
     } finally {
       setCheckingPurchases(false);
+      hideSectionLoading();
     }
   };
 
@@ -179,6 +187,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
     setSelectedSupplier(null);
 
     try {
+      showSectionLoading("Eliminando proveedor...");
       await supplierService.delete(supplierId);
       // Remove from local state immediately after successful API call
       setSuppliers(prev => prev.filter(s => s.id !== supplierId));
@@ -188,6 +197,8 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       showAlert('error', `No se pudo eliminar a "${supplierName}". Es posible que tenga registros asociados (ej. Compras) en la base de datos.`);
       // Re-sync from API to restore consistent state
       await loadSuppliers();
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -197,6 +208,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
     const newStatus = supplier.status === 'active' ? 'inactive' : 'active';
 
     try {
+      showSectionLoading("Actualizando estado...");
       await supplierService.update(supplierId, {
         ...mapFrontendToApi(supplier),
         estado: newStatus === 'active'
@@ -206,11 +218,14 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
     } catch (error) {
       console.error('Error toggling status:', error);
       showAlert('error', 'Error al cambiar el estado del proveedor');
+    } finally {
+      hideSectionLoading();
     }
   };
 
   const handleSaveSupplier = async (supplierData: any) => {
     try {
+      showSectionLoading("Guardando proveedor...");
       if (selectedSupplier) {
         // Edit existing supplier
         const apiPayload = mapFrontendToApi({ ...selectedSupplier, ...supplierData }, false);
@@ -256,9 +271,10 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       }
       setShowEditModal(false);
     } catch (error) {
-      console.error('Error saving supplier:', error);
       showAlert('error', 'Error al guardar el proveedor. Verifica los datos o conexión.');
       throw error; // Rethrow to let the modal know it failed
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -302,16 +318,6 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
     }
   };
 
-  if (isLoading && currentSuppliers.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando proveedores...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-8">
@@ -392,13 +398,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       </div>
 
       {/* Suppliers List */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
-        {isLoading && currentSuppliers.length > 0 && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-            <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
-            <span className="text-sm font-medium text-gray-500">Cargando...</span>
-          </div>
-        )}
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
           <h3 className="text-xl font-bold text-gray-800">Lista de Proveedores</h3>
           <p className="text-gray-600">

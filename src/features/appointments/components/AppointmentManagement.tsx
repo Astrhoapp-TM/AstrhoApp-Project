@@ -1,8 +1,8 @@
-﻿import {
+import {
   Calendar, Clock, Users, Plus,
   CheckCircle, AlertCircle, XCircle, Edit, Eye, Trash2,
   Save, X, User, Phone, DollarSign, Search, Loader2, RefreshCw, Scissors, TrendingUp,
-  Check, ChevronsUpDown, Briefcase, CreditCard, FileText
+  Check, ChevronsUpDown, Briefcase, CreditCard, FileText, Info
 } from 'lucide-react';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
@@ -24,11 +24,35 @@ import { horarioEmpleadoService, horarioService, HorarioEmpleado } from '@/featu
 import { motivoService, Motivo } from '@/shared/services/motivoService';
 import { personService } from '@/features/persons/services/personService';
 import { serviceService } from '@/features/services/services/serviceService';
-// processImageSource and handleImageError removed as they are no longer needed here
+import { AppointmentBooking } from './AppointmentBooking';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 interface AppointmentManagementProps {
   hasPermission: (permission: string) => boolean;
   currentUser: any;
+}
+
+function normalizeEstadoKey(value: string | undefined | null): string {
+  return (value || '')
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function toDateTime(fechaCita: string, horaInicio: string): Date {
+  const fecha = (fechaCita || '').split('T')[0];
+  const hora = (horaInicio || '').length === 5 ? `${horaInicio}:00` : (horaInicio || '00:00:00');
+  return new Date(`${fecha}T${hora}`);
+}
+
+function getAppointmentDurationMinutesFromServices(
+  servicios: string[],
+  serviciosMap: Map<string, number>,
+): number {
+  const total = servicios.reduce((sum, svc) => sum + (serviciosMap.get(svc) ?? 30), 0);
+  return total > 0 ? total : 30;
 }
 
 // getEstadoId now resolved dynamically inside the component using loaded estados
@@ -59,6 +83,8 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
   // ── UI state ──
   const [loading, setLoading] = useState(true);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
+  const [isBookingMode, setIsBookingMode] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -74,15 +100,33 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
   // ── Auto-Cancellation Logic ──
   const autoCancelOverdue = useCallback(async (allAppointments: AgendaItem[], allServicios: ServicioAPI[], allMetodos: MetodoPago[]) => {
     const now = new Date();
-    const overduePending = allAppointments.filter(a => {
-      if (a.estado.toLowerCase() !== 'pendiente') return false;
-      const aptDate = new Date(a.fechaCita + 'T' + a.horaInicio);
-      return aptDate < now;
+    const serviciosDuracionMap = new Map<string, number>();
+    allServicios.forEach((svc) => serviciosDuracionMap.set(svc.nombre, svc.duracion));
+
+    const shouldAutoCancel = allAppointments.filter((a) => {
+      const estado = normalizeEstadoKey(a.estado);
+      if (estado === 'cancelado' || estado === 'cancelled' || estado === 'completado' || estado === 'completed') {
+        return false;
+      }
+
+      const startAt = toDateTime(a.fechaCita, a.horaInicio);
+      const duration = getAppointmentDurationMinutesFromServices(a.servicios, serviciosDuracionMap);
+      const endAt = new Date(startAt.getTime() + duration * 60_000);
+
+      // Regla 1: toda cita no confirmada se cancela automáticamente al llegar su hora de inicio.
+      const isConfirmed = estado === 'confirmado' || estado === 'confirmed';
+      if (!isConfirmed && now >= startAt) return true;
+
+      // Regla 2: si no se completa dentro de 24h posteriores al fin, se cancela.
+      const completeLimit = new Date(endAt.getTime() + 24 * 60 * 60 * 1000);
+      if (now > completeLimit) return true;
+
+      return false;
     });
 
-    if (overduePending.length === 0) return;
+    if (shouldAutoCancel.length === 0) return;
 
-    for (const apt of overduePending) {
+    for (const apt of shouldAutoCancel) {
       try {
         const serviciosIds = apt.servicios.map((nameOrObj: any) => {
           const name = typeof nameOrObj === 'string' ? nameOrObj : (nameOrObj?.nombre || '');
@@ -100,7 +144,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
           fechaCita: apt.fechaCita,
           horaInicio: apt.horaInicio,
           metodoPagoId,
-          observaciones: 'Cancelación automática por fecha vencida',
+          observaciones: 'Cancelación automática por reglas de negocio',
           serviciosIds,
           estadoId: 3 // Cancelado
         });
@@ -108,12 +152,13 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
         console.error(`Error en cancelación automática de cita ${apt.agendaId}:`, err);
       }
     }
-    toast.info(`${overduePending.length} cita(s) vencida(s) cancelada(s) automáticamente.`);
+    toast.info(`${shouldAutoCancel.length} cita(s) cancelada(s) automáticamente por estado/tiempo.`);
   }, []);
 
   // ── Load all data ──
   const loadData = useCallback(async () => {
     setLoading(true);
+    showSectionLoading("Cargando agendamiento...");
     try {
       const params = {
         page: currentPage,
@@ -191,6 +236,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       toast.error('Error al cargar los datos del agendamiento');
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   }, [currentPage, searchTerm, autoCancelOverdue]);
 
@@ -252,7 +298,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
   const handleCreateAppointment = () => {
     setSelectedAppointment(null);
-    setShowCreateModal(true);
+    setIsBookingMode(true);
   };
 
   const handleEditAppointment = (apt: AgendaItem) => {
@@ -279,6 +325,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
   const confirmDeleteAppointment = async () => {
     if (!selectedAppointment) return;
     try {
+      showSectionLoading("Eliminando cita...");
       await agendaService.delete(selectedAppointment.agendaId);
       showAlert('success', `Cita de ${selectedAppointment.cliente} eliminada correctamente`);
       setShowDeleteModal(false);
@@ -287,11 +334,14 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     } catch (err) {
       console.error('Error deleting appointment:', err);
       showAlert('error', 'Error al eliminar la cita');
+    } finally {
+      hideSectionLoading();
     }
   };
 
   const handleSaveAppointment = async (data: any, isEdit: boolean, agendaId?: number) => {
     try {
+      showSectionLoading("Guardando cita...");
       if (isEdit && agendaId != null) {
         await agendaService.update(agendaId, data);
         showAlert('success', 'Cita actualizada correctamente');
@@ -307,6 +357,8 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     } catch (err) {
       console.error('Error saving appointment:', err);
       showAlert('error', 'Error al guardar la cita');
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -317,9 +369,39 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
   const confirmStatusChange = async () => {
     if (!appointmentToChangeStatus) return;
-    const { apt, newStatusId } = appointmentToChangeStatus;
+    const { apt } = appointmentToChangeStatus;
+    let { newStatusId } = appointmentToChangeStatus;
 
     try {
+      const canceladoId = estadosAgenda.find((e) => normalizeEstadoKey(e.nombre) === 'cancelado')?.estadoId ?? 3;
+      const statusTarget = normalizeEstadoKey(estadosAgenda.find((e) => e.estadoId === newStatusId)?.nombre || '');
+      const statusActual = normalizeEstadoKey(apt.estado);
+      const now = new Date();
+      const startAt = toDateTime(apt.fechaCita, apt.horaInicio);
+      const duration = getAppointmentDurationMinutesFromServices(apt.servicios, serviciosMap);
+      const endAt = new Date(startAt.getTime() + duration * 60_000);
+      const completeLimit = new Date(endAt.getTime() + 24 * 60 * 60 * 1000);
+
+      // Regla: citas no confirmadas que llegan a su hora de inicio deben cancelarse.
+      const isCurrentlyConfirmed = statusActual === 'confirmado' || statusActual === 'confirmed';
+      if (!isCurrentlyConfirmed && now >= startAt && statusActual !== 'cancelado' && statusActual !== 'cancelled' && statusActual !== 'completado' && statusActual !== 'completed') {
+        newStatusId = canceladoId;
+      }
+
+      // Regla de completado: solo después de finalizar y dentro de 24h.
+      if (statusTarget === 'completado') {
+        if (now < endAt) {
+          toast.error('La cita solo puede completarse cuando ya finalizó su duración.');
+          setShowStatusModal(false);
+          setAppointmentToChangeStatus(null);
+          return;
+        }
+        if (now > completeLimit) {
+          newStatusId = canceladoId;
+          toast.info('La ventana de 24h para completar expiró. La cita será cancelada.');
+        }
+      }
+
       // Mapping services names to IDs robustly
       const servicioIds = apt.servicios.map((nameOrObj: any) => {
         // Handle if nameOrObj is already an ID (shouldn't happen with AgendaItem, but for safety)
@@ -366,19 +448,23 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
   };
 
   // ── Loading state ──
-  if (loading && appointments.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando agendamiento...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-8">
+      {isBookingMode && (
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <AppointmentBooking 
+            currentUser={currentUser} 
+            isAdminBooking={true} 
+            onBookingComplete={() => {
+              setIsBookingMode(false);
+              loadData();
+            }}
+            onBack={() => setIsBookingMode(false)}
+          />
+        </div>
+      )}
+
       {/* Notification Banner */}
       {alert && (
         <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
@@ -457,6 +543,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
       {/* Appointments List */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
+        <SectionLoader />
         {loading && appointments.length > 0 && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
             <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
@@ -758,6 +845,11 @@ function AppointmentModal({
     );
     return found ? found.estadoId : 1;
   };
+  const getEstadoNameById = (estadoId: number): string =>
+    normalizeEstadoKey(estadosAgenda.find((e) => e.estadoId === estadoId)?.nombre || '');
+  const estadoConfirmadoId = resolveEstadoId('Confirmado');
+  const estadoCanceladoId = resolveEstadoId('Cancelado');
+  const estadoCompletadoId = resolveEstadoId('Completado');
 
   // Find initial IDs from the appointment for editing
   const getInitialServiceIds = (): number[] => {
@@ -810,6 +902,7 @@ function AppointmentModal({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [daySlots, setDaySlots] = useState<Array<{ time: string; isAvailable: boolean; reason?: string }>>([]);
   const [openClientSelect, setOpenClientSelect] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -905,6 +998,7 @@ function AppointmentModal({
   const generateAvailableSlots = useCallback(() => {
     if (!formData.fechaCita || !formData.documentoEmpleado || totalDuration <= 0) {
       setAvailableSlots([]);
+      setDaySlots([]);
       return;
     }
 
@@ -919,18 +1013,18 @@ function AppointmentModal({
     let effectiveSchedules = empSchedules;
     if (effectiveSchedules.length === 0) {
       setAvailableSlots([]);
+      setDaySlots([]);
       return;
     }
 
     const slots: string[] = [];
+    const slotDetails: Array<{ time: string; isAvailable: boolean; reason?: string }> = [];
+    const seen = new Set<string>();
     const interval = 30; // 30-minute granularity for slots
 
-    // Block past hours if the selected date is today
+    // Regla de anticipación mínima: reservar con al menos 1 hora y 30 minutos
     const now = new Date();
-    const selectedDateStr = formData.fechaCita;
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const isToday = selectedDateStr === todayStr;
-    const nowMinutes = isToday ? now.getHours() * 60 + now.getMinutes() : 0;
+    const minimumStartAt = new Date(now.getTime() + 90 * 60 * 1000);
 
     effectiveSchedules.forEach((sched) => {
       const startMin = timeStrToMinutes(sched.horaInicio);
@@ -938,12 +1032,20 @@ function AppointmentModal({
 
       // Generate possible start times within this schedule
       for (let current = startMin; current + totalDuration <= endMin; current += interval) {
-        // Skip past time slots if scheduling for today
-        if (isToday && current <= nowMinutes) continue;
-
         const hh = Math.floor(current / 60);
         const mm = current % 60;
         const timeStr = `${hh.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+
+        // Evita duplicar slots cuando hay múltiples turnos que se solapan.
+        if (seen.has(timeStr)) continue;
+        seen.add(timeStr);
+
+        const candidateStartAt = toDateTime(formData.fechaCita, timeStr);
+
+        if (candidateStartAt < minimumStartAt) {
+          slotDetails.push({ time: timeStr, isAvailable: false, reason: 'No cumple 1h 30m de anticipación' });
+          continue;
+        }
 
         const occupied = isEmployeeOccupied(
           formData.documentoEmpleado,
@@ -958,11 +1060,16 @@ function AppointmentModal({
 
         if (!occupied) {
           slots.push(timeStr);
+          slotDetails.push({ time: timeStr, isAvailable: true });
+        } else {
+          slotDetails.push({ time: timeStr, isAvailable: false, reason: 'Ocupado' });
         }
       }
     });
 
+    const sortedDetails = slotDetails.sort((a, b) => timeStrToMinutes(a.time) - timeStrToMinutes(b.time));
     setAvailableSlots(slots);
+    setDaySlots(sortedDetails);
   }, [
     formData.fechaCita,
     formData.documentoEmpleado,
@@ -1021,6 +1128,32 @@ function AppointmentModal({
       }
     }
 
+    // Reglas de fecha/tiempo y transición de estado
+    if (formData.fechaCita && formData.horaInicio && totalDuration > 0) {
+      const now = new Date();
+      const startAt = toDateTime(formData.fechaCita, formData.horaInicio);
+      const endAt = new Date(startAt.getTime() + totalDuration * 60_000);
+      const minLead = new Date(now.getTime() + 90 * 60 * 1000);
+      const completeLimit = new Date(endAt.getTime() + 24 * 60 * 60 * 1000);
+      const targetEstado = getEstadoNameById(formData.estadoId);
+      const isTargetCompleted = targetEstado === 'completado' || formData.estadoId === estadoCompletadoId;
+      const isTargetCancelled = targetEstado === 'cancelado' || formData.estadoId === estadoCanceladoId;
+
+      if (isTargetCompleted) {
+        if (now < endAt) {
+          newErrors.estadoId = 'Solo se puede completar una cita cuando su duración ya finalizó.';
+        } else if (now > completeLimit) {
+          newErrors.estadoId = 'La ventana de 24 horas para completar ya expiró.';
+        }
+      } else if (!isTargetCancelled) {
+        if (startAt <= now) {
+          newErrors.horaInicio = 'La cita debe programarse en una fecha y hora futura.';
+        } else if (startAt < minLead) {
+          newErrors.horaInicio = 'Debes agendar con al menos 1 hora y 30 minutos de anticipación.';
+        }
+      }
+    }
+
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
@@ -1028,6 +1161,15 @@ function AppointmentModal({
     try {
       const hora = formData.horaInicio.length === 5 ? formData.horaInicio + ':00' : formData.horaInicio;
       const obs = formData.observaciones || 'Sin observaciones';
+      let payloadEstadoId = formData.estadoId;
+      const now = new Date();
+      const startAt = toDateTime(formData.fechaCita, formData.horaInicio);
+
+      // Regla: citas no confirmadas que alcanzan su hora de inicio se cancelan automáticamente.
+      if (now >= startAt && payloadEstadoId !== estadoConfirmadoId && payloadEstadoId !== estadoCompletadoId && payloadEstadoId !== estadoCanceladoId) {
+        payloadEstadoId = estadoCanceladoId;
+        toast.info('La cita no estaba confirmada y ya alcanzó su hora. Se guardará como cancelada.');
+      }
 
       const payload: any = {
         documentoCliente: formData.documentoCliente,
@@ -1037,7 +1179,7 @@ function AppointmentModal({
         metodoPagoId: formData.metodoPagoId,
         observaciones: obs,
         serviciosIds: formData.serviciosIds.filter((id) => id > 0),
-        estadoId: formData.estadoId,
+        estadoId: payloadEstadoId,
       };
 
       if (isEdit) {
@@ -1174,21 +1316,23 @@ function AppointmentModal({
                       <select
                         value={formData.horaInicio}
                         onChange={(e) => setFormData({ ...formData, horaInicio: e.target.value })}
-                        disabled={isCompleted || availableSlots.length === 0}
+                        disabled={isCompleted || daySlots.length === 0}
                         className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.horaInicio ? 'border-red-300' : 'border-gray-200'} ${isCompleted || availableSlots.length === 0 ? 'bg-gray-100' : ''}`}
                       >
-                        {availableSlots.length === 0 ? (
+                        {daySlots.length === 0 ? (
                           <option value="">No hay disponibilidad</option>
                         ) : (
                           <>
                             {formData.horaInicio && !availableSlots.includes(formData.horaInicio) && (
                               <option value={formData.horaInicio}>
-                                {formatTo12Hour(formData.horaInicio)} {isEdit ? '(Actual)' : 'Seleccionada'}
+                                {formatTo12Hour(formData.horaInicio)} {isEdit ? '(Actual - no disponible)' : '(No disponible)'}
                               </option>
                             )}
                             {!formData.horaInicio && <option value="">Seleccionar hora...</option>}
-                            {availableSlots.map((slot) => (
-                              <option key={slot} value={slot}>{formatTo12Hour(slot)}</option>
+                            {daySlots.map((slot) => (
+                              <option key={slot.time} value={slot.time} disabled={!slot.isAvailable}>
+                                {formatTo12Hour(slot.time)}{slot.isAvailable ? '' : ` (${slot.reason || 'No disponible'})`}
+                              </option>
                             ))}
                           </>
                         )}
@@ -1347,6 +1491,7 @@ function AppointmentModal({
                         <option key={est.estadoId} value={est.estadoId}>{est.nombre}</option>
                       ))}
                     </select>
+                    {errors.estadoId && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.estadoId}</p>}
                     {isCompleted && (
                       <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-100 flex items-center space-x-3">
                         <CheckCircle className="w-5 h-5 text-green-500" />

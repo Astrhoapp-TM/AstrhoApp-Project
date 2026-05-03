@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Plus, Calendar, Filter, Search, CheckCircle, Clock, ChevronDown,
   X, Save, AlertCircle, Package, User, MapPin, FileText, Eye, Ban, Trash2, ShoppingCart, RefreshCw
@@ -8,8 +8,10 @@ import { deliveryService, type Delivery } from '../services/deliveryService';
 import { supplyService, type Supply } from '../services/supplyService';
 import { personService, type Person } from '@/features/persons/services/personService';
 import { authService } from '@/features/auth/services/authService';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Info } from 'lucide-react';
 import { cn } from '@/shared/components/ui/utils';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 interface SupplyDeliveryManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -28,7 +30,8 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [supplies, setSupplies] = useState<Supply[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -51,7 +54,10 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
 
   const fetchData = async (isRefreshing = false) => {
     try {
-      if (!isRefreshing) setLoading(true);
+      if (!isRefreshing) {
+        setLoading(true);
+        showSectionLoading("Cargando entregas...");
+      }
       const [response, suppliesData, employeesData] = await Promise.all([
         deliveryService.getDeliveries({
           page: currentPage,
@@ -81,6 +87,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
       console.error('Error fetching delivery data:', error);
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -147,6 +154,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
 
   const handleViewDetail = async (delivery: Delivery) => {
     try {
+      showSectionLoading("Obteniendo detalles...");
       setIsProcessing(true);
       // Como el listado general /Entregas no trae los "detalles", consultamos la ruta individual /Entregas/{id}
       const detailedDelivery = await deliveryService.getDeliveryById(delivery.id);
@@ -159,6 +167,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
       setShowDetailModal(true);
     } finally {
       setIsProcessing(false);
+      hideSectionLoading();
     }
   };
 
@@ -185,6 +194,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
 
   const handleSaveDelivery = async (deliveryData: any) => {
     try {
+      showSectionLoading("Registrando entrega...");
       setIsProcessing(true);
       const userStr = localStorage.getItem('user');
       const currentUser = userStr ? JSON.parse(userStr) : null;
@@ -213,6 +223,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
       showAlert('error', `Error al crear la entrega: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
+      hideSectionLoading();
     }
   };
 
@@ -253,6 +264,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
     ));
 
     try {
+      showSectionLoading("Actualizando estado...");
       setIsProcessing(true);
 
       const payload = {
@@ -277,6 +289,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
       showAlert('error', 'Ocurrió un error al actualizar el estado.');
     } finally {
       setIsProcessing(false);
+      hideSectionLoading();
     }
   };
 
@@ -384,17 +397,6 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
   const completedDeliveries = deliveries.filter(d => d.estado.toLowerCase() === 'completado').length;
   const todayDeliveries = deliveries.filter(d => d.fechaEntrega.split('T')[0] === new Date().toISOString().split('T')[0]).length;
 
-  if (loading && deliveries.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando entregas...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-8">
       {/* Notification Banner */}
@@ -477,13 +479,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
       </div>
 
       {/* Deliveries Table */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 relative min-h-[400px]">
-        {loading && deliveries.length > 0 && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-            <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
-            <span className="text-sm font-medium text-gray-500">Buscando...</span>
-          </div>
-        )}
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
           <h3 className="text-xl font-bold text-gray-800">Lista de Entregas</h3>
           <p className="text-gray-600">

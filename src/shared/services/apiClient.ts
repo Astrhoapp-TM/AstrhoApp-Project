@@ -116,8 +116,17 @@ export const apiClient = {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`Status: ${response.status}, Endpoint: ${endpoint}, Body:`, errorText);
-                throw new Error(`API GET Error: ${endpoint} -> Status ${response.status}: ${errorText || response.statusText}`);
+                let parsedMessage = errorText;
+                try {
+                    const json = JSON.parse(errorText);
+                    parsedMessage = json.message || json.error || errorText;
+                } catch { /* Not JSON */ }
+                
+                const error: any = new Error(parsedMessage || `API GET Error ${response.status}`);
+                error.status = response.status;
+                error.body = errorText;
+                error.endpoint = endpoint;
+                throw error;
             }
             const json = await response.json();
             return normalizeResponse(json) as T;
@@ -143,8 +152,17 @@ export const apiClient = {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`POST Error Status: ${response.status}, Endpoint: ${endpoint}, Body:`, errorText);
-                throw new Error(`Error posting to ${endpoint} (${response.status}): ${errorText || response.statusText}`);
+                let parsedMessage = errorText;
+                try {
+                    const json = JSON.parse(errorText);
+                    parsedMessage = json.message || json.error || errorText;
+                } catch { /* Not JSON */ }
+
+                const error: any = new Error(parsedMessage || `API POST Error ${response.status}`);
+                error.status = response.status;
+                error.body = errorText;
+                error.endpoint = endpoint;
+                throw error;
             }
             // Handle 204 No Content or empty body
             if (response.status === 204 || response.headers.get('content-length') === '0') {
@@ -182,8 +200,17 @@ export const apiClient = {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`PUT Error Status: ${response.status}, Endpoint: ${endpoint}, Body:`, errorText);
-                throw new Error(`API PUT Error: ${endpoint} -> Status ${response.status}: ${errorText || response.statusText}`);
+                let parsedMessage = errorText;
+                try {
+                    const json = JSON.parse(errorText);
+                    parsedMessage = json.message || json.error || errorText;
+                } catch { /* Not JSON */ }
+
+                const error: any = new Error(parsedMessage || `API PUT Error ${response.status}`);
+                error.status = response.status;
+                error.body = errorText;
+                error.endpoint = endpoint;
+                throw error;
             }
             // Handle 204 No Content
             if (response.status === 204 || response.headers.get('content-length') === '0') {
@@ -214,8 +241,17 @@ export const apiClient = {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`DELETE Error Status: ${response.status}, Endpoint: ${endpoint}, Body:`, errorText);
-                throw new Error(`API DELETE Error: ${endpoint} -> Status ${response.status}: ${errorText || response.statusText}`);
+                let parsedMessage = errorText;
+                try {
+                    const json = JSON.parse(errorText);
+                    parsedMessage = json.message || json.error || errorText;
+                } catch { /* Not JSON */ }
+
+                const error: any = new Error(parsedMessage || `API DELETE Error ${response.status}`);
+                error.status = response.status;
+                error.body = errorText;
+                error.endpoint = endpoint;
+                throw error;
             }
         } catch (error) {
             console.error(`API DELETE error on ${endpoint}:`, error);
@@ -239,8 +275,17 @@ export const apiClient = {
             });
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`PATCH Error Status: ${response.status}, Endpoint: ${endpoint}, Body:`, errorText);
-                throw new Error(`API PATCH Error: ${endpoint} -> Status ${response.status}: ${errorText || response.statusText}`);
+                let parsedMessage = errorText;
+                try {
+                    const json = JSON.parse(errorText);
+                    parsedMessage = json.message || json.error || errorText;
+                } catch { /* Not JSON */ }
+
+                const error: any = new Error(parsedMessage || `API PATCH Error ${response.status}`);
+                error.status = response.status;
+                error.body = errorText;
+                error.endpoint = endpoint;
+                throw error;
             }
             // Handle 204 No Content
             if (response.status === 204 || response.headers.get('content-length') === '0') {

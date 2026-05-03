@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Users, Plus, Edit, Trash2, Eye, Search, Filter, CheckCircle, XCircle, X, Save,
   AlertCircle, Mail, Phone, Calendar, Shield, UserCog, Download, Upload,
@@ -13,6 +13,8 @@ import { agendaService } from '@/features/appointments/services/agendaService';
 import { salesService } from '@/features/sales/services/salesService';
 import { roleService, type RolListDto } from '@/features/roles/services/roleService';
 import { apiClient } from '@/shared/services/apiClient';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 interface UserManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -22,7 +24,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
   const [users, setUsers] = useState<UsuarioListItem[]>([]);
   const [roles, setRoles] = useState<RolListDto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showUserModal, setShowUserModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -45,6 +48,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
   // Fetch users and roles from API
   const fetchUsers = async () => {
     try {
+      showSectionLoading("Obteniendo usuarios...");
       setLoading(true);
       const response = await userService.getAll({
         page: currentPage,
@@ -59,6 +63,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
       toast.error('Error al cargar los usuarios');
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -106,17 +111,21 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
   const handleEditUser = async (user: UsuarioListItem) => {
     try {
+      showSectionLoading("Cargando datos del usuario...");
       const detail = await userService.getById(user.usuarioId);
       setSelectedUser(detail);
       setShowUserModal(true);
     } catch (error) {
       console.error('Error fetching user details:', error);
       toast.error('Error al cargar los datos del usuario');
+    } finally {
+      hideSectionLoading();
     }
   };
 
   const handleViewUser = async (user: UsuarioListItem) => {
     try {
+      showSectionLoading("Cargando detalle del usuario...");
       // Show basic info from the list first to avoid empty screen
       setSelectedUser({
         ...user,
@@ -130,6 +139,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
     } catch (error) {
       console.error('Error fetching user details:', error);
       // Detail modal will still show basic info from 'user' param
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -147,6 +158,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
   const confirmDeleteUser = async () => {
     if (userToDelete) {
       try {
+        showSectionLoading("Verificando dependencias...");
         setLoading(true);
 
         // 1. Get associated person to check for appointments/sales
@@ -186,11 +198,13 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         if (hasAppointments || hasSales) {
           toast.error("Esta persona ya esta asociada a una Cita o Venta");
           setLoading(false);
+          hideSectionLoading();
           setShowDeleteModal(false);
           setUserToDelete(null);
           return;
         }
 
+        showSectionLoading("Eliminando cuenta...");
         await userService.delete(userToDelete.usuarioId);
         setShowDeleteModal(false);
         setUserToDelete(null);
@@ -201,6 +215,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         toast.error('Error al eliminar el usuario. Verifique que no existan dependencias activas.');
       } finally {
         setLoading(false);
+        hideSectionLoading();
       }
     }
   };
@@ -209,12 +224,11 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
     if (selectedUser) {
       // ── EDIT ──
       try {
+        showSectionLoading("Actualizando datos...");
         const userId = selectedUser.usuarioId;
         const updatePayload = {
           rolId: userData.rolId,
           email: userData.email,
-          contrasena: selectedUser.contrasena || 'placeholder',
-          confirmarContrasena: selectedUser.contrasena || 'placeholder',
           estado: userData.estado !== undefined ? userData.estado : selectedUser.estado,
         };
 
@@ -265,12 +279,15 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
       } catch (error: any) {
         console.error('Error updating user:', error);
         showAlert('error', error?.message || 'Error al actualizar el usuario');
+      } finally {
+        hideSectionLoading();
       }
       return;
     }
 
     // ── CREATE ──
     try {
+      showSectionLoading("Registrando nuevo usuario...");
 
       // Step 1: Create temp user via auth endpoint
       const selectedRole = roles.find(r => r.rolId === userData.rolId);
@@ -330,6 +347,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
     } catch (err: any) {
       console.error('Error creating user:', err);
       showAlert('error', err?.message || 'Error al registrar the usuario');
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -345,13 +364,12 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
     if (!user) return;
 
     try {
+      showSectionLoading("Cambiando estado...");
       const detail = await userService.getById(userId);
       const newEstado = !user.estado;
       await userService.update(userId, {
         rolId: detail.rol.rolId,
         email: detail.email,
-        contrasena: detail.contrasena || 'placeholder',
-        confirmarContrasena: detail.contrasena || 'placeholder',
         estado: newEstado,
       });
       showAlert('success', 'Estado de usuario actualizado correctamente');
@@ -359,6 +377,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
     } catch (error) {
       console.error('Error toggling user status:', error);
       showAlert('error', 'Error al actualizar el estado del usuario');
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -375,16 +395,6 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
     return 'bg-gray-100 text-gray-800';
   };
 
-  if (loading && users.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando usuarios...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-8">

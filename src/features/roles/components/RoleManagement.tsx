@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Shield, Users, Edit, Save, X, Plus, AlertCircle,
   CheckCircle, UserCheck, UserX, Settings, Eye, Trash2, Search,
@@ -18,6 +18,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/shared/components/ui/pagination';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 interface Role {
   id: string;
@@ -36,7 +38,8 @@ interface RoleManagementProps {
 
 export function RoleManagement({ hasPermission }: RoleManagementProps) {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [viewingRole, setViewingRole] = useState<Role | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -82,6 +85,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
   // Fetch roles from API
   const fetchRoles = async () => {
     try {
+      showSectionLoading("Obteniendo roles...");
       setLoading(true);
       const response = await roleService.getRoles({
         page: currentPage,
@@ -119,6 +123,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       console.error('Error fetching roles:', error);
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -227,6 +232,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
   const handleViewRole = async (role: any) => {
     try {
+      showSectionLoading("Cargando detalle del rol...");
       setLoading(true);
       const fullRole = await roleService.getRoleById(parseInt(role.id));
       
@@ -253,6 +259,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       setViewingRole(role);
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -302,6 +309,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
     }
 
     try {
+      showSectionLoading("Creando nuevo rol...");
       setLoading(true);
       // Map frontend permission string IDs to backend numeric IDs
       const permisosIds: number[] = newRoleData.permissions
@@ -331,10 +339,12 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       showAlert('error', `Error al crear el rol: ${detail}`);
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
   const handleEditRole = async (role) => {
+    showSectionLoading("Cargando datos del rol...");
     setLoading(true);
     try {
       const fullRole = await roleService.getRoleById(parseInt(role.id));
@@ -362,17 +372,19 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       setEditingRole({ ...role });
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
   const handleSaveRole = async () => {
     try {
+      showSectionLoading("Guardando cambios...");
       setLoading(true);
       const permisosIds = editingRole.permissions.map(pId => PERMISSION_MAP[pId]).filter(id => id !== undefined);
 
       await roleService.updateRole(parseInt(editingRole.id), {
         nombre: editingRole.name,
-        descripcion: editingRole.description,
+        description: editingRole.description,
         permisosIds,
         estado: editingRole.status === 'active'
       });
@@ -388,6 +400,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       showAlert('error', `Error al actualizar el rol: ${detail}`);
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -401,6 +414,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
     }
 
     try {
+      showSectionLoading("Cambiando estado...");
       setLoading(true);
       const newStatus = role.status === 'active' ? 'inactive' : 'active';
 
@@ -422,6 +436,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       showAlert('error', 'Error al cambiar el estado del rol');
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -436,6 +451,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
   const confirmDeleteRole = async () => {
     try {
+      showSectionLoading("Eliminando rol...");
       setLoading(true);
       await roleService.deleteRole(parseInt(roleToDelete.id));
 
@@ -451,19 +467,10 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       showAlert('error', `Error al eliminar el rol: ${detail}`);
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
-  if (loading && roles.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando roles...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-8">

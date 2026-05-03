@@ -27,8 +27,8 @@ export interface UsuarioDetail {
 export interface UpdateUsuarioDto {
     rolId: number;
     email: string;
-    contrasena: string;
-    confirmarContrasena: string;
+    contrasena?: string;
+    confirmarContrasena?: string;
     estado: boolean;
 }
 

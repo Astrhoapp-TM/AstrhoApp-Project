@@ -1,8 +1,8 @@
-﻿import {
+import {
   Calendar, Clock, Users, Plus,
   CheckCircle, AlertCircle, XCircle, Edit, Eye, Trash2,
   Save, X, User, Phone, DollarSign, Search, Loader2, RefreshCw, Scissors, TrendingUp,
-  Check, ChevronsUpDown, Briefcase, CreditCard, FileText
+  Check, ChevronsUpDown, Briefcase, CreditCard, FileText, Info
 } from 'lucide-react';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
@@ -24,7 +24,9 @@ import { horarioEmpleadoService, horarioService, HorarioEmpleado } from '@/featu
 import { motivoService, Motivo } from '@/shared/services/motivoService';
 import { personService } from '@/features/persons/services/personService';
 import { serviceService } from '@/features/services/services/serviceService';
-// processImageSource and handleImageError removed as they are no longer needed here
+import { AppointmentBooking } from './AppointmentBooking';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 interface AppointmentManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -59,6 +61,8 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
   // ── UI state ──
   const [loading, setLoading] = useState(true);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
+  const [isBookingMode, setIsBookingMode] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -114,6 +118,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
   // ── Load all data ──
   const loadData = useCallback(async () => {
     setLoading(true);
+    showSectionLoading("Cargando agendamiento...");
     try {
       const params = {
         page: currentPage,
@@ -191,6 +196,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       toast.error('Error al cargar los datos del agendamiento');
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   }, [currentPage, searchTerm, autoCancelOverdue]);
 
@@ -252,7 +258,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
   const handleCreateAppointment = () => {
     setSelectedAppointment(null);
-    setShowCreateModal(true);
+    setIsBookingMode(true);
   };
 
   const handleEditAppointment = (apt: AgendaItem) => {
@@ -279,6 +285,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
   const confirmDeleteAppointment = async () => {
     if (!selectedAppointment) return;
     try {
+      showSectionLoading("Eliminando cita...");
       await agendaService.delete(selectedAppointment.agendaId);
       showAlert('success', `Cita de ${selectedAppointment.cliente} eliminada correctamente`);
       setShowDeleteModal(false);
@@ -287,11 +294,14 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     } catch (err) {
       console.error('Error deleting appointment:', err);
       showAlert('error', 'Error al eliminar la cita');
+    } finally {
+      hideSectionLoading();
     }
   };
 
   const handleSaveAppointment = async (data: any, isEdit: boolean, agendaId?: number) => {
     try {
+      showSectionLoading("Guardando cita...");
       if (isEdit && agendaId != null) {
         await agendaService.update(agendaId, data);
         showAlert('success', 'Cita actualizada correctamente');
@@ -307,6 +317,8 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     } catch (err) {
       console.error('Error saving appointment:', err);
       showAlert('error', 'Error al guardar la cita');
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -366,19 +378,23 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
   };
 
   // ── Loading state ──
-  if (loading && appointments.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando agendamiento...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-8">
+      {isBookingMode && (
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+          <AppointmentBooking 
+            currentUser={currentUser} 
+            isAdminBooking={true} 
+            onBookingComplete={() => {
+              setIsBookingMode(false);
+              loadData();
+            }}
+            onBack={() => setIsBookingMode(false)}
+          />
+        </div>
+      )}
+
       {/* Notification Banner */}
       {alert && (
         <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
@@ -457,6 +473,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
       {/* Appointments List */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
+        <SectionLoader />
         {loading && appointments.length > 0 && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
             <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />

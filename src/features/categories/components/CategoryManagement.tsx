@@ -7,6 +7,8 @@ import { mockProducts } from '@/shared/data/management';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
 import { cn } from '@/shared/components/ui/utils';
 import { supplyCategoryService, type Category as APICategory } from '../services/supplyCategoryService';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 // Helper: ASP.NET with ReferenceHandler.Preserve wraps arrays in { $values: [...] }
 function unwrapValues(obj: any): any {
@@ -33,6 +35,7 @@ interface CategoryManagementProps {
 export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -75,6 +78,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
 
   const fetchCategories = async () => {
     setIsLoading(true);
+    showSectionLoading("Obteniendo categorías...");
     try {
       const response = await supplyCategoryService.getCategories({
         page: currentPage,
@@ -93,6 +97,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
       setError('No se pudieron cargar las categorías. Por favor, intente de nuevo.');
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -111,6 +116,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
   const handleViewDetail = async (category: any) => {
     try {
       setIsLoading(true);
+      showSectionLoading("Cargando detalle...");
       const fullCategory = await supplyCategoryService.getCategoryById(category.id);
       setSelectedCategory(mapCategoryToUI(fullCategory));
       setShowDetailModal(true);
@@ -121,6 +127,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
       setShowDetailModal(true);
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -145,6 +152,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
 
     const categoryName = selectedCategory.name;
     try {
+      showSectionLoading("Eliminando categoría...");
       await supplyCategoryService.deleteCategory(selectedCategory.id);
       setCategories(categories.filter((c: any) => c.id !== selectedCategory.id));
       setShowDeleteModal(false);
@@ -153,9 +161,10 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
       // Mostrar alerta de eliminación exitosa
       showAlert('success', `Categoría "${categoryName}" eliminada correctamente`);
     } catch (err) {
-      console.error('Error deleting category:', err);
       setErrorModalMessage('No se pudo eliminar la categoría. Es posible que existan dependencias en el sistema.');
       setShowErrorModal(true);
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -164,6 +173,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
     if (!category) return;
 
     try {
+      showSectionLoading("Actualizando estado...");
       const newStatus = category.status === 'active' ? 'inactive' : 'active';
       const categoryToUpdate = { ...category, status: newStatus };
       const apiData = mapCategoryToAPI(categoryToUpdate);
@@ -181,6 +191,8 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
       console.error('Error toggling category status:', err);
       setErrorModalMessage('No se pudo actualizar el estado de la categoría. Verifique su conexión e intente de nuevo.');
       setShowErrorModal(true);
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -203,6 +215,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
 
   const handleSaveCategory = async (categoryData: any) => {
     try {
+      showSectionLoading("Guardando categoría...");
       if (selectedCategory) {
         // Edit existing category - merge to ensure we have all fields
         const updatedData = { ...selectedCategory, ...categoryData };
@@ -235,6 +248,8 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
         ? 'Este registro ya existe. por favor ingrese otro diferente'
         : 'Error al guardar la categoría. Por favor, verifique que todos los campos sean válidos e intente de nuevo.');
       setShowErrorModal(true);
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -265,16 +280,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
   const totalCategories = categories.length;
   const activeCategories = categories.filter(c => c.status === 'active');
 
-  if (isLoading && categories.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando categorías...</p>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="p-8">
@@ -355,7 +361,8 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
       </div>
 
       {/* Categories List */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
+        <SectionLoader />
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gradient-to-r from-pink-50 to-purple-50">

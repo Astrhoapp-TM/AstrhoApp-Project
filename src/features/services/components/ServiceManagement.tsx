@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Scissors, Plus, Edit, Trash2, Eye, Search, Filter, Clock, DollarSign,
   Package, X, Save, AlertCircle, TrendingUp, Calendar, Tag, Star, Users,
@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { serviceService, type Service as APIService } from '../services/serviceService';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
 import { cn } from '@/shared/components/ui/utils';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 const API_ORIGIN = 'http://www.astrhoapp.somee.com';
 const DEFAULT_SERVICE_IMAGE = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop';
@@ -55,7 +57,8 @@ const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
 
 export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
   const [services, setServices] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [selectedService, setSelectedService] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -218,6 +221,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
   const fetchServices = async () => {
     setIsLoading(true);
     try {
+      showSectionLoading("Obteniendo catálogo de servicios...");
       const response = await serviceService.getServices({
         page: currentPage,
         pageSize: itemsPerPage,
@@ -238,6 +242,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
       setShowErrorModal(true);
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -263,6 +268,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
 
   const handleViewDetail = async (service: any) => {
     try {
+      showSectionLoading("Cargando detalle del servicio...");
       setIsLoading(true);
       const fullService = await serviceService.getServiceById(service.id);
       setSelectedService(mapServiceToUI(fullService));
@@ -272,6 +278,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
       toast.error('No se pudo cargar el detalle del servicio');
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -287,6 +294,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
 
   const confirmDeleteService = async () => {
     try {
+      showSectionLoading("Eliminando servicio...");
       await serviceService.deleteService(selectedService.id);
       setServices(services.filter(s => s.id !== selectedService.id));
       setShowDeleteModal(false);
@@ -296,6 +304,8 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
       console.error('Error deleting service:', error);
       setErrorModalMessage('No se pudo eliminar el servicio. Es posible que existan dependencias.');
       setShowErrorModal(true);
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -304,6 +314,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
     if (!service) return;
 
     try {
+      showSectionLoading("Cambiando estado...");
       const updatedStatus = service.status === 'active' ? false : true;
 
       // Usar mapUIToFormData en lugar de JSON para asegurar compatibilidad con el backend
@@ -328,6 +339,8 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
       console.error('Error toggling service status:', error);
       setErrorModalMessage('Error al cambiar el estado del servicio. Verifique su conexión.');
       setShowErrorModal(true);
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -378,6 +391,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
 
   const handleSaveService = async (serviceData: any) => {
     try {
+      showSectionLoading("Guardando cambios...");
       if (selectedService) {
         // Edit existing service
         const formData = mapUIToFormData(serviceData, selectedService.id);
@@ -409,6 +423,8 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
         ? 'Este registro ya existe. por favor ingrese otro diferente'
         : (error.message || 'Error al guardar el servicio. Verifique los datos.'));
       setShowErrorModal(true);
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -423,16 +439,6 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
   const totalServices = services.length;
   const activeServices = services.filter(s => s.status === 'active').length;
 
-  if (isLoading && services.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando servicios...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <React.Fragment>

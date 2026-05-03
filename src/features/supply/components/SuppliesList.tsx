@@ -1,9 +1,11 @@
-﻿import React, { useEffect, useState  } from 'react';
+import React, { useEffect, useState  } from 'react';
 import { X, 
   Package, Edit, Trash2, Eye, Search, Filter, Plus,
   AlertCircle, CheckCircle, Clock, Archive, Tag, TrendingUp, Truck, MapPin, FileText, Info
 } from 'lucide-react';
 import { cn } from '@/shared/components/ui/utils';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 import {
   Pagination,
   PaginationContent,
@@ -161,6 +163,8 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
+  const [loading, setLoading] = useState(false);
 
   // Filter supplies
   const filteredSupplies = supplies.filter(supply => {
@@ -454,6 +458,7 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
               })}
             </tbody>
           </table>
+        </div>
         </div>
 
         {/* Pagination */}

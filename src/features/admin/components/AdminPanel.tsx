@@ -1,4 +1,6 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ADMIN_MENU_ITEMS, getMenuItemsByCategory } from '@/shared/data/adminConstants';
 import {
@@ -33,21 +35,32 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
 
-  // Scroll to top when tab changes
+  // Scroll to top and show loader when tab changes
   useEffect(() => {
+    // Show a quick loader to give feedback on tab change
+    // This provides a smoother transition between complex management views
+    const tabLabel = ADMIN_MENU_ITEMS.find(item => item.id === activeTab)?.label || "la sección";
+    showSectionLoading(`Cargando ${tabLabel}...`);
+    
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({
         top: 0,
         behavior: 'smooth'
       });
     }
-    // Also scroll window just in case the layout varies on different screens
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
-  }, [activeTab]);
+
+    const timer = setTimeout(() => {
+      hideSectionLoading();
+    }, 400); // Brief moment to allow the component to render
+
+    return () => clearTimeout(timer);
+  }, [activeTab, showSectionLoading, hideSectionLoading]);
 
   const menuCategories = getMenuItemsByCategory(ADMIN_MENU_ITEMS, hasPermission, currentUser?.role);
 
@@ -165,7 +178,8 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
         </div>
 
         {/* Main Content */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-auto">
+        <div ref={scrollContainerRef} className="flex-1 overflow-auto relative min-h-screen">
+          <SectionLoader />
           {renderContent()}
         </div>
       </div>

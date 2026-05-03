@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Plus, Search, Edit, Trash2, Eye, Package, Wrench, AlertTriangle, X, Loader2, Tag, TrendingUp, FileText, AlertCircle, RefreshCw, Info } from 'lucide-react';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 import { supplyService, type Supply } from '../services/supplyService';
 import { supplierService } from '@/features/suppliers/services/supplierService';
 import { SupplyEditModal } from './modals/SupplyEditModal';
@@ -29,6 +31,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [loading, setLoading] = useState(true);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [error, setError] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
@@ -41,6 +44,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
   const fetchSupplies = async () => {
     try {
       setLoading(true);
+      showSectionLoading("Cargando insumos...");
       setError(null);
       const raw = await supplyService.getSupplies();
       const items = unwrapArray(raw);
@@ -51,6 +55,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
       setSupplies([]);
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -99,16 +104,6 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
   const goToPreviousPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
   const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
 
-  if (loading && supplies.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando insumos...</p>
-        </div>
-      </div>
-    );
-  }
 
   const handleCreateSupply = () => {
     setSelectedSupply(null);
@@ -140,6 +135,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
     if (!supplyToDelete) return;
 
     try {
+      showSectionLoading("Eliminando insumo...");
       await supplyService.deleteSupply(supplyToDelete.insumoId);
       await fetchSupplies();
       setShowDeleteModal(false);
@@ -148,11 +144,14 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
     } catch (err) {
       console.error('Error deleting supply:', err);
       showAlert('error', 'Error al eliminar el insumo');
+    } finally {
+      hideSectionLoading();
     }
   };
 
   const handleSaveSupply = async (supplyData: any) => {
     try {
+      showSectionLoading("Guardando insumo...");
       if (selectedSupply) {
         await supplyService.updateSupply(selectedSupply.insumoId, {
           sku: supplyData.sku || supplyData.name,
@@ -179,6 +178,8 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
     } catch (err) {
       console.error('Error saving supply:', err);
       showAlert('error', 'Error al guardar el insumo');
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -283,6 +284,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
       {/* Table */}
       {!error && (
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
+          <SectionLoader />
           {loading && supplies.length > 0 && (
             <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
               <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />

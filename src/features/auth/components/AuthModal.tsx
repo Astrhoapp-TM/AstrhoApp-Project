@@ -1,7 +1,8 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff, IdCard, Phone, ArrowLeft, CheckCircle, Loader2, Send, Save, AlertCircle } from 'lucide-react';
 import { authService } from '../services/authService';
 import { setAuthToken } from '@/shared/services/apiClient';
+import { useLoading } from '@/shared/contexts/LoadingContext';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -29,6 +30,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   const [passwordError, setPasswordError] = useState('');
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { showLoading, hideLoading } = useLoading();
 
   // Tokens for the password recovery flow
   const [recoveryToken, setRecoveryToken] = useState('');
@@ -53,6 +55,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     setLoading(true);
 
     try {
+      showLoading("Validando credenciales...");
       const data = await authService.login(formData.email, formData.password);
       const user = authService.buildUserFromLoginResponse(data);
       setAuthToken(data.token);
@@ -68,6 +71,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       setApiError('Credenciales inválidas. Verifica tu correo y contraseña.');
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 
@@ -83,6 +87,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     setLoading(true);
 
     try {
+      showLoading("Actualizando tu seguridad...");
       // Use the formData.password (current temporary password) and newPassword
       await authService.changePassword(formData.email, formData.password, newPassword);
 
@@ -102,6 +107,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       setPasswordError(errorMessage);
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 
@@ -129,6 +135,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     setLoading(true);
 
     try {
+      showLoading("Creando tu perfil de belleza...");
       // Register Client (backend will check for duplicates in the POST /api/Usuarios call)
       await authService.registerClient({
         documentType: formData.documentType,
@@ -155,6 +162,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       setApiError(err.message || 'Error al crear la cuenta. Intenta nuevamente.');
     } finally {
       setLoading(false);
+      hideLoading();
     }
   };
 

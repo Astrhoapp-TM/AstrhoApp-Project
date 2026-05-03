@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   CheckCircle,
   Calendar, Clock, Users, Plus,
@@ -12,6 +12,8 @@ import {
   type Horario, type HorarioEmpleado, type Empleado, type CreateHorarioData, type CreateHorarioEmpleadoData,
   type ScheduleGroup, type DaySchedule, scheduleGroupService, type HorarioDia
 } from '../services/scheduleService';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 import { motivoService, type Motivo, type CreateMotivoData, type UpdateMotivoData } from '@/shared/services/motivoService';
 
 interface ScheduleManagementProps {
@@ -69,6 +71,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
 
   // UI states
   const [loading, setLoading] = useState(true);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [saving, setSaving] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -98,6 +101,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
 
   const loadData = async () => {
     setLoading(true);
+    showSectionLoading("Cargando horarios...");
     try {
       const [horariosData, asignacionesData, empleadosData] = await Promise.all([
         horarioService.getAll(),
@@ -146,6 +150,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       showAlert('error', 'Error al cargar los datos de horarios');
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -186,6 +191,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
 
   const handleSaveMotivo = async (data: CreateMotivoData) => {
     setSaving(true);
+    showSectionLoading("Registrando motivo...");
     try {
       await motivoService.create(data);
       showAlert('success', 'Motivo registrado. Se han cancelado las citas del periodo y notificado a los empleados.');
@@ -196,12 +202,14 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       showAlert('error', 'Error al registrar el motivo de ausencia');
     } finally {
       setSaving(false);
+      hideSectionLoading();
     }
   };
 
   const confirmDeleteSchedule = async () => {
     if (!selectedGroup) return;
     setSaving(true);
+    showSectionLoading("Eliminando horario...");
     try {
       // Deactivate each horario via PUT (API may not support DELETE)
       const groupHorarios = horarios.filter(h => selectedGroup.horarioIds.includes(h.horarioId));
@@ -237,11 +245,13 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       showAlert('error', 'Error al eliminar el horario');
     } finally {
       setSaving(false);
+      hideSectionLoading();
     }
   };
 
   const handleToggleStatus = async (group: ScheduleGroup) => {
     try {
+      showSectionLoading("Actualizando estado...");
       const primaryId = group.horarioIds[0];
       if (!primaryId) return;
 
@@ -259,6 +269,8 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
     } catch (error) {
       console.error('Error toggling schedule status:', error);
       showAlert('error', 'Error al cambiar el estado del horario');
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -270,6 +282,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
     groupId?: string
   ) => {
     setSaving(true);
+    showSectionLoading("Guardando horario...");
     try {
       const enabledDays = days.filter(d => d.enabled);
       const existingGroup = groupId ? groups.find(g => g.id === groupId) : null;
@@ -433,11 +446,13 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       showAlert('error', 'Error al guardar el horario');
     } finally {
       setSaving(false);
+      hideSectionLoading();
     }
   };
 
   const handleSaveAssignment = async (horarioDiaId: number, documentosEmpleado: string[]) => {
     setSaving(true);
+    showSectionLoading("Asignando personal...");
     try {
       if (!horarioDiaId || horarioDiaId === 0) {
         throw new Error("ID de día de horario no válido (0 o undefined)");
@@ -470,17 +485,21 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       showAlert('error', error instanceof Error ? error.message : 'Error al asignar el personal');
     } finally {
       setSaving(false);
+      hideSectionLoading();
     }
   };
 
   const handleRemoveAssignment = async (assignmentId: number) => {
     try {
+      showSectionLoading("Eliminando asignación...");
       await horarioEmpleadoService.delete(assignmentId);
       showAlert('info', 'Asignación eliminada correctamente');
       await loadData();
     } catch (error) {
       console.error('Error removing assignment:', error);
       showAlert('error', 'Error al eliminar la asignación');
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -523,16 +542,6 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
 
   // ── Loading State ──
 
-  if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando horarios...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-8">
@@ -630,7 +639,8 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       ) : (
       <>
       {/* ── Schedules List ── */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
+        <SectionLoader />
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
           <h3 className="text-xl font-bold text-gray-800">Horarios Configurados</h3>
           <p className="text-gray-600">

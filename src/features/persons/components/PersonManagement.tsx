@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Users, Plus, Search, Filter, Eye, Edit, Calendar,
     Phone, Mail, MapPin, Heart, Scissors, ShoppingBag,
@@ -13,6 +13,8 @@ import { userService } from '@/features/users/services/userService';
 import { agendaService } from '@/features/appointments/services/agendaService';
 import { salesService } from '@/features/sales/services/salesService';
 import { roleService, type RolListDto } from '@/features/roles/services/roleService';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 interface PersonManagementProps {
     hasPermission: (permission: string) => boolean;
@@ -23,7 +25,8 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
     const [personType, setPersonType] = useState<'client' | 'employee'>(initialType);
     const [persons, setPersons] = useState<Person[]>([]);
     const [roles, setRoles] = useState<RolListDto[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const { showSectionLoading, hideSectionLoading } = useLoading();
 
     const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
     const [showPersonModal, setShowPersonModal] = useState(false);
@@ -56,6 +59,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
 
     const fetchPersons = async () => {
         try {
+            showSectionLoading(`Obteniendo ${personType === 'client' ? 'clientes' : 'empleados'}...`);
             setLoading(true);
             const response = await personService.getPersons(personType, {
                 page: currentPage,
@@ -71,6 +75,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             setPersons([]);
         } finally {
             setLoading(false);
+            hideSectionLoading();
         }
     };
 
@@ -101,6 +106,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
 
     const handleViewPerson = async (person: Person) => {
         try {
+            showSectionLoading("Cargando perfil...");
             setLoading(true);
             const fullPerson = await personService.getPersonByDocument(person.documentId, person.type);
             
@@ -125,6 +131,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             setShowPersonModal(true);
         } finally {
             setLoading(false);
+            hideSectionLoading();
         }
     };
 
@@ -141,6 +148,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
     const confirmDeletePerson = async () => {
         if (personToDelete) {
             try {
+                showSectionLoading("Verificando dependencias...");
                 setLoading(true);
 
                 // 1. Check associations with appointments and sales
@@ -174,11 +182,13 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 if (hasAppointments || hasSales) {
                     alert("Esta persona ya esta asociada a una Cita o Venta");
                     setLoading(false);
+                    hideSectionLoading();
                     setShowDeleteModal(false);
                     setPersonToDelete(null);
                     return;
                 }
 
+                showSectionLoading("Eliminando registro...");
                 // 2. Identify and delete the user
                 let targetUserId = personToDelete.usuarioId;
 
@@ -223,6 +233,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 }
             } finally {
                 setLoading(false);
+                hideSectionLoading();
                 setShowDeleteModal(false);
                 setPersonToDelete(null);
             }
@@ -231,6 +242,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
 
     const handleSavePerson = async (personData: CreatePersonData & { email?: string, roleId?: number }) => {
         try {
+            showSectionLoading("Guardando información...");
             const { email, roleId, ...personOnlyData } = personData;
 
             if (!editingPerson && email) {
@@ -278,6 +290,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             console.error('Error saving person:', error);
             showAlert('error', 'Error al guardar datos. Por favor revise la consola.');
         } finally {
+            hideSectionLoading();
             setShowNewPersonModal(false);
             setEditingPerson(null);
             fetchPersons(); // Refresh just in case mapping missed something
@@ -289,6 +302,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
         if (!personToUpdate) return;
 
         try {
+            showSectionLoading("Actualizando estado...");
             const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
             await personService.updatePerson(personToUpdate.documentId, {
                 ...personToUpdate,
@@ -302,19 +316,11 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
         } catch (error) {
             console.error('Error toggling status:', error);
             showAlert('error', 'Error al cambiar el estado');
+        } finally {
+            hideSectionLoading();
         }
     };
 
-    if (loading && persons.length === 0) {
-        return (
-            <div className="p-8 flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-                    <p className="text-gray-600 text-lg">Cargando personas...</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="p-8">
@@ -432,12 +438,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                     </p>
                 </div>
 
-                <div className="overflow-x-auto relative min-h-[400px]">
-                    {loading && (
-                        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-                        </div>
-                    )}
+                <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
                             <tr>

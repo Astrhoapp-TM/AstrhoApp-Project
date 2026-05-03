@@ -9,6 +9,8 @@ import { supplierService, type SupplierAPI } from '@/features/suppliers/services
 import { supplyService, type Supply } from '@/features/supply/services/supplyService';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
 import { cn } from '@/shared/components/ui/utils';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 import { toast } from 'sonner';
 
 interface PurchaseManagementProps {
@@ -57,6 +59,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   };
 
   const [loading, setLoading] = useState(true);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [error, setError] = useState<string | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const itemsPerPage = 5;
@@ -73,6 +76,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   const fetchPurchases = async () => {
     try {
       setLoading(true);
+      showSectionLoading("Cargando compras...");
       setError(null);
       
       // Construir parámetros para la API
@@ -100,6 +104,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
       setPurchases([]);
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -148,6 +153,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   const handleViewDetail = async (purchase: PurchaseAPI) => {
     try {
       setLoading(true);
+      showSectionLoading("Cargando detalle...");
       const raw = await purchaseService.getById(purchase.compraId);
       const unwrapped = unwrapValues(raw);
 
@@ -184,6 +190,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
       toast.error('No se pudo cargar el detalle de la compra');
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -206,6 +213,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
     if (!selectedPurchase) return;
 
     try {
+      showSectionLoading("Anulando compra...");
       await purchaseService.update(selectedPurchase.compraId, {
         proveedorId: selectedPurchase.proveedorId,
         iva: selectedPurchase.iva,
@@ -222,6 +230,8 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
     } catch (err) {
       console.error('Error cancelling purchase:', err);
       toast.error('Error al anular la compra');
+    } finally {
+      hideSectionLoading();
     }
   };
 
@@ -322,6 +332,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
 
   const handleSavePurchase = async (purchaseData: any) => {
     try {
+      showSectionLoading("Guardando compra...");
       await purchaseService.create(purchaseData);
       await fetchPurchases();
       setShowCreateModal(false);
@@ -330,19 +341,11 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
     } catch (err) {
       console.error('Error creating purchase:', err);
       showAlert('error', 'Error al registrar la compra');
+    } finally {
+      hideSectionLoading();
     }
   };
 
-  if (loading && purchases.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando compras...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="p-8">
@@ -438,13 +441,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
 
       {/* Purchases Table */}
       {!error && (
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
-          {loading && (
-            <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
-              <span className="text-sm font-medium text-gray-500">Buscando...</span>
-            </div>
-          )}
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
             <h3 className="text-xl font-bold text-gray-800">Historial de Compras</h3>
             <p className="text-gray-600">

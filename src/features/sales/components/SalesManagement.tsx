@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   CheckCircle,
   DollarSign, Plus, Search, Filter, Eye, X, Calendar,
@@ -17,6 +17,8 @@ import { metodoPagoService, type MetodoPago } from '@/features/appointments/serv
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
 import { cn } from '@/shared/components/ui/utils';
 import { Button } from '@/shared/components/ui/button';
+import { useLoading } from '@/shared/contexts/LoadingContext';
+import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 interface SalesManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -36,6 +38,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { showSectionLoading, hideSectionLoading } = useLoading();
   const [error, setError] = useState<string | null>(null);
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
@@ -46,6 +49,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
 
   const load = async () => {
     setLoading(true);
+    showSectionLoading("Cargando ventas...");
     setError(null);
     try {
       const params = {
@@ -70,6 +74,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
       toast.error('Error al cargar ventas');
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -97,16 +102,6 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
     setCurrentPage(prev => Math.min(prev + 1, totalPages));
   };
 
-  if (loading && sales.length === 0) {
-    return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Cargando ventas...</p>
-        </div>
-      </div>
-    );
-  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -138,6 +133,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
     if (saleToCancel) {
       try {
         setLoading(true);
+        showSectionLoading("Anulando venta...");
         // Llamada real a la API para anular
         await salesService.cancel(saleToCancel.id, observacion);
 
@@ -165,6 +161,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
         showAlert('error', 'Error al anular la venta. Verifique la conexión o el ID.');
       } finally {
         setLoading(false);
+        hideSectionLoading();
       }
     }
   };
@@ -172,6 +169,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
   const handleCreateSale = async (saleData: any) => {
     try {
       setLoading(true);
+      showSectionLoading("Registrando venta...");
       const createdSale = await salesService.create(saleData);
       if (createdSale) {
         // En lugar de agregar manualmente el objeto que puede estar incompleto, 
@@ -192,6 +190,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
       showAlert('error', 'Error al registrar la venta. Verifique los datos.');
     } finally {
       setLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -363,13 +362,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
       </div>
 
       {/* Sales Table */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
-        {loading && sales.length > 0 && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-            <div className="w-8 h-8 rounded-full border-4 border-brand-periwinkle border-t-transparent animate-spin mb-2" />
-            <span className="text-sm font-medium text-gray-500">Buscando...</span>
-          </div>
-        )}
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">

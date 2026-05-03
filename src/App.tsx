@@ -14,6 +14,7 @@ import { UserProfile } from "@/features/user/components/UserProfile";
 import { ClientPurchases } from "@/features/sales/components/ClientPurchases";
 import { Toaster } from "@/shared/components/ui/sonner";
 import { userService } from "@/features/users/services/userService";
+import { useLoading } from "@/shared/contexts/LoadingContext";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -24,12 +25,14 @@ function App() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState(null);
   const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
+  const { showLoading, hideLoading } = useLoading();
 
   // Fetch full user person data when logged in
   useEffect(() => {
     const fetchFullUserData = async () => {
       if (currentUser && !currentUser.documentId) {
         try {
+          showLoading("Sincronizando tu perfil...");
           const person = await userService.getPersonForUser(currentUser);
           if (person && person.documentId) {
             setCurrentUser(prev => ({
@@ -43,11 +46,13 @@ function App() {
           }
         } catch (error) {
           console.error("Error fetching full user data in App:", error);
+        } finally {
+          hideLoading();
         }
       }
     };
     fetchFullUserData();
-  }, [currentUser]);
+  }, [currentUser, showLoading, hideLoading]);
 
   // Redirect admin/assistant users to admin panel automatically
   useEffect(() => {

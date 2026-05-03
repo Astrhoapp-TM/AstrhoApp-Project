@@ -3,11 +3,12 @@ import {
   Calendar, Clock, User, ChevronLeft, ChevronRight, Plus,
   ArrowLeft, ArrowRight, CheckCircle, X, Save, Scissors,
   Loader2, Star, ShieldCheck, Search, Info, ShoppingBag,
-  Wallet, Banknote, ArrowRightLeft, Smartphone, CreditCard
+  Wallet, Banknote, ArrowRightLeft, Smartphone, CreditCard, Users
 } from 'lucide-react';
 import { serviceService } from '@/features/services/services/serviceService';
 import { agendaService, empleadoAgendaService, metodoPagoService, type AgendaItem } from '../services/agendaService';
 import { userService } from '@/features/users/services/userService';
+import { personService } from '@/features/persons/services/personService';
 import { horarioEmpleadoService, type HorarioEmpleado } from '@/features/schedule/services/scheduleService';
 import { motivoService, type Motivo } from '@/shared/services/motivoService';
 import { useServicios, useEmpleados } from '../hooks/useBookingData';
@@ -48,10 +49,16 @@ interface AppointmentBookingProps {
   onBack?: () => void;
   initialService?: any;
   appointmentToReschedule?: AgendaItem | null;
+  isAdminBooking?: boolean;
 }
 
-const ProgressHeader = ({ currentStep }: { currentStep: number }) => {
-  const steps = [
+const ProgressHeader = ({ currentStep, isAdminBooking }: { currentStep: number; isAdminBooking?: boolean }) => {
+  const steps = isAdminBooking ? [
+    { num: 1, label: 'Cliente', icon: Users },
+    { num: 2, label: 'Servicios', icon: Scissors },
+    { num: 3, label: 'Profesional', icon: User },
+    { num: 4, label: 'Confirmación', icon: Calendar }
+  ] : [
     { num: 1, label: 'Servicios', icon: Scissors },
     { num: 2, label: 'Profesional', icon: User },
     { num: 3, label: 'Confirmación', icon: Calendar }
@@ -106,8 +113,8 @@ const ProgressHeader = ({ currentStep }: { currentStep: number }) => {
   );
 };
 
-export function AppointmentBooking({ currentUser, onBookingComplete, onBack, initialService, appointmentToReschedule }: AppointmentBookingProps) {
-  const [step, setStep] = useState(1);
+export function AppointmentBooking({ currentUser, onBookingComplete, onBack, initialService, appointmentToReschedule, isAdminBooking }: AppointmentBookingProps) {
+  const [step, setStep] = useState(isAdminBooking ? 0 : 1);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [selectedProfessional, setSelectedProfessional] = useState<any>(null);
   const [selectedMetodoPago, setSelectedMetodoPago] = useState<any>(null);
@@ -259,8 +266,8 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
         setExistingAppointments(Array.isArray(appointmentsData) ? appointmentsData : (appointmentsData as any)?.$values || (appointmentsData as any)?.data || []);
         
-        // Fetch client document
-        if (currentUser) {
+        // Fetch client document only if it's a client booking
+        if (currentUser && !isAdminBooking) {
           const person = await userService.getPersonForUser(currentUser);
           if (person) {
             setClientDocument(person.documentId);
@@ -583,7 +590,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     }
 
     if (!clientDocument) {
-      alert('No se pudo encontrar tu información de cliente. Por favor, asegúrate de estar registrado correctamente.');
+      alert(isAdminBooking ? 'Por favor, selecciona un cliente para agendar la cita.' : 'No se pudo encontrar tu información de cliente. Por favor, asegúrate de estar registrado correctamente.');
       return;
     }
 
@@ -663,12 +670,61 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     }
   };
 
+  // Step 0: Select Client (Admin Only)
+  if (step === 0 && isAdminBooking) {
+    return (
+      <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6">
+          <ProgressHeader currentStep={1} isAdminBooking={isAdminBooking} />
+
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
+              Selecciona el <span className="text-transparent bg-clip-text bg-gradient-brand">Cliente</span>
+            </h2>
+            <p className="text-base text-gray-600 font-medium">
+              Busca y selecciona al cliente para quien vas a registrar la cita
+            </p>
+          </div>
+
+          <div className="bg-white rounded-[2rem] shadow-2xl shadow-pink-100/10 border border-gray-100 p-8 sm:p-12 max-w-2xl mx-auto">
+            <div className="mb-8 bg-gray-50/50 p-6 rounded-3xl border border-gray-100 shadow-inner">
+              <ClientSearchSelect 
+                selectedDocument={clientDocument} 
+                onSelect={(client: any) => setClientDocument(client?.documentoCliente || '')} 
+              />
+            </div>
+
+            <div className="flex flex-row items-center justify-between gap-4 mt-8">
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="flex-1 border-2 border-gray-200 text-gray-500 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Cancelar</span>
+                </button>
+              )}
+              <button
+                onClick={() => setStep(1)}
+                disabled={!clientDocument}
+                className="flex-1 bg-gradient-brand text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
+              >
+                <span>Continuar a Servicios</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   // Step 1: Select Services
   if (step === 1) {
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6">
-          <ProgressHeader currentStep={step} />
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="text-center mb-8">
             <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
@@ -914,13 +970,22 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       </div>
 
                       <div className="flex flex-row items-center justify-between gap-4 mt-5">
-                        {onBack && (
+                        {onBack && !isAdminBooking && (
                           <button
                             onClick={onBack}
                             className="flex-1 border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
                           >
                             <ArrowLeft className="w-4 h-4" />
                             <span>Volver</span>
+                          </button>
+                        )}
+                        {isAdminBooking && (
+                          <button
+                            onClick={() => setStep(0)}
+                            className="flex-1 border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                          >
+                            <ArrowLeft className="w-4 h-4" />
+                            <span>Cliente</span>
                           </button>
                         )}
                         <button
@@ -959,7 +1024,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
-          <ProgressHeader currentStep={step} />
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">
@@ -1140,7 +1205,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
-          <ProgressHeader currentStep={step} />
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/50 p-6 rounded-3xl border border-white shadow-sm backdrop-blur-sm">
             <div className="text-center md:text-left">
@@ -1523,4 +1588,165 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   }
 
   return null;
+}
+
+// Custom Client Search and Select Component
+function ClientSearchSelect({ onSelect, selectedDocument, error, disabled }: any) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+
+  // Load the currently selected client if available
+  useEffect(() => {
+    const fetchSelected = async () => {
+      if (selectedDocument && !selectedClient) {
+        try {
+          const client = await personService.getPersonByDocument(selectedDocument, 'client');
+          // map Backend Person to ClienteAPI structure (expected by onSelect)
+          const mapped = {
+            documentoCliente: client.documentId,
+            tipoDocumento: client.documentType,
+            nombre: client.name,
+            telefono: client.phone,
+            estado: client.status === 'active'
+          };
+          setSelectedClient(mapped);
+        } catch (e) {
+          console.warn('Error fetching selected client:', e);
+        }
+      }
+    };
+    fetchSelected();
+  }, [selectedDocument, selectedClient]);
+
+  // Handle Search with Debounce
+  useEffect(() => {
+    const fetchClients = async () => {
+      if (!searchTerm.trim()) {
+        setSearchResults([]);
+        return;
+      }
+      setLoading(true);
+      try {
+        const res = await personService.getPersons('client', { search: searchTerm, pageSize: 20 });
+        const mapped = res.data.map(p => ({
+          documentoCliente: p.documentId,
+          tipoDocumento: p.documentType,
+          nombre: p.name,
+          telefono: p.phone,
+          estado: p.status === 'active'
+        }));
+        setSearchResults(mapped);
+      } catch (err) {
+        console.error('Error searching clients:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchClients, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (client: any) => {
+    setSelectedClient(client);
+    setSearchTerm('');
+    setIsOpen(false);
+    onSelect(client);
+  };
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedClient(null);
+    onSelect({ documentoCliente: '' }); // Clear parent
+    setTimeout(() => setIsOpen(true), 10);
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {selectedClient ? (
+        <div 
+          onClick={() => !disabled && setIsOpen(true)}
+          className={`w-full flex items-center justify-between px-4 py-3 bg-gray-50 border rounded-xl cursor-pointer hover:bg-gray-100 transition-colors ${error ? 'border-red-300' : 'border-gray-200'} ${disabled ? 'opacity-70 pointer-events-none' : ''}`}
+        >
+          <div className="flex flex-col min-w-0">
+            <span className="font-bold text-gray-800 text-sm truncate">{selectedClient.nombre}</span>
+            <span className="text-xs text-gray-500 truncate">{selectedClient.documentoCliente} • {selectedClient.telefono}</span>
+          </div>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="p-1.5 bg-gray-200 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors text-gray-500 shrink-0 ml-2"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setIsOpen(true);
+            }}
+            onFocus={() => setIsOpen(true)}
+            placeholder="Buscar por nombre o cédula..."
+            disabled={disabled}
+            className={`w-full pl-9 pr-4 py-3 bg-gray-50 border rounded-xl text-sm focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${error ? 'border-red-300' : 'border-gray-200'} ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}
+          />
+          {loading && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+            </div>
+          )}
+        </div>
+      )}
+
+      {isOpen && !disabled && (searchTerm.trim() || searchResults.length > 0) && (
+        <div className="absolute z-[60] w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2">
+          <div className="max-h-60 overflow-y-auto">
+            {searchResults.length > 0 ? (
+              searchResults.map((client) => (
+                <div
+                  key={client.documentoCliente}
+                  onClick={() => handleSelect(client)}
+                  className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors"
+                >
+                  <div className="font-bold text-gray-800 text-sm truncate">{client.nombre}</div>
+                  <div className="text-xs text-gray-500 mt-0.5 truncate flex items-center gap-2">
+                    <span className="font-medium">{client.documentoCliente}</span>
+                    <span>•</span>
+                    <span>{client.telefono}</span>
+                  </div>
+                </div>
+              ))
+            ) : searchTerm.trim() ? (
+              <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                <User className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                No se encontraron clientes que coincidan con la búsqueda.
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

@@ -177,14 +177,15 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
     
     setIsCancelling(true);
     try {
-      // Find IDs for services and payment method to send full update object if needed
+      // Find IDs for services — use case-insensitive trimmed comparison
       const serviceIds = appointmentToCancel.servicios.map(name => {
-        const svc = services.find(s => s.nombre === name);
+        const normalizedName = name.trim().toLowerCase();
+        const svc = services.find(s => s.nombre.trim().toLowerCase() === normalizedName);
         return svc ? svc.servicioId : 0;
       }).filter(id => id > 0);
 
       const mp = metodosPago.find(m => m.nombre === appointmentToCancel.metodoPago);
-      const metodoPagoId = mp ? (mp.metodopagoId || mp.metodoPagoId) : (metodosPago.length > 0 ? (metodosPago[0].metodopagoId || metodosPago[0].metodoPagoId) : 1);
+      const metodoPagoId = mp ? (mp.metodopagoId || (mp as any).metodoPagoId) : (metodosPago.length > 0 ? (metodosPago[0].metodopagoId || (metodosPago[0] as any).metodoPagoId) : 1);
 
       const payload = {
         agendaId: appointmentToCancel.agendaId,
@@ -194,10 +195,11 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
         horaInicio: appointmentToCancel.horaInicio.length === 5 ? `${appointmentToCancel.horaInicio}:00` : appointmentToCancel.horaInicio,
         metodoPagoId: Number(metodoPagoId),
         observaciones: appointmentToCancel.observaciones || 'Cancelada por el cliente',
-        serviciosIds: serviceIds,
+        serviciosIds: serviceIds.length > 0 ? serviceIds : [1], // Fallback to prevent empty array rejection
         estadoId: 3 // 3 is Cancelado
       };
 
+      console.log('Cancel payload:', payload);
       await agendaService.update(appointmentToCancel.agendaId, payload);
       toast.success('Cita cancelada con éxito');
       setShowCancelConfirmModal(false);
@@ -208,9 +210,12 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
       setAppointments(appointmentsData.sort((a, b) => 
         new Date(b.fechaCita).getTime() - new Date(a.fechaCita).getTime()
       ));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error cancelling appointment:', error);
-      toast.error('No se pudo cancelar la cita. Por favor intenta de nuevo.');
+      const msg = error?.message?.includes('403') 
+        ? 'No tienes permisos para cancelar esta cita. Contacta al administrador.' 
+        : 'No se pudo cancelar la cita. Por favor intenta de nuevo.';
+      toast.error(msg);
     } finally {
       setIsCancelling(false);
     }

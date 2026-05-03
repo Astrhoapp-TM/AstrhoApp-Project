@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Scissors, Plus, Edit, Trash2, Eye, Search, Filter, Clock, DollarSign,
   Package, X, Save, AlertCircle, TrendingUp, Calendar, Tag, Star, Users,
@@ -323,7 +323,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
           : s
       ));
 
-      showAlert('success', `Estado de "${service.name}" actualizado a ${updatedStatus ? 'Activo' : 'Inactivo'}`);
+      showAlert('success', `Estado de "${service.name}" actualizado a $`);
     } catch (error) {
       console.error('Error toggling service status:', error);
       setErrorModalMessage('Error al cambiar el estado del servicio. Verifique su conexión.');
@@ -427,7 +427,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando servicios...</p>
         </div>
       </div>
@@ -486,7 +486,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
                 placeholder="Buscar servicios por nombre o descripción..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
               />
             </div>
 
@@ -503,7 +503,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
             {hasPermission('manage_services') && (
               <button
                 onClick={handleCreateService}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Registrar Servicio</span>
@@ -563,11 +563,8 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
                             className="sr-only peer"
                             disabled={!hasPermission('manage_services')}
                           />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          <span className={`ml-3 text-sm font-medium ${service.status === 'active' ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                            {service.status === 'active' ? 'Activo' : 'Inactivo'}
-                          </span>
+                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                          
                         </label>
                       </div>
                     </td>
@@ -594,7 +591,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
 
                             <button
                               onClick={() => handleDeleteService(service)}
-                              className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                              className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                               title="Eliminar"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -665,8 +662,8 @@ function ErrorModal({ message, onClose }: { message: string, onClose: () => void
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[3000] flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
         <div className="p-8 text-center">
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-10 h-10 text-red-500" />
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-brand-pink" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-2">¡Ups! Algo salió mal</h3>
           <p className="text-gray-600 mb-8">{message}</p>
@@ -688,7 +685,7 @@ function ServiceDetailModal({ service, onClose }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -732,7 +729,7 @@ function ServiceDetailModal({ service, onClose }) {
             <div className="grid md:grid-cols-3 gap-4 pb-4">
               {/* Column 1: General Info */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col h-full">
-                <div className="flex items-center space-x-2 text-purple-500 mb-3">
+                <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <Tag className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">General</h4>
                 </div>
@@ -740,19 +737,13 @@ function ServiceDetailModal({ service, onClose }) {
                   {service.name}
                 </p>
                 <div className="mt-auto">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                    service.status === 'active' 
-                      ? 'bg-green-100 text-green-700 border border-green-200 shadow-sm' 
-                      : 'bg-red-100 text-red-700 border border-red-200 shadow-sm'
-                  }`}>
-                    {service.status === 'active' ? 'Servicio Activo' : 'Servicio Inactivo'}
-                  </span>
+                  
                 </div>
               </div>
 
               {/* Column 2: Pricing & Time Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col h-full">
-                <div className="flex items-center space-x-2 text-pink-500 mb-3">
+                <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <Clock className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Detalles</h4>
                 </div>
@@ -783,9 +774,9 @@ function ServiceDetailModal({ service, onClose }) {
             </div>
 
             {/* Resumen Card */}
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-pink-100 shadow-sm">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center space-x-3 mb-3">
-                  <Star className="w-5 h-5 text-pink-400" />
+                  <Star className="w-5 h-5 text-brand-pink" />
                   <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Resumen del Servicio</h4>
                 </div>
                 <p className="text-sm text-gray-600 italic leading-relaxed">
@@ -889,7 +880,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -923,7 +914,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Errors Notification */}
             {Object.keys(errors).length > 0 && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
+              <div className="bg-gray-50 border border-red-200 text-brand-pink px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <p className="font-semibold text-sm">Por favor corrija los errores en el formulario</p>
               </div>
@@ -933,7 +924,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
               {/* Basic Info Section */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                  <Tag className="w-4 h-4 text-pink-500" />
+                  <Tag className="w-4 h-4 text-brand-pink" />
                   <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Información Básica</h4>
                 </div>
                 <div className="p-6 space-y-4">
@@ -946,7 +937,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                           errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                         placeholder="Ej: Corte y Peinado"
@@ -964,7 +955,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                           name="duration"
                           value={formData.duration}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             errors.duration ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                         />
@@ -979,7 +970,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             errors.price ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                         />
@@ -996,7 +987,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                         value={formData.description}
                         onChange={handleInputChange}
                         rows={3}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                           errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                         placeholder="Describa el servicio..."
@@ -1015,8 +1006,8 @@ function ServiceEditModal({ service, onClose, onSave }) {
                             onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'active' : 'inactive' })}
                             className="sr-only peer"
                           />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                          <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-brand-pink'}`}>
                             {formData.status === 'active' ? 'ACTIVO' : 'INACTIVO'}
                           </span>
                         </label>
@@ -1029,7 +1020,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
               {/* Image Section */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                  <ImageIcon className="w-4 h-4 text-purple-500" />
+                  <ImageIcon className="w-4 h-4 text-brand-violet" />
                   <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Imagen Representativa</h4>
                 </div>
                 <div className="p-6">
@@ -1042,13 +1033,13 @@ function ServiceEditModal({ service, onClose, onSave }) {
                         onError={handleImageError}
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center space-x-2">
-                        <label htmlFor="image-upload-change" className="p-3 bg-white text-pink-500 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-lg">
+                        <label htmlFor="image-upload-change" className="p-3 bg-white text-brand-pink rounded-full cursor-pointer hover:scale-110 transition-transform shadow-lg">
                           <ImageIcon className="w-6 h-6" />
                         </label>
                         <button
                           type="button"
                           onClick={handleRemoveImage}
-                          className="p-3 bg-white text-red-500 rounded-full hover:scale-110 transition-transform shadow-lg"
+                          className="p-3 bg-white text-brand-pink rounded-full hover:scale-110 transition-transform shadow-lg"
                         >
                           <Trash2 className="w-6 h-6" />
                         </button>
@@ -1062,7 +1053,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                       />
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center hover:border-pink-300 hover:bg-pink-50/30 transition-all">
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center hover:border-brand-periwinkle hover:bg-gray-100/30 transition-all">
                       <input
                         type="file"
                         accept="image/*"
@@ -1071,7 +1062,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                         id="image-upload-new"
                       />
                       <label htmlFor="image-upload-new" className="cursor-pointer">
-                        <div className="w-16 h-16 bg-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-pink-500">
+                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-brand-pink">
                           <Plus className="w-8 h-8" />
                         </div>
                         <p className="text-sm font-bold text-gray-600">Subir Imagen</p>
@@ -1080,12 +1071,12 @@ function ServiceEditModal({ service, onClose, onSave }) {
                     </div>
                   )}
 
-                  <div className="mt-6 p-4 bg-purple-50 rounded-2xl border border-purple-100">
+                  <div className="mt-6 p-4 bg-gray-50 rounded-2xl border border-purple-100">
                     <div className="flex items-start space-x-3">
-                      <Star className="w-5 h-5 text-purple-500 mt-0.5" />
+                      <Star className="w-5 h-5 text-brand-violet mt-0.5" />
                       <div>
-                        <p className="text-xs font-bold text-purple-700 uppercase tracking-widest mb-1">Consejo Asthro</p>
-                        <p className="text-[11px] text-purple-600 leading-relaxed italic">
+                        <p className="text-xs font-bold text-brand-indigo uppercase tracking-widest mb-1">Consejo Asthro</p>
+                        <p className="text-[11px] text-brand-indigo leading-relaxed italic">
                           Una buena imagen ayuda a tus clientes a visualizar el resultado del servicio.
                         </p>
                       </div>
@@ -1111,7 +1102,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
             form="service-form"
             type="submit"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-to-r from-pink-500 to-purple-600 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
             {isSaving ? <Clock className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{service ? 'Actualizar' : 'Registrar'}</span>
@@ -1150,8 +1141,8 @@ function DeleteConfirmationModal({ service, onClose, onConfirm }) {
 
         <div className="p-8">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-              <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+            <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+              <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
             </div>
             <h4 className="text-lg font-bold text-gray-800 mb-2">
               ¿Eliminar servicio "{service.name}"?
@@ -1163,7 +1154,7 @@ function DeleteConfirmationModal({ service, onClose, onConfirm }) {
             
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4">
               <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                <Scissors className="w-6 h-6 text-pink-500" />
+                <Scissors className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="text-left">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Servicio a eliminar</p>

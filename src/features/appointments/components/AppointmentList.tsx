@@ -129,11 +129,11 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
               {appointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 border border-pink-200"
+                  className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 border border-brand-periwinkle"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-brand rounded-full flex items-center justify-center">
                         <User className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -159,7 +159,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                       }`}>
                         {appointment.status === 'confirmed' ? 'Confirmada' : 'Pendiente'}
                       </span>
-                      <button className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:shadow-lg transition-all">
+                      <button className="bg-brand-lavender text-brand-indigo px-4 py-2 rounded-lg text-sm font-semibold hover:brightness-105 transition-all">
                         Ver Detalles
                       </button>
                     </div>
@@ -187,13 +187,13 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
 
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
           {/* Progress Steps */}
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 p-6">
+          <div className="bg-gradient-brand p-6">
             <div className="flex items-center justify-between">
               {[1, 2, 3, 4].map((stepNumber) => (
                 <div key={stepNumber} className="flex items-center">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                     step >= stepNumber 
-                      ? 'bg-white text-pink-500' 
+                      ? 'bg-white text-brand-pink' 
                       : 'bg-pink-300 text-white'
                   }`}>
                     {step > stepNumber ? (
@@ -233,7 +233,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                       className={`p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
                         selectedService?.id === service.id
                           ? 'border-pink-400 bg-gradient-to-r from-pink-50 to-purple-50'
-                          : 'border-gray-200 hover:border-pink-300'
+                          : 'border-gray-200 hover:border-brand-periwinkle'
                       }`}
                     >
                       <h4 className="font-bold text-gray-800 mb-2">{service.name}</h4>
@@ -242,7 +242,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                           <Clock className="w-4 h-4" />
                           <span>{service.duration} min</span>
                         </span>
-                        <span className="font-bold text-pink-600">
+                        <span className="font-bold text-brand-indigo">
                           ${service.price.toLocaleString()}
                         </span>
                       </div>
@@ -253,7 +253,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                   <button
                     onClick={() => setStep(2)}
                     disabled={!selectedService}
-                    className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+                    className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
                   >
                     Continuar
                   </button>
@@ -283,9 +283,9 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                           onClick={() => setSelectedDate(dateString)}
                           className={`p-3 rounded-xl text-center text-sm font-medium transition-all ${
                             isSelected
-                              ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white'
+                              ? 'bg-gradient-brand text-white'
                               : isToday
-                              ? 'bg-pink-100 text-pink-700 hover:bg-pink-200'
+                              ? 'bg-gray-50 text-pink-700 hover:bg-gray-100'
                               : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                           }`}
                         >
@@ -315,9 +315,9 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                             disabled={!isAvailable}
                             className={`p-3 rounded-xl text-sm font-medium transition-all ${
                               isSelected
-                                ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white'
+                                ? 'bg-gradient-brand text-white'
                                 : isAvailable
-                                ? 'bg-gray-50 text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                                ? 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-brand-indigo'
                                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                             }`}
                           >
@@ -340,7 +340,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                   <button
                     onClick={() => setStep(3)}
                     disabled={!selectedDate || !selectedTime}
-                    className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+                    className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
                   >
                     Continuar
                   </button>
@@ -364,7 +364,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                       type="text"
                       value={customerInfo.name}
                       onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
                       placeholder="Tu nombre completo"
                     />
                   </div>
@@ -377,7 +377,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                       type="email"
                       value={customerInfo.email}
                       onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
                       placeholder="tu@email.com"
                     />
                   </div>
@@ -390,7 +390,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                       type="tel"
                       value={customerInfo.phone}
                       onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
                       placeholder="300 123 4567"
                     />
                   </div>
@@ -416,7 +416,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                       <span>Duración:</span>
                       <span className="font-semibold">{selectedService?.duration} min</span>
                     </div>
-                    <div className="flex justify-between text-lg font-bold text-pink-600 pt-2 border-t border-pink-200">
+                    <div className="flex justify-between text-lg font-bold text-brand-indigo pt-2 border-t border-brand-periwinkle">
                       <span>Total:</span>
                       <span>${selectedService?.price.toLocaleString()}</span>
                     </div>
@@ -434,7 +434,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                   <button
                     onClick={handleBookAppointment}
                     disabled={!customerInfo.name || !customerInfo.email || !customerInfo.phone}
-                    className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+                    className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
                   >
                     Confirmar Cita
                   </button>
@@ -462,14 +462,14 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                   <div className="grid md:grid-cols-2 gap-4 text-left">
                     <div>
                       <div className="flex items-center space-x-2 mb-2">
-                        <User className="w-5 h-5 text-pink-500" />
+                        <User className="w-5 h-5 text-brand-pink" />
                         <span className="font-semibold">Servicio:</span>
                       </div>
                       <p className="text-gray-700 ml-7">{selectedService?.name}</p>
                     </div>
                     <div>
                       <div className="flex items-center space-x-2 mb-2">
-                        <Calendar className="w-5 h-5 text-purple-500" />
+                        <Calendar className="w-5 h-5 text-brand-violet" />
                         <span className="font-semibold">Fecha y Hora:</span>
                       </div>
                       <p className="text-gray-700 ml-7">{selectedDate} a las {selectedTime}</p>
@@ -484,7 +484,7 @@ export function AppointmentList({ currentUser }: AppointmentsProps) {
                     setSelectedDate('');
                     setSelectedTime('');
                   }}
-                  className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+                  className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
                 >
                   Agendar Otra Cita
                 </button>

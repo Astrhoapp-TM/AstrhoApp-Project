@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { PasswordRecoveryEmail } from './PasswordRecoveryEmail';
 import { PasswordResetForm } from './PasswordResetForm';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
@@ -16,7 +16,7 @@ export function PasswordRecoveryDemo({ userEmail = 'maria.rodriguez@gmail.com' }
       <div className="bg-white shadow-lg border-b border-gray-200 p-4 mb-8">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-gradient-brand rounded-full flex items-center justify-center">
               <span className="text-white font-bold">AE</span>
             </div>
             <div>
@@ -30,7 +30,7 @@ export function PasswordRecoveryDemo({ userEmail = 'maria.rodriguez@gmail.com' }
               onClick={() => setCurrentView('email')}
               className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${
                 currentView === 'email'
-                  ? 'bg-white shadow-md text-pink-600'
+                  ? 'bg-white shadow-md text-brand-indigo'
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
@@ -44,7 +44,7 @@ export function PasswordRecoveryDemo({ userEmail = 'maria.rodriguez@gmail.com' }
               onClick={() => setCurrentView('form')}
               className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-all ${
                 currentView === 'form'
-                  ? 'bg-white shadow-md text-purple-600'
+                  ? 'bg-white shadow-md text-brand-indigo'
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
@@ -61,7 +61,7 @@ export function PasswordRecoveryDemo({ userEmail = 'maria.rodriguez@gmail.com' }
           <div className="max-w-4xl mx-auto px-4">
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <Mail className="w-6 h-6 mr-2 text-pink-500" />
+                <Mail className="w-6 h-6 mr-2 text-brand-pink" />
                 Paso 1: Correo de Recuperación
               </h2>
               <p className="text-gray-600 mb-4">
@@ -69,7 +69,7 @@ export function PasswordRecoveryDemo({ userEmail = 'maria.rodriguez@gmail.com' }
                 Incluye información de seguridad, instrucciones claras y el enlace para restablecer la contraseña.
               </p>
               <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                
                 <span>Enviado desde: noreply@asthroapp.com</span>
               </div>
             </div>
@@ -83,7 +83,7 @@ export function PasswordRecoveryDemo({ userEmail = 'maria.rodriguez@gmail.com' }
           <div className="max-w-4xl mx-auto px-4">
             <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                <Lock className="w-6 h-6 mr-2 text-purple-500" />
+                <Lock className="w-6 h-6 mr-2 text-brand-violet" />
                 Paso 2: Formulario de Restablecimiento
               </h2>
               <p className="text-gray-600 mb-4">
@@ -91,7 +91,7 @@ export function PasswordRecoveryDemo({ userEmail = 'maria.rodriguez@gmail.com' }
                 Permite crear una nueva contraseña con validaciones de seguridad en tiempo real.
               </p>
               <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                
                 <span>URL: https://asthroapp.com/reset-password?token=...</span>
               </div>
             </div>
@@ -107,29 +107,29 @@ export function PasswordRecoveryDemo({ userEmail = 'maria.rodriguez@gmail.com' }
           <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                
                 <span>Enlace de un solo uso con expiración de 24 horas</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                
                 <span>Validación de contraseña en tiempo real</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                
                 <span>Información de dispositivo y ubicación</span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                
                 <span>Cierre automático de todas las sesiones</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                
                 <span>Confirmación por correo electrónico</span>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                
                 <span>Diseño responsive y accesible</span>
               </div>
             </div>

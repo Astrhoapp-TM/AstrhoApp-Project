@@ -199,9 +199,9 @@ function normalizeAgendaItem(raw: any): AgendaItem {
   return {
     agendaId:           raw.agendaId          ?? raw.AgendaId          ?? 0,
     documentoCliente:   raw.documentoCliente   ?? raw.DocumentoCliente  ?? '',
-    cliente:            raw.cliente            ?? raw.Cliente           ?? '',
+    cliente:            raw.cliente            ?? raw.Cliente           ?? raw.clienteNombre    ?? raw.ClienteNombre    ?? '',
     documentoEmpleado:  raw.documentoEmpleado  ?? raw.DocumentoEmpleado ?? '',
-    empleado:           raw.empleado           ?? raw.Empleado          ?? '',
+    empleado:           raw.empleado           ?? raw.Empleado          ?? raw.empleadoNombre   ?? raw.EmpleadoNombre   ?? '',
     fechaCita:          raw.fechaCita          ?? raw.FechaCita         ?? '',
     horaInicio:         raw.horaInicio         ?? raw.HoraInicio        ?? '',
     estado:             normalizeEstado(raw.estado ?? raw.Estado ?? raw.estadoId ?? raw.EstadoId),

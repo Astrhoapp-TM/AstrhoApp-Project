@@ -176,7 +176,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
           : c
       ));
 
-      showAlert('success', `Estado de "${category.name}" actualizado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
+      showAlert('success', `Estado de "${category.name}" actualizado a $`);
     } catch (err) {
       console.error('Error toggling category status:', err);
       setErrorModalMessage('No se pudo actualizar el estado de la categoría. Verifique su conexión e intente de nuevo.');
@@ -269,7 +269,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando categorías...</p>
         </div>
       </div>
@@ -327,7 +327,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
               placeholder="Buscar categorías por nombre o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
             />
           </div>
 
@@ -344,7 +344,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
             {hasPermission('manage_categories') && (
               <button
                 onClick={handleCreateCategory}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Registrar Categoría</span>
@@ -370,12 +370,12 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
               {error ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center space-y-4 text-red-500">
+                    <div className="flex flex-col items-center justify-center space-y-4 text-brand-pink">
                       <AlertCircle className="w-12 h-12" />
                       <p className="font-medium">{error}</p>
                       <button
                         onClick={fetchCategories}
-                        className="text-pink-600 hover:text-pink-700 font-semibold underline"
+                        className="text-brand-indigo hover:text-pink-700 font-semibold underline"
                       >
                         Reintentar
                       </button>
@@ -403,21 +403,11 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
                               onChange={() => handleToggleCategoryStatus(category.id)}
                               className="sr-only peer"
                             />
-                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                            <span className={`ml-3 text-sm font-medium ${category.status === 'active' ? 'text-green-600' : 'text-red-600'
-                              }`}>
-                              {category.status === 'active' ? 'Activo' : 'Inactivo'}
-                            </span>
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                            
                           </label>
                         </div>
-                      ) : (
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${category.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                          }`}>
-                          {category.status === 'active' ? 'Activo' : 'Inactivo'}
-                        </span>
-                      )}
+                      ) : null}
                     </td>
 
                     <td className="px-6 py-4">
@@ -427,7 +417,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
                             setSelectedCategory(category);
                             setShowDetailModal(true);
                           }}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                          className="p-2 bg-brand-lavender text-brand-indigo rounded-lg hover:brightness-105 transition-colors"
                           title="Ver Detalle"
                         >
                           <Eye className="w-4 h-4" />
@@ -445,7 +435,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
 
                             <button
                               onClick={() => handleDeleteCategory(category)}
-                              className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                              className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                               title="Eliminar"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -527,8 +517,8 @@ function ErrorModal({ message, onClose }: { message: string, onClose: () => void
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[3000] flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
         <div className="p-8 text-center">
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-10 h-10 text-red-500" />
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-brand-pink" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-2">¡Ups! Algo salió mal</h3>
           <p className="text-gray-600 mb-8">{message}</p>
@@ -591,7 +581,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -625,7 +615,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
           <div className="max-w-2xl mx-auto space-y-6">
             {/* Errors Notification */}
             {Object.keys(errors).length > 0 && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
+              <div className="bg-gray-50 border border-red-200 text-brand-pink px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <p className="font-semibold text-sm">Por favor corrija los errores en el formulario</p>
               </div>
@@ -633,7 +623,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
 
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                <FolderTree className="w-4 h-4 text-pink-500" />
+                <FolderTree className="w-4 h-4 text-brand-pink" />
                 <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Detalles de la Categoría</h4>
               </div>
               <div className="p-6 space-y-4">
@@ -646,7 +636,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                      className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                       placeholder="Ej: Cuidado Capilar, Tratamientos..."
                     />
@@ -662,7 +652,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
                       value={formData.description}
                       onChange={handleInputChange}
                       rows={3}
-                      className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                      className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                       placeholder="Describa qué incluye esta categoría..."
                     />
@@ -680,8 +670,8 @@ function CategoryEditModal({ category, onClose, onSave }) {
                           onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'active' : 'inactive' })}
                           className="sr-only peer"
                         />
-                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                        <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                        <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-brand-pink'}`}>
                           {formData.status === 'active' ? 'ACTIVO' : 'INACTIVO'}
                         </span>
                       </label>
@@ -707,7 +697,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
             form="category-form"
             type="submit"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-to-r from-pink-500 to-purple-600 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
             {isSaving ? <CheckCircle className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{category ? 'Actualizar' : 'Registrar'}</span>
@@ -726,7 +716,7 @@ function CategoryDetailModal({ category, onClose, getProductsByCategory }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -757,7 +747,7 @@ function CategoryDetailModal({ category, onClose, getProductsByCategory }) {
             {/* Main Info Card */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                <FolderTree className="w-4 h-4 text-purple-500" />
+                <FolderTree className="w-4 h-4 text-brand-violet" />
                 <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Información General</h4>
               </div>
               <div className="p-6 space-y-6">
@@ -797,12 +787,12 @@ function CategoryDetailModal({ category, onClose, getProductsByCategory }) {
                       <span className="font-bold text-blue-700">{products.length} productos</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 bg-pink-50/50 rounded-xl border border-pink-100">
-                    <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center text-pink-500">
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50/50 rounded-xl border border-gray-200">
+                    <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-brand-pink">
                       <FolderTree className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="text-[9px] font-black text-pink-400 uppercase tracking-widest block">Tipo Categoría</span>
+                      <span className="text-[9px] font-black text-brand-pink uppercase tracking-widest block">Tipo Categoría</span>
                       <span className="font-bold text-pink-700">Insumos/Productos</span>
                     </div>
                   </div>
@@ -811,9 +801,9 @@ function CategoryDetailModal({ category, onClose, getProductsByCategory }) {
             </div>
 
             {/* Resumen Card */}
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-pink-100 shadow-sm">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-3 mb-3">
-                <Star className="w-5 h-5 text-pink-400" />
+                <Star className="w-5 h-5 text-brand-pink" />
                 <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Resumen Asthro</h4>
               </div>
               <p className="text-sm text-gray-600 italic leading-relaxed">
@@ -865,8 +855,8 @@ function DeleteConfirmationModal({ category, onConfirm, onClose }) {
 
         <div className="p-8">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-              <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+            <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+              <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
             </div>
             <h4 className="text-lg font-bold text-gray-800 mb-2">
               ¿Eliminar categoría "{category.name}"?
@@ -878,7 +868,7 @@ function DeleteConfirmationModal({ category, onConfirm, onClose }) {
 
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4">
               <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                <FolderTree className="w-6 h-6 text-pink-500" />
+                <FolderTree className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="text-left">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Categoría a eliminar</p>

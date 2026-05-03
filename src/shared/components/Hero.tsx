@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Calendar, Sparkles, Heart, MapPin } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -8,12 +8,12 @@ interface HeroProps {
 
 export function Hero({ onBookAppointment }: HeroProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 py-20">
+    <section className="relative overflow-hidden bg-gradient-brand-page py-20">
       {/* Decorative Background Elements */}
       <div className="absolute inset-0">
-        <div className="absolute top-10 left-10 w-20 h-20 bg-pink-200/30 rounded-full blur-xl"></div>
-        <div className="absolute top-32 right-20 w-32 h-32 bg-purple-200/30 rounded-full blur-xl"></div>
-        <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-pink-300/20 rounded-full blur-xl"></div>
+        <div className="absolute top-10 left-10 w-20 h-20 bg-gray-50 rounded-full blur-xl"></div>
+        <div className="absolute top-32 right-20 w-32 h-32 bg-gray-50 rounded-full blur-xl"></div>
+        <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-gray-50 rounded-full blur-xl"></div>
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,26 +22,26 @@ export function Hero({ onBookAppointment }: HeroProps) {
           <div className="text-center lg:text-left">
             <h1 className="text-5xl lg:text-6xl font-bold mb-6">
               <span className="block text-gray-800">Bienvenida a</span>
-              <span className="block bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              <span className="block text-gradient-brand">
                 AsthroApp
               </span>
             </h1>
 
             <p className="text-xl text-gray-600 mb-4 leading-relaxed">
               Tu salón de belleza de confianza en Medellín. Dirigido por
-              <span className="font-semibold text-pink-600"> Astrid Eugenia Hoyos</span>,
+              <span className="font-semibold text-brand-indigo"> Astrid Eugenia Hoyos</span>,
               especialista en cuidado capilar y tratamientos de belleza.
             </p>
 
             <div className="flex items-center justify-center lg:justify-start space-x-2 mb-8 text-gray-600">
-              <MapPin className="w-5 h-5 text-pink-500" />
+              <MapPin className="w-5 h-5 text-brand-pink" />
               <span>Cll 55 #42-16, Medellín, Antioquia</span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
               <button
                 onClick={() => onBookAppointment()}
-                className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
+                className="bg-gradient-brand text-white px-8 py-4 rounded-xl font-semibold hover:shadow-xl hover:opacity-90 transform hover:-translate-y-1 transition-all duration-300 flex items-center justify-center space-x-2"
               >
                 <Calendar className="w-5 h-5" />
                 <span>Agendar Cita</span>
@@ -53,7 +53,7 @@ export function Hero({ onBookAppointment }: HeroProps) {
                     servicesSection.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                className="border-2 border-pink-300 text-pink-600 px-8 py-4 rounded-xl font-semibold hover:bg-pink-50 transition-all duration-300 flex items-center justify-center space-x-2"
+                className="border-2 border-brand-periwinkle text-brand-indigo px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 flex items-center justify-center space-x-2"
               >
                 <Sparkles className="w-5 h-5" />
                 <span>Ver Servicios</span>
@@ -63,7 +63,7 @@ export function Hero({ onBookAppointment }: HeroProps) {
             {/* Stats */}
             <div className="flex justify-center text-center">
               <div>
-                <div className="text-3xl font-bold text-purple-600 mb-2">+25</div>
+                <div className="text-3xl font-bold text-brand-indigo mb-2">+25</div>
                 <div className="text-sm text-gray-600">Años de Experiencia</div>
               </div>
             </div>
@@ -79,21 +79,21 @@ export function Hero({ onBookAppointment }: HeroProps) {
               />
 
               {/* Floating Cards */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-lg">
+              <div className="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-lg border border-gray-200">
                 <div className="flex items-center space-x-2">
-                  <Heart className="w-5 h-5 text-pink-500" />
+                  <Heart className="w-5 h-5 text-brand-pink" />
                   <span className="text-sm font-semibold text-gray-700">Cuidado Premium</span>
                 </div>
               </div>
 
-              <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-2xl p-4 shadow-lg">
+              <div className="absolute -bottom-4 -left-4 bg-gradient-brand text-white rounded-2xl p-4 shadow-lg">
                 <div className="text-sm font-semibold">Astrid Eugenia Hoyos</div>
                 <div className="text-xs opacity-90">Especialista en Belleza</div>
               </div>
             </div>
 
             {/* Background Decoration */}
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-300/20 to-purple-300/20 rounded-3xl transform rotate-3"></div>
+            <div className="absolute inset-0 bg-gradient-brand-soft opacity-20 rounded-3xl transform rotate-3"></div>
           </div>
         </div>
       </div>

@@ -163,8 +163,8 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'super_admin': return 'bg-pink-100 text-pink-700 border border-pink-200';
-      case 'admin': return 'bg-red-100 text-red-700';
+      case 'super_admin': return 'bg-gray-50 text-pink-700 border border-brand-periwinkle';
+      case 'admin': return 'bg-gray-100 text-brand-pink';
       case 'asistente': return 'bg-blue-100 text-blue-700';
       case 'customer': return 'bg-green-100 text-green-700';
       default: return 'bg-gray-100 text-gray-700';
@@ -175,7 +175,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -207,14 +207,14 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
 
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 space-y-4">
-              <Loader2 className="w-12 h-12 text-pink-500 animate-spin" />
+              <Loader2 className="w-12 h-12 text-brand-pink animate-spin" />
               <p className="text-gray-500 font-medium">Cargando información del perfil...</p>
             </div>
           ) : (
             <div className="max-w-3xl mx-auto space-y-6">
               {/* Notifications */}
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
+                <div className="bg-gray-50 border border-red-200 text-brand-pink px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
                   <AlertCircle className="w-5 h-5 shrink-0" />
                   <p className="font-semibold text-sm">{error}</p>
                 </div>
@@ -229,7 +229,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
               <form id="profile-form" onSubmit={handleSave} className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
                 {/* Identity Header Card */}
                 <div className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex items-center space-x-3 mb-2">
-                  <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-purple-500 rounded-xl flex items-center justify-center shadow-md shrink-0">
+                  <div className="w-12 h-12 bg-gradient-brand rounded-xl flex items-center justify-center shadow-md shrink-0">
                     <span className="text-white font-bold text-base">
                       {personData?.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                     </span>
@@ -263,7 +263,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                             type="text"
                             value={personForm.nombre}
                             onChange={(e) => setPersonForm({ ...personForm, nombre: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none"
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
                             required
                           />
                         </div>
@@ -277,7 +277,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                             type="email"
                             value={userForm.email}
                             onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none"
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
                             required
                           />
                         </div>
@@ -299,7 +299,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                             type="tel"
                             value={personForm.telefono}
                             onChange={(e) => setPersonForm({ ...personForm, telefono: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none"
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
                             required
                           />
                         </div>
@@ -313,7 +313,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                             type="text"
                             value={personForm.direccion}
                             onChange={(e) => setPersonForm({ ...personForm, direccion: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none"
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
                             required
                           />
                         </div>
@@ -340,7 +340,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
             type="submit"
             form="profile-form"
             disabled={saving || loading}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-green-500 hover:bg-green-600 shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest flex items-center space-x-2 disabled:opacity-50"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand hover:opacity-90 shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest flex items-center space-x-2 disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{saving ? 'Guardando...' : 'Guardar Cambios'}</span>

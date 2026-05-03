@@ -103,7 +103,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando insumos...</p>
         </div>
       </div>
@@ -226,7 +226,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
         <StatCard icon={<Wrench className="w-8 h-8 text-blue-600" />} value={stats.totalSupplies} label="Total Insumos" />
         <StatCard icon={<CheckCircle className="w-8 h-8 text-green-600" />} value={stats.activeSupplies} label="Activos" />
         <StatCard icon={<AlertTriangle className="w-8 h-8 text-yellow-600" />} value={stats.lowStockSupplies} label="Stock Bajo" />
-        <StatCard icon={<AlertTriangle className="w-8 h-8 text-red-600" />} value={stats.inactiveSupplies} label="Inactivos" />
+        <StatCard icon={<AlertTriangle className="w-8 h-8 text-brand-pink" />} value={stats.inactiveSupplies} label="Inactivos" />
       </div>
 
       {/* Search and Register */}
@@ -239,7 +239,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
               placeholder="Buscar insumos por nombre o SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
             />
           </div>
 
@@ -256,7 +256,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
             {hasPermission('manage_supplies') && (
               <button
                 onClick={handleCreateSupply}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Nuevo Insumo</span>
@@ -268,12 +268,12 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8 text-center">
-          <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-          <p className="text-red-700">{error}</p>
+        <div className="bg-gray-50 border border-red-200 rounded-2xl p-6 mb-8 text-center">
+          <AlertTriangle className="w-8 h-8 text-brand-pink mx-auto mb-2" />
+          <p className="text-brand-pink">{error}</p>
           <button
             onClick={fetchSupplies}
-            className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors font-semibold"
+            className="mt-4 px-4 py-2 bg-gray-100 text-brand-pink rounded-xl hover:bg-red-200 transition-colors font-semibold"
           >
             Reintentar
           </button>
@@ -285,7 +285,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
           {loading && supplies.length > 0 && (
             <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 text-pink-500 animate-spin mb-2" />
+              <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
               <span className="text-sm font-medium text-gray-500">Buscando...</span>
             </div>
           )}
@@ -317,7 +317,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                     <td className="px-6 py-4 text-sm text-gray-700">{supply.categoriaNombre || 'N/A'}</td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 rounded-full text-sm font-semibold ${(supply.stock ?? 0) <= 0
-                        ? 'bg-red-100 text-red-800'
+                        ? 'bg-gray-100 text-red-800'
                         : (supply.stock ?? 0) <= 5
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-green-100 text-green-800'
@@ -326,15 +326,10 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${supply.estado
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                        }`}>
-                        {supply.estado ? 'Activo' : 'Inactivo'}
-                      </span>
+                      
                     </td>
                     <td className="px-6 py-4 flex space-x-2">
-                      <button onClick={() => handleViewDetail(supply)} className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors" title="Ver Detalle">
+                      <button onClick={() => handleViewDetail(supply)} className="p-2 bg-brand-lavender text-brand-indigo rounded-lg hover:brightness-105 transition-colors" title="Ver Detalle">
                         <Eye className="w-4 h-4" />
                       </button>
                       {hasPermission('manage_supplies') && (
@@ -342,7 +337,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                           <button onClick={() => handleEditSupply(supply)} className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors" title="Editar">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteSupply(supply.insumoId)} className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors" title="Eliminar">
+                          <button onClick={() => handleDeleteSupply(supply.insumoId)} className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors" title="Eliminar">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </>
@@ -372,7 +367,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header - Fixed at top */}
-            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+            <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -404,7 +399,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                 <div className="grid md:grid-cols-3 gap-4">
                   {/* Basic Info Card */}
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <div className="flex items-center space-x-2 text-purple-500 mb-3">
+                    <div className="flex items-center space-x-2 text-brand-violet mb-3">
                       <Tag className="w-4 h-4" />
                       <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
                     </div>
@@ -419,14 +414,14 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
 
                   {/* Stock Info Card */}
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <div className="flex items-center space-x-2 text-pink-500 mb-3">
+                    <div className="flex items-center space-x-2 text-brand-pink mb-3">
                       <TrendingUp className="w-4 h-4" />
                       <h4 className="font-bold uppercase text-[10px] tracking-widest">Estado de Stock</h4>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Cantidad:</span>
-                        <span className={`font-bold ${(selectedSupply.stock ?? 0) <= 5 ? 'text-red-500' : 'text-blue-600'}`}>
+                        <span className={`font-bold ${(selectedSupply.stock ?? 0) <= 5 ? 'text-brand-pink' : 'text-blue-600'}`}>
                           {selectedSupply.stock ?? 0} unidades
                         </span>
                       </div>
@@ -440,15 +435,13 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                   {/* Status Card */}
                   <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${selectedSupply.estado
                       ? 'bg-green-50/50 border-green-100 text-green-600'
-                      : 'bg-red-50/50 border-red-100 text-red-600'
+                      : 'bg-gray-50/50 border-red-100 text-brand-pink'
                     }`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${selectedSupply.estado ? 'bg-green-100' : 'bg-red-100'
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${selectedSupply.estado ? 'bg-green-100' : 'bg-gray-100'
                       }`}>
                       <CheckCircle className="w-5 h-5" />
                     </div>
-                    <span className="font-black uppercase text-[10px] tracking-[0.2em]">
-                      {selectedSupply.estado ? 'Activo' : 'Inactivo'}
-                    </span>
+                    
                   </div>
                 </div>
 
@@ -456,7 +449,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                   <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
                     <h4 className="font-bold text-gray-700 text-sm flex items-center space-x-2">
-                      <FileText className="w-4 h-4 text-pink-400" />
+                      <FileText className="w-4 h-4 text-brand-pink" />
                       <span>Descripción del Insumo</span>
                     </h4>
                   </div>
@@ -518,8 +511,8 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
 
             <div className="p-8">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-                  <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+                <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+                  <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
                 </div>
                 <h4 className="text-lg font-bold text-gray-800 mb-2">
                   ¿Eliminar insumo "{supplyToDelete.nombre}"?
@@ -531,7 +524,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
 
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4">
                   <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                    <Package className="w-6 h-6 text-pink-500" />
+                    <Package className="w-6 h-6 text-brand-pink" />
                   </div>
                   <div className="text-left">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Insumo a eliminar</p>

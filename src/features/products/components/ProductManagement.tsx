@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   Package, Plus, Edit, Trash2, Search, AlertCircle, X, Save,
   Eye, CheckCircle, TrendingUp, FileText, Star, Loader2, ChevronsUpDown, FolderTree, RefreshCw, Info
@@ -46,7 +46,7 @@ interface ProductManagementProps {
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'active': return 'bg-green-100 text-green-800';
-    case 'inactive': return 'bg-red-100 text-red-800';
+    case 'inactive': return 'bg-gray-100 text-red-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
@@ -170,7 +170,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando insumos...</p>
         </div>
       </div>
@@ -251,7 +251,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
       setProducts(prev => prev.map(p =>
         p.id === product.id ? mapSupplyToUI(updatedSupply, product.category) : p
       ));
-      showAlert('success', `Estado de "${product.name}" cambiado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
+      showAlert('success', `Estado de "${product.name}" cambiado a $`);
     } catch (error) {
       // Revert optimistic update on failure
       setProducts(prev => prev.map(p => p.id === product.id ? product : p));
@@ -348,7 +348,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 translate-y-10">
-          <div className="w-16 h-16 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin mb-4"></div>
+          <div className="w-16 h-16 border-4 border-brand-periwinkle border-t-pink-500 rounded-full animate-spin mb-4"></div>
           <p className="text-gray-500 font-medium animate-pulse">Cargando insumos...</p>
         </div>
       ) : (
@@ -363,7 +363,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
                   placeholder="Buscar por nombre o SKU..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
                 />
               </div>
 
@@ -380,7 +380,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
                 {hasPermission('manage_products') && (
                   <button
                     onClick={handleCreateProduct}
-                    className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                    className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
                   >
                     <Plus className="w-5 h-5" />
                     <span>Registrar Insumo</span>
@@ -419,7 +419,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
                         <td className="px-6 py-4 text-gray-700">{product.sku}</td>
                         <td className="px-6 py-4 text-gray-700">{product.category}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded-md text-sm font-bold ${product.quantity <= 0 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                          <span className={`px-2 py-1 rounded-md text-sm font-bold ${product.quantity <= 0 ? 'bg-gray-100 text-brand-pink' : 'bg-blue-100 text-blue-700'
                             }`}>
                             {product.quantity} uds
                           </span>
@@ -434,11 +434,8 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
                                 className="sr-only peer"
                                 disabled={!hasPermission('manage_products')}
                               />
-                              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                              <span className={`ml-3 text-sm font-medium ${product.status === 'active' ? 'text-green-600' : 'text-red-600'
-                                }`}>
-                                {product.status === 'active' ? 'Activo' : 'Inactivo'}
-                              </span>
+                              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                              
                             </label>
                           </div>
                         </td>
@@ -461,7 +458,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
                                 </button>
                                 <button
                                   onClick={() => handleDeleteProduct(product)}
-                                  className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200"
+                                  className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -535,8 +532,8 @@ function ErrorModal({ message, onClose }: { message: string, onClose: () => void
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md animate-in zoom-in-95 duration-200">
         <div className="p-8 text-center">
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-10 h-10 text-red-500" />
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-10 h-10 text-brand-pink" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-2">¡Ups! Algo salió mal</h3>
           <p className="text-gray-600 mb-8">{message}</p>
@@ -628,24 +625,24 @@ function CategorySearchSelect({ onSelect, selectedId, error, disabled, initialDa
         className={cn(
           "w-full px-4 py-3 min-h-[48px] border rounded-xl flex items-center justify-between cursor-pointer bg-white transition-all",
           error ? 'border-red-300' : 'border-gray-300',
-          isOpen && 'ring-2 ring-pink-100 border-pink-300',
+          isOpen && 'ring-2 ring-pink-100 border-brand-periwinkle',
           disabled && 'bg-gray-100 cursor-not-allowed opacity-100'
         )}
         onClick={() => !disabled && setIsOpen(true)}
       >
         {!isOpen && !selectedCategory ? (
           <div className="flex items-center gap-2">
-            <FolderTree className="w-4 h-4 text-pink-400" />
+            <FolderTree className="w-4 h-4 text-brand-pink" />
             <span className="text-gray-500 text-sm">Seleccionar categoría...</span>
           </div>
         ) : !isOpen && selectedCategory ? (
           <div className="flex items-center gap-2">
-            <FolderTree className="w-4 h-4 text-pink-400" />
+            <FolderTree className="w-4 h-4 text-brand-pink" />
             <span className="text-gray-800 font-medium text-sm">{selectedCategory.nombre}</span>
           </div>
         ) : (
           <div className="flex-1 flex items-center">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-pink-400" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-brand-pink" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
             <input
               type="text"
               className="w-full bg-transparent text-sm focus:outline-none"
@@ -677,8 +674,8 @@ function CategorySearchSelect({ onSelect, selectedId, error, disabled, initialDa
                 <div
                   key={cat.categoriaId}
                   className={cn(
-                    "px-4 py-3 hover:bg-pink-50 cursor-pointer text-sm flex justify-between items-center transition-colors",
-                    String(cat.categoriaId) === String(selectedId) ? 'bg-pink-100 text-pink-700 font-semibold' : 'text-gray-800'
+                    "px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm flex justify-between items-center transition-colors",
+                    String(cat.categoriaId) === String(selectedId) ? 'bg-gray-50 text-pink-700 font-semibold' : 'text-gray-800'
                   )}
                   onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
@@ -691,7 +688,7 @@ function CategorySearchSelect({ onSelect, selectedId, error, disabled, initialDa
                   <div className="flex items-center gap-3">
                     <CheckCircle
                       className={cn(
-                        "h-4 w-4 text-pink-500",
+                        "h-4 w-4 text-brand-pink",
                         String(cat.categoriaId) === String(selectedId) ? "opacity-100" : "opacity-0"
                       )}
                     />
@@ -772,7 +769,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -806,7 +803,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Errors Notification */}
             {Object.keys(errors).length > 0 && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
+              <div className="bg-gray-50 border border-red-200 text-brand-pink px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <p className="font-semibold text-sm">Por favor corrija los errores marcados en el formulario</p>
               </div>
@@ -816,7 +813,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
               {/* Main Data Section */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                  <Package className="w-4 h-4 text-pink-500" />
+                  <Package className="w-4 h-4 text-brand-pink" />
                   <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Datos del Insumo</h4>
                 </div>
                 <div className="p-6 space-y-4">
@@ -829,7 +826,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                           errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                         placeholder="Ej: Champú Profesional"
@@ -847,7 +844,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                           name="sku"
                           value={formData.sku}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             errors.sku ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                           placeholder="INV-001"
@@ -870,7 +867,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
               {/* Inventory and Status Section */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4 text-purple-500" />
+                  <TrendingUp className="w-4 h-4 text-brand-violet" />
                   <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Estado y Descripción</h4>
                 </div>
                 <div className="p-6 space-y-4">
@@ -884,8 +881,8 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                           onChange={() => setFormData({ ...formData, status: formData.status === 'active' ? 'inactive' : 'active' })}
                           className="sr-only peer"
                         />
-                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                        <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                        <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-brand-pink'}`}>
                           {formData.status === 'active' ? 'ACTIVO' : 'INACTIVO'}
                         </span>
                       </label>
@@ -901,7 +898,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                         value={formData.description}
                         onChange={handleInputChange}
                         rows={3}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none"
+                        className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
                         placeholder="Describa el uso o notas del insumo..."
                       />
                     </div>
@@ -911,9 +908,9 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
             </div>
 
             {/* Summary Card */}
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-pink-100 shadow-sm">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center space-x-3 mb-3">
-                  <Star className="w-5 h-5 text-pink-400" />
+                  <Star className="w-5 h-5 text-brand-pink" />
                   <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Aviso Asthro</h4>
                 </div>
                 <p className="text-sm text-gray-600 italic leading-relaxed">
@@ -937,7 +934,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
             form="product-form"
             type="submit"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-to-r from-pink-500 to-purple-600 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
             {isSaving ? <CheckCircle className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{product ? 'Actualizar' : 'Registrar'}</span>
@@ -954,7 +951,7 @@ function ProductDetailModal({ product, onClose }: any) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -986,7 +983,7 @@ function ProductDetailModal({ product, onClose }: any) {
             <div className="grid md:grid-cols-3 gap-4">
               {/* Product Info Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-purple-500 mb-3">
+                <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <FileText className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
                 </div>
@@ -1001,14 +998,14 @@ function ProductDetailModal({ product, onClose }: any) {
 
               {/* Stock Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-pink-500 mb-3">
+                <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <TrendingUp className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Inventario y Categoría</h4>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Stock Actual:</span>
-                    <span className={`font-bold ${product.quantity <= 5 ? 'text-red-500' : 'text-blue-600'}`}>
+                    <span className={`font-bold ${product.quantity <= 5 ? 'text-brand-pink' : 'text-blue-600'}`}>
                       {product.quantity} unidades
                     </span>
                   </div>
@@ -1023,16 +1020,14 @@ function ProductDetailModal({ product, onClose }: any) {
               <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${
                 product.status === 'active' 
                 ? 'bg-green-50/50 border-green-100 text-green-600' 
-                : 'bg-red-50/50 border-red-100 text-red-600'
+                : 'bg-gray-50/50 border-red-100 text-brand-pink'
               }`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
-                  product.status === 'active' ? 'bg-green-100' : 'bg-red-100'
+                  product.status === 'active' ? 'bg-green-100' : 'bg-gray-100'
                 }`}>
                   <CheckCircle className="w-5 h-5" />
                 </div>
-                <span className="font-black uppercase text-[10px] tracking-[0.2em]">
-                  {product.status === 'active' ? 'Estado Activo' : 'Estado Inactivo'}
-                </span>
+                
               </div>
             </div>
 
@@ -1097,8 +1092,8 @@ function DeleteConfirmModal({ productName, onConfirm, onCancel }: any) {
 
         <div className="p-8">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-              <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+            <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+              <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
             </div>
             <h4 className="text-lg font-bold text-gray-800 mb-2">
               ¿Eliminar insumo "{productName}"?
@@ -1110,7 +1105,7 @@ function DeleteConfirmModal({ productName, onConfirm, onCancel }: any) {
             
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4">
               <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                <Package className="w-6 h-6 text-pink-500" />
+                <Package className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="text-left">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Insumo a eliminar</p>

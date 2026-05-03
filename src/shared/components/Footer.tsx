@@ -18,10 +18,10 @@ export function Footer() {
           {/* Brand Column */}
           <div className="footer-col">
             <div className="flex items-center space-x-3 mb-5">
-              <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center footer-brand-icon">
+              <div className="w-10 h-10 bg-gradient-brand rounded-full flex items-center justify-center footer-brand-icon">
                 <Sparkles className="w-5 h-5 footer-icon-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text footer-brand-text">
+              <span className="text-2xl font-bold text-gradient-brand footer-brand-text">
                 AsthroApp
               </span>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Bell, AlertTriangle, ShoppingBag, CheckCircle, X, Calendar, Clock } from 'lucide-react';
 import { supplyService } from '@/features/supply/services/supplyService';
 import { agendaService } from '@/features/appointments/services/agendaService';
@@ -142,7 +142,7 @@ export function NotificationBell({ currentUser }: NotificationBellProps) {
           action: 'Ver agenda',
           time: 'En 2h',
           icon: Clock,
-          color: 'text-red-600 bg-red-50',
+          color: 'text-brand-pink bg-gray-50',
           view: 'agenda'
         });
       }
@@ -155,7 +155,7 @@ export function NotificationBell({ currentUser }: NotificationBellProps) {
           action: 'Revisar agenda',
           time: 'Vencido',
           icon: AlertTriangle,
-          color: 'text-red-700 bg-red-100',
+          color: 'text-brand-pink bg-gray-100',
           view: 'agenda'
         });
       }
@@ -216,11 +216,11 @@ export function NotificationBell({ currentUser }: NotificationBellProps) {
       {/* Bell Button */}
       <button
         onClick={() => setShowNotifications(!showNotifications)}
-        className="relative p-2 rounded-lg hover:bg-pink-50 transition-colors"
+        className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
       >
         <Bell className="w-5 h-5 text-gray-700" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-brand text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -228,13 +228,13 @@ export function NotificationBell({ currentUser }: NotificationBellProps) {
 
       {/* Notifications Dropdown */}
       {showNotifications && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 max-h-[600px] flex flex-col">
+        <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 max-h-[600px] flex flex-col">
           {/* Header */}
-          <div className="bg-gradient-to-r from-pink-400 to-purple-500 p-4 text-white">
+          <div className="bg-gradient-brand p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-lg">Alertas en Tiempo Real</h3>
-                <p className="text-xs text-pink-100">Notificaciones del sistema</p>
+                <p className="text-xs text-white/80">Notificaciones del sistema</p>
               </div>
               {alerts.length > 0 && (
                 <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">

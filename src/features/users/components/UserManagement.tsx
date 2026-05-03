@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   Users, Plus, Edit, Trash2, Eye, Search, Filter, CheckCircle, XCircle, X, Save,
   AlertCircle, Mail, Phone, Calendar, Shield, UserCog, Download, Upload,
@@ -368,8 +368,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
   const getRoleBadgeColor = (rolNombre: string) => {
     const name = (rolNombre || '').toLowerCase();
-    if (name === 'super admin') return 'bg-purple-100 text-purple-800 border border-purple-200';
-    if (name === 'administrador') return 'bg-red-100 text-red-800';
+    if (name === 'super admin') return 'bg-gray-50 text-purple-800 border border-purple-200';
+    if (name === 'administrador') return 'bg-gray-100 text-red-800';
     if (name === 'asistente') return 'bg-blue-100 text-blue-800';
     if (name === 'cliente') return 'bg-green-100 text-green-800';
     return 'bg-gray-100 text-gray-800';
@@ -379,7 +379,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando usuarios...</p>
         </div>
       </div>
@@ -437,7 +437,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
               placeholder="Buscar por email o rol..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
             />
           </div>
 
@@ -454,7 +454,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             {hasPermission('manage_users') && (
               <button
                 onClick={handleCreateUser}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Registrar Usuario</span>
@@ -468,7 +468,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
         {loading && paginatedUsers.length > 0 && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-            <Loader2 className="w-8 h-8 text-pink-500 animate-spin mb-2" />
+            <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
             <span className="text-sm font-medium text-gray-500">Cargando...</span>
           </div>
         )}
@@ -507,7 +507,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                   <tr key={user.usuarioId} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-brand rounded-full flex items-center justify-center">
                           <span className="text-white font-semibold text-sm">
                             {user.email.charAt(0).toUpperCase()}
                           </span>
@@ -529,7 +529,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                         {(user.rolNombre || '').toLowerCase() === 'super admin' ? (
                           // Super admin siempre activo, sin switch
                           <div className="flex items-center space-x-2 cursor-not-allowed" title="El Super Administrador no puede ser desactivado">
-                            <div className="w-11 h-6 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full relative opacity-80">
+                            <div className="w-11 h-6 bg-gradient-brand rounded-full relative opacity-80">
                               <div className="absolute top-[2px] right-[2px] bg-white border-white border rounded-full h-5 w-5"></div>
                             </div>
                             <span className="ml-1 text-sm font-medium text-green-600">
@@ -545,11 +545,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                               onChange={() => toggleUserStatus(user.usuarioId)}
                               className="sr-only peer"
                             />
-                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                            <span className={`ml-3 text-sm font-medium ${user.estado ? 'text-green-600' : 'text-red-600'
-                              }`}>
-                              {user.estado ? 'Activo' : 'Inactivo'}
-                            </span>
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                            
                           </label>
                         )}
                       </div>
@@ -578,7 +575,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                             {(user.rolNombre || '').toLowerCase() !== 'super admin' && (
                               <button
                                 onClick={() => handleDeleteUser(user)}
-                                className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                                 title="Eliminar usuario"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -652,8 +649,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
             <div className="p-8">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-                  <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+                <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+                  <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
                 </div>
                 <h4 className="text-lg font-bold text-gray-800 mb-2">
                   ¿Eliminar usuario "{userToDelete.email}"?
@@ -664,7 +661,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                 </p>
                 
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-500 rounded-xl shadow-sm flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-brand rounded-xl shadow-sm flex items-center justify-center">
                     <span className="text-white font-bold text-lg">
                       {userToDelete.email.charAt(0).toUpperCase()}
                     </span>
@@ -723,8 +720,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             </div>
 
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-                <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+              <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+                <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
               </div>
               <h4 className="text-lg font-bold text-gray-800 mb-2">
                 No se puede inactivar al Super Administrador
@@ -771,8 +768,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             </div>
 
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
-                <Shield className="w-10 h-10 text-red-500" />
+              <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
+                <Shield className="w-10 h-10 text-brand-pink" />
               </div>
               <h4 className="text-lg font-bold text-gray-800 mb-2">
                 No se puede eliminar al Super Administrador
@@ -999,7 +996,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -1033,7 +1030,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Errors Notification */}
             {Object.keys(fieldErrors).length > 0 && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
+              <div className="bg-gray-50 border border-red-200 text-brand-pink px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
                 <AlertCircle className="w-5 h-5 shrink-0" />
                 <p className="font-semibold text-sm">Por favor corrija los errores marcados en el formulario</p>
               </div>
@@ -1043,7 +1040,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
               {/* Account Data Section */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                  <Shield className="w-4 h-4 text-pink-500" />
+                  <Shield className="w-4 h-4 text-brand-pink" />
                   <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Acceso y Rol</h4>
                 </div>
                 <div className="p-6 space-y-4">
@@ -1055,7 +1052,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                         name="rolId"
                         value={formData.rolId}
                         onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none appearance-none ${
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none appearance-none ${
                           isEditingSuperAdmin ? 'opacity-60 cursor-not-allowed' : 'border-gray-200'
                         }`}
                         disabled={isEditingSuperAdmin}
@@ -1078,14 +1075,14 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                         value={formData.email}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                           fieldErrors.email ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                         placeholder="correo@ejemplo.com"
                       />
                     </div>
                     {validatingFields.email && <p className="text-[9px] text-blue-500 mt-1 animate-pulse">Verificando...</p>}
-                    {fieldErrors.email && <p className="text-[9px] text-red-500 mt-1">{fieldErrors.email}</p>}
+                    {fieldErrors.email && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.email}</p>}
                   </div>
 
                   {user && (
@@ -1100,8 +1097,8 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                             className="sr-only peer"
                             disabled={isEditingSuperAdmin}
                           />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          <span className={`ml-3 text-sm font-bold ${formData.estado ? 'text-green-600' : 'text-red-600'}`}>
+                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                          <span className={`ml-3 text-sm font-bold ${formData.estado ? 'text-green-600' : 'text-brand-pink'}`}>
                             {formData.estado ? 'ACTIVO' : 'INACTIVO'}
                           </span>
                         </label>
@@ -1114,7 +1111,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
               {/* Personal Data Section */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                  <IdCard className="w-4 h-4 text-purple-500" />
+                  <IdCard className="w-4 h-4 text-brand-violet" />
                   <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Ficha de Identidad</h4>
                 </div>
                 <div className="p-6 space-y-4">
@@ -1128,13 +1125,13 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                         value={formData.nombre}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                           fieldErrors.nombre ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                         placeholder="Nombre y Apellidos"
                       />
                     </div>
-                    {fieldErrors.nombre && <p className="text-[9px] text-red-500 mt-1">{fieldErrors.nombre}</p>}
+                    {fieldErrors.nombre && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.nombre}</p>}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -1146,7 +1143,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                           name="documentType"
                           value={formData.documentType}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none appearance-none ${
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none appearance-none ${
                             fieldErrors.documentId ? 'border-red-300' : 'border-gray-200'
                           }`}
                         >
@@ -1166,7 +1163,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                           value={formData.documentId}
                           onChange={handleInputChange}
                           onBlur={handleBlur}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             fieldErrors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           } ${!!user ? 'opacity-60 cursor-not-allowed' : ''}`}
                           placeholder="1234567890"
@@ -1174,7 +1171,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                         />
                       </div>
                       {validatingFields.documentId && <p className="text-[9px] text-blue-500 mt-1 animate-pulse">Verificando...</p>}
-                      {fieldErrors.documentId && <p className="text-[9px] text-red-500 mt-1">{fieldErrors.documentId}</p>}
+                      {fieldErrors.documentId && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.documentId}</p>}
                     </div>
                   </div>
 
@@ -1189,13 +1186,13 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                           value={formData.phone}
                           onChange={handleInputChange}
                           onBlur={handleBlur}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             fieldErrors.phone ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                           placeholder="300 123 4567"
                         />
                       </div>
-                      {fieldErrors.phone && <p className="text-[9px] text-red-500 mt-1">{fieldErrors.phone}</p>}
+                      {fieldErrors.phone && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.phone}</p>}
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección</label>
@@ -1207,13 +1204,13 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                           value={formData.direccion}
                           onChange={handleInputChange}
                           onBlur={handleBlur}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             fieldErrors.direccion ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                           placeholder="Ej: Calle 10 #20-30"
                         />
                       </div>
-                      {fieldErrors.direccion && <p className="text-[9px] text-red-500 mt-1">{fieldErrors.direccion}</p>}
+                      {fieldErrors.direccion && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.direccion}</p>}
                     </div>
                   </div>
                 </div>
@@ -1221,9 +1218,9 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
             </div>
 
             {/* Warning / Summary Card */}
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-pink-100 shadow-sm">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center space-x-3 mb-3">
-                  <Star className="w-5 h-5 text-pink-400" />
+                  <Star className="w-5 h-5 text-brand-pink" />
                   <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Aviso de Seguridad</h4>
                 </div>
                 <p className="text-sm text-gray-600 italic leading-relaxed">
@@ -1249,7 +1246,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
             form="user-form"
             type="submit"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-to-r from-pink-500 to-purple-600 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
             {isSaving ? <CheckCircle className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{user ? 'Actualizar' : 'Registrar'}</span>
@@ -1282,8 +1279,8 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
   const getRoleDisplayName = (rolNombre: string) => rolNombre || 'Sin rol';
   const getRoleBadgeColor = (rolNombre: string) => {
     const name = (rolNombre || '').toLowerCase();
-    if (name === 'super admin') return 'bg-purple-100 text-purple-700 border border-purple-200';
-    if (name === 'administrador') return 'bg-red-100 text-red-700';
+    if (name === 'super admin') return 'bg-gray-50 text-brand-indigo border border-purple-200';
+    if (name === 'administrador') return 'bg-gray-100 text-brand-pink';
     if (name === 'asistente') return 'bg-blue-100 text-blue-700';
     if (name === 'cliente') return 'bg-green-100 text-green-700';
     return 'bg-gray-100 text-gray-700';
@@ -1295,7 +1292,7 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -1326,7 +1323,7 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
             <div className="grid md:grid-cols-3 gap-4">
               {/* Identity Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col items-center justify-center text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-pink-400 to-purple-500 rounded-3xl flex items-center justify-center shadow-lg mb-3">
+                <div className="w-20 h-20 bg-gradient-brand rounded-3xl flex items-center justify-center shadow-lg mb-3">
                   <span className="text-white font-bold text-3xl">{user.email.charAt(0).toUpperCase()}</span>
                 </div>
                 <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{personData?.name || 'Usuario'}</h4>
@@ -1339,7 +1336,7 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
 
               {/* Account Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm col-span-2">
-                <div className="flex items-center space-x-2 text-pink-500 mb-4">
+                <div className="flex items-center space-x-2 text-brand-pink mb-4">
                   <Shield className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Estado y Datos</h4>
                 </div>
@@ -1350,7 +1347,7 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
                   </div>
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Estado</span>
-                    <p className={`font-bold ${user.estado ? 'text-green-600' : 'text-red-600'} flex items-center space-x-1`}>
+                    <p className={`font-bold ${user.estado ? 'text-green-600' : 'text-brand-pink'} flex items-center space-x-1`}>
                       {user.estado ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                       <span>{user.estado ? 'ACTIVA' : 'INACTIVA'}</span>
                     </p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Scissors, Droplets, Sparkles, Heart, Clock, Search,
   Eye, ChevronLeft, ChevronRight, Filter, Calendar, X,
@@ -340,7 +340,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                     <div className={`absolute inset-0 bg-gradient-to-t ${service.color} opacity-60`}></div>
                     <div className="absolute top-4 right-4">
                       <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-pink-500" />
+                        <Icon className="w-6 h-6 text-brand-pink" />
                       </div>
                     </div>
                   </div>
@@ -350,7 +350,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h3 className="font-bold text-gray-800 mb-1">{service.name}</h3>
-                        <span className="text-xs px-2 py-1 bg-purple-100 text-purple-800 rounded-full">
+                        <span className="text-xs px-2 py-1 bg-gray-50 text-purple-800 rounded-full">
                           {service.category}
                         </span>
                       </div>
@@ -365,7 +365,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                         <Clock className="w-4 h-4" />
                         <span className="text-sm">{service.duration} min</span>
                       </div>
-                      <div className="font-bold text-pink-600">
+                      <div className="font-bold text-brand-indigo">
                         ${service.price.toLocaleString()}
                       </div>
                     </div>
@@ -373,7 +373,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleViewDetails(service)}
-                        className="flex-1 px-4 py-2 border-2 border-pink-300 text-pink-600 rounded-lg font-semibold hover:bg-pink-50 transition-all flex items-center justify-center space-x-2"
+                        className="flex-1 px-4 py-2 border-2 border-brand-periwinkle text-brand-indigo rounded-lg font-semibold hover:bg-gray-100 transition-all flex items-center justify-center space-x-2"
                       >
                         <Eye className="w-4 h-4" />
                         <span>Ver Más</span>
@@ -392,9 +392,9 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
             })
           ) : (
             <div className="col-span-full text-center py-20">
-              <div className="bg-white/50 backdrop-blur-sm rounded-3xl p-12 border border-pink-100">
-                <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Scissors className="w-10 h-10 text-pink-500" />
+              <div className="bg-white/50 backdrop-blur-sm rounded-3xl p-12 border border-gray-200">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Scissors className="w-10 h-10 text-brand-pink" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4">
                   No se encontraron servicios
@@ -407,7 +407,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                     setSearchTerm('');
                     setFilterCategory('Todos');
                   }}
-                  className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+                  className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
                 >
                   Ver Todos los Servicios
                 </button>
@@ -424,7 +424,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
               disabled={currentPage === 1}
               className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${currentPage === 1
                 ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50'
-                : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
+                : 'border-brand-periwinkle text-brand-pink hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
                 }`}
             >
               <ChevronLeft className="w-5 h-5" />
@@ -437,8 +437,8 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                   key={i}
                   onClick={() => setCurrentPage(i + 1)}
                   className={`min-w-[40px] h-10 px-3 rounded-xl font-black text-sm transition-all duration-300 flex items-center justify-center ${currentPage === i + 1
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg shadow-pink-200 scale-105'
-                    : 'text-gray-500 hover:bg-pink-50 hover:text-pink-600 hover:scale-110 active:scale-90'
+                    ? 'bg-gradient-brand text-white shadow-lg shadow-pink-200 scale-105'
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-brand-indigo hover:scale-110 active:scale-90'
                     }`}
                 >
                   {i + 1}
@@ -451,7 +451,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
               disabled={currentPage === totalPages}
               className={`flex items-center space-x-1 px-4 py-2 rounded-xl border-2 transition-all duration-300 ${currentPage === totalPages
                 ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50/50'
-                : 'border-pink-200 text-pink-500 hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
+                : 'border-brand-periwinkle text-brand-pink hover:bg-pink-500 hover:text-white hover:border-pink-500 active:scale-95 shadow-sm hover:shadow-pink-200'
                 }`}
             >
               <span className="hidden sm:inline font-bold text-sm">Siguiente</span>
@@ -520,7 +520,7 @@ function ServiceDetailModal({ service, onClose, onBookAppointment }: any) {
             <div className="grid md:grid-cols-3 gap-4">
               {/* Service Info Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-purple-500 mb-3">
+                <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <Scissors className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información del Servicio</h4>
                 </div>
@@ -535,7 +535,7 @@ function ServiceDetailModal({ service, onClose, onBookAppointment }: any) {
 
               {/* Pricing Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-pink-500 mb-3">
+                <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <Search className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Inversión y Tiempo</h4>
                 </div>
@@ -582,9 +582,9 @@ function ServiceDetailModal({ service, onClose, onBookAppointment }: any) {
             </div>
 
             {/* Benefits Section */}
-            <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 border border-pink-100 shadow-sm">
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 border border-gray-200 shadow-sm">
               <h4 className="font-bold text-gray-800 mb-4 flex items-center text-sm">
-                <Heart className="w-4 h-4 mr-2 text-pink-500" />
+                <Heart className="w-4 h-4 mr-2 text-brand-pink" />
                 ¿Qué incluye este servicio?
               </h4>
               <ul className="grid md:grid-cols-2 gap-3">

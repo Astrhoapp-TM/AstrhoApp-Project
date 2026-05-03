@@ -1,4 +1,4 @@
-import {
+﻿import {
   Calendar, Clock, Users, Plus,
   CheckCircle, AlertCircle, XCircle, Edit, Eye, Trash2,
   Save, X, User, Phone, DollarSign, Search, Loader2, RefreshCw, Scissors, TrendingUp,
@@ -209,8 +209,8 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     if (s === 'confirmado' || s === 'confirmed') return 'bg-green-100 text-green-800 border-green-200';
     if (s === 'pendiente' || s === 'pending') return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     if (s === 'sin agendar') return 'bg-gray-100 text-gray-600 border-gray-200';
-    if (s === 'completado' || s === 'completed') return 'bg-purple-100 text-purple-800 border-purple-200';
-    if (s === 'cancelado' || s === 'cancelled') return 'bg-red-100 text-red-800 border-red-200';
+    if (s === 'completado' || s === 'completed') return 'bg-gray-50 text-purple-800 border-purple-200';
+    if (s === 'cancelado' || s === 'cancelled') return 'bg-gray-100 text-red-800 border-red-200';
     return 'bg-gray-100 text-gray-800 border-gray-200';
   };
 
@@ -370,7 +370,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando agendamiento...</p>
         </div>
       </div>
@@ -428,7 +428,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
               placeholder="Buscar cliente o servicio..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
             />
           </div>
 
@@ -445,7 +445,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
             {hasPermission('manage_appointments') && (
               <button
                 onClick={handleCreateAppointment}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Registrar Cita</span>
@@ -459,7 +459,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
         {loading && appointments.length > 0 && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-            <Loader2 className="w-8 h-8 text-pink-500 animate-spin mb-2" />
+            <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
             <span className="text-sm font-medium text-gray-500">Buscando...</span>
           </div>
         )}
@@ -492,7 +492,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                   <tr key={apt.agendaId} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="p-4">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-brand rounded-full flex items-center justify-center">
                           <User className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -517,7 +517,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         {apt.servicios.map((svc, i) => (
                           <span
                             key={i}
-                            className="inline-block bg-purple-50 text-purple-700 text-xs px-2 py-1 rounded-full mr-1"
+                            className="inline-block bg-gray-50 text-brand-indigo text-xs px-2 py-1 rounded-full mr-1"
                           >
                             {svc}
                           </span>
@@ -569,7 +569,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         <button
                           onClick={() => handleDeleteAppointment(apt)}
                           disabled={estadoLower === 'completado' || estadoLower === 'completed'}
-                          className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                          className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-brand-pink hover:bg-red-200'}`}
                           title="Eliminar cita"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1067,7 +1067,7 @@ function AppointmentModal({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -1101,22 +1101,22 @@ function AppointmentModal({
           <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
             {/* Form Alert */}
             {Object.keys(errors).length > 0 && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <p className="text-sm text-red-700">Por favor, completa los campos obligatorios y corrige los errores.</p>
+              <div className="bg-gray-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
+                <AlertCircle className="w-5 h-5 text-brand-pink" />
+                <p className="text-sm text-brand-pink">Por favor, completa los campos obligatorios y corrige los errores.</p>
               </div>
             )}
 
             <div className="grid md:grid-cols-2 gap-6">
               {/* Client Info Card */}
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
-                <div className="flex items-center space-x-2 text-pink-500">
+                <div className="flex items-center space-x-2 text-brand-pink">
                   <Users className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información del Cliente</h4>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="bg-pink-50/30 p-4 rounded-2xl border border-pink-100">
+                  <div className="bg-gray-50/30 p-4 rounded-2xl border border-gray-200">
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Buscar Cliente *</label>
                     <ClientSearchSelect
                       selectedDocument={formData.documentoCliente}
@@ -1125,7 +1125,7 @@ function AppointmentModal({
                       disabled={isCompleted}
                     />
                     {errors.documentoCliente && (
-                      <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.documentoCliente}</p>
+                      <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.documentoCliente}</p>
                     )}
                   </div>
 
@@ -1135,21 +1135,21 @@ function AppointmentModal({
                       value={formData.metodoPagoId}
                       onChange={(e) => setFormData({ ...formData, metodoPagoId: parseInt(e.target.value) })}
                       disabled={isCompleted}
-                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.metodoPagoId ? 'border-red-300' : 'border-gray-200'}`}
+                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.metodoPagoId ? 'border-red-300' : 'border-gray-200'}`}
                     >
                       <option value={0}>Seleccionar método...</option>
                       {metodosPago.map((mp) => (
                         <option key={mp.metodopagoId} value={mp.metodopagoId}>{mp.nombre}</option>
                       ))}
                     </select>
-                    {errors.metodoPagoId && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.metodoPagoId}</p>}
+                    {errors.metodoPagoId && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.metodoPagoId}</p>}
                   </div>
                 </div>
               </div>
 
               {/* Schedule Card */}
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
-                <div className="flex items-center space-x-2 text-purple-500">
+                <div className="flex items-center space-x-2 text-brand-violet">
                   <Clock className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Profesional y Horario</h4>
                 </div>
@@ -1164,9 +1164,9 @@ function AppointmentModal({
                         onChange={(e) => setFormData({ ...formData, fechaCita: e.target.value })}
                         min={formatDateToYYYYMMDD(new Date())}
                         disabled={isCompleted}
-                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.fechaCita ? 'border-red-300' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.fechaCita ? 'border-red-300' : 'border-gray-200'}`}
                       />
-                      {errors.fechaCita && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.fechaCita}</p>}
+                      {errors.fechaCita && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.fechaCita}</p>}
                     </div>
 
                     <div>
@@ -1175,7 +1175,7 @@ function AppointmentModal({
                         value={formData.horaInicio}
                         onChange={(e) => setFormData({ ...formData, horaInicio: e.target.value })}
                         disabled={isCompleted || availableSlots.length === 0}
-                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.horaInicio ? 'border-red-300' : 'border-gray-200'} ${isCompleted || availableSlots.length === 0 ? 'bg-gray-100' : ''}`}
+                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.horaInicio ? 'border-red-300' : 'border-gray-200'} ${isCompleted || availableSlots.length === 0 ? 'bg-gray-100' : ''}`}
                       >
                         {availableSlots.length === 0 ? (
                           <option value="">No hay disponibilidad</option>
@@ -1193,7 +1193,7 @@ function AppointmentModal({
                           </>
                         )}
                       </select>
-                      {errors.horaInicio && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.horaInicio}</p>}
+                      {errors.horaInicio && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.horaInicio}</p>}
                     </div>
                   </div>
 
@@ -1207,17 +1207,17 @@ function AppointmentModal({
                       disabled={isCompleted || currentUser?.role === 'asistente'}
                       error={!!errors.documentoEmpleado}
                     />
-                    {errors.documentoEmpleado && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.documentoEmpleado}</p>}
+                    {errors.documentoEmpleado && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.documentoEmpleado}</p>}
                     {currentUser?.role === 'asistente' && !isCompleted && (
-                      <p className="text-[9px] text-pink-500 mt-1 ml-1 font-medium italic">* Tu usuario está seleccionado automáticamente</p>
+                      <p className="text-[9px] text-brand-pink mt-1 ml-1 font-medium italic">* Tu usuario está seleccionado automáticamente</p>
                     )}
                   </div>
 
                   {totalDuration > 0 && formData.horaInicio && (
-                    <div className="flex items-center justify-between p-3 bg-purple-50 rounded-xl border border-purple-100 animate-in fade-in duration-300">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-purple-100 animate-in fade-in duration-300">
                       <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-purple-600" />
-                        <span className="text-xs font-bold text-purple-700">Resumen de tiempo</span>
+                        <Clock className="w-4 h-4 text-brand-indigo" />
+                        <span className="text-xs font-bold text-brand-indigo">Resumen de tiempo</span>
                       </div>
                       <span className="text-xs font-black text-purple-800">
                         {formatTo12Hour(formData.horaInicio)} → {getEndTimeDisplay()} ({totalDuration} min)
@@ -1232,14 +1232,14 @@ function AppointmentModal({
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Scissors className="w-4 h-4 text-pink-400" />
+                  <Scissors className="w-4 h-4 text-brand-pink" />
                   <h4 className="font-bold text-gray-700 text-sm">Servicios de la Cita *</h4>
                 </div>
                 <button
                   type="button"
                   onClick={addServiceSlot}
                   disabled={isCompleted || formData.serviciosIds.length >= serviciosAPI.length}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all disabled:opacity-50 flex items-center space-x-2"
+                  className="bg-gradient-brand text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all disabled:opacity-50 flex items-center space-x-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Añadir</span>
@@ -1252,8 +1252,8 @@ function AppointmentModal({
                     {formData.serviciosIds.map((svcId, index) => {
                       const svcObj = serviciosAPI.find((s) => s.servicioId === svcId);
                       return (
-                        <div key={index} className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100 group hover:border-pink-200 transition-all">
-                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-100 group-hover:bg-pink-50 group-hover:text-pink-500 transition-colors">
+                        <div key={index} className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100 group hover:border-brand-periwinkle transition-all">
+                          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center border border-gray-100 group-hover:bg-gray-100 group-hover:text-brand-pink transition-colors">
                             <Scissors className="w-4 h-4 text-gray-400" />
                           </div>
                           <div className="flex-1">
@@ -1275,7 +1275,7 @@ function AppointmentModal({
                               type="button"
                               onClick={() => removeServiceSlot(index)}
                               disabled={isCompleted}
-                              className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                              className="p-2 text-red-400 hover:text-brand-pink hover:bg-gray-50 rounded-lg transition-all"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -1290,7 +1290,7 @@ function AppointmentModal({
                     <p className="text-sm text-gray-400 font-medium">No has seleccionado ningún servicio aún</p>
                   </div>
                 )}
-                {errors.services && <p className="text-red-500 text-[10px] mt-2 text-center font-black uppercase tracking-widest">{errors.services}</p>}
+                {errors.services && <p className="text-brand-pink text-[10px] mt-2 text-center font-black uppercase tracking-widest">{errors.services}</p>}
               </div>
 
               {/* Totals Summary */}
@@ -1299,16 +1299,16 @@ function AppointmentModal({
                   <div className="flex items-center space-x-6">
                     <div>
                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Duración Total</span>
-                      <span className="text-lg font-black text-pink-600">{totalDuration} min</span>
+                      <span className="text-lg font-black text-brand-indigo">{totalDuration} min</span>
                     </div>
                     <div>
                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Servicios</span>
-                      <span className="text-lg font-black text-purple-600">{formData.serviciosIds.length}</span>
+                      <span className="text-lg font-black text-brand-indigo">{formData.serviciosIds.length}</span>
                     </div>
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Monto Estimado</span>
-                    <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+                    <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-brand">
                       ${totalCost.toLocaleString()}
                     </span>
                   </div>
@@ -1329,7 +1329,7 @@ function AppointmentModal({
                     value={formData.observaciones}
                     onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
                     disabled={isCompleted}
-                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 resize-none"
+                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 resize-none"
                     rows={4}
                     placeholder="Agrega instrucciones especiales..."
                   />
@@ -1341,7 +1341,7 @@ function AppointmentModal({
                       value={formData.estadoId}
                       onChange={(e) => setFormData({ ...formData, estadoId: parseInt(e.target.value) })}
                       disabled={isCompleted}
-                      className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700"
+                      className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
                     >
                       {estadosAgenda.map((est) => (
                         <option key={est.estadoId} value={est.estadoId}>{est.nombre}</option>
@@ -1373,7 +1373,7 @@ function AppointmentModal({
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="px-8 py-2.5 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+              className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span>{isEdit ? 'Actualizar Cita' : 'Crear Cita'}</span>
@@ -1421,7 +1421,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -1453,7 +1453,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
             <div className="grid md:grid-cols-3 gap-4">
               {/* Client Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-purple-500 mb-3">
+                <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <Users className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Cliente</h4>
                 </div>
@@ -1468,7 +1468,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
 
               {/* Appointment Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-pink-500 mb-3">
+                <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <Clock className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Programación</h4>
                 </div>
@@ -1498,11 +1498,11 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
               <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${getStatusColor(appointment.estado).includes('bg-green')
                   ? 'bg-green-50/50 border-green-100 text-green-600'
                   : getStatusColor(appointment.estado).includes('bg-red')
-                    ? 'bg-red-50/50 border-red-100 text-red-600'
+                    ? 'bg-gray-50/50 border-red-100 text-brand-pink'
                     : 'bg-blue-50/50 border-blue-100 text-blue-600'
                 }`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${getStatusColor(appointment.estado).includes('bg-green') ? 'bg-green-100' :
-                    getStatusColor(appointment.estado).includes('bg-red') ? 'bg-red-100' : 'bg-blue-100'
+                    getStatusColor(appointment.estado).includes('bg-red') ? 'bg-gray-100' : 'bg-blue-100'
                   }`}>
                   <CheckCircle className="w-5 h-5" />
                 </div>
@@ -1516,10 +1516,10 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
                 <h4 className="font-bold text-gray-700 text-sm flex items-center space-x-2">
-                  <Scissors className="w-4 h-4 text-pink-400" />
+                  <Scissors className="w-4 h-4 text-brand-pink" />
                   <span>Servicios Solicitados</span>
                 </h4>
-                <span className="text-[10px] font-black bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full uppercase">
+                <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
                   {appointmentServices.length} servicios
                 </span>
               </div>
@@ -1573,7 +1573,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
                 </div>
                 <div className="mt-4">
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Método de Pago Preferido</span>
-                  <div className="inline-flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-xl font-bold text-sm">
+                  <div className="inline-flex items-center gap-2 bg-gray-50 text-brand-indigo px-4 py-2 rounded-xl font-bold text-sm">
                     <CreditCard className="w-4 h-4" />
                     {appointment.metodoPago}
                   </div>
@@ -1656,8 +1656,8 @@ function DeleteAppointmentModal({ appointment, serviciosMap, onClose, onConfirm 
 
         <div className="p-8">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-              <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+            <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+              <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
             </div>
             <h4 className="text-lg font-bold text-gray-800 mb-2">
               ¿Eliminar cita de "{appointment.cliente}"?
@@ -1669,7 +1669,7 @@ function DeleteAppointmentModal({ appointment, serviciosMap, onClose, onConfirm 
             
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4 text-left">
               <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
-                <Calendar className="w-6 h-6 text-pink-500" />
+                <Calendar className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Información de la Cita</p>
@@ -1784,17 +1784,17 @@ function ClientSearchSelect({ onSelect, selectedDocument, error, disabled }: any
       >
         {!isOpen && !selectedClient ? (
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-pink-400" />
+            <User className="w-4 h-4 text-brand-pink" />
             <span className="text-gray-500">Seleccionar cliente...</span>
           </div>
         ) : !isOpen && selectedClient ? (
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-pink-400" />
+            <User className="w-4 h-4 text-brand-pink" />
             <span className="text-gray-800 font-medium">{selectedClient.nombre}</span>
           </div>
         ) : (
           <div className="flex-1 flex items-center">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-pink-400" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-brand-pink" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
             <input
               type="text"
               className="w-full bg-transparent text-sm focus:outline-none"
@@ -1826,8 +1826,8 @@ function ClientSearchSelect({ onSelect, selectedDocument, error, disabled }: any
                 <div
                   key={client.documentoCliente}
                   className={cn(
-                    "px-4 py-3 hover:bg-pink-50 cursor-pointer text-sm flex justify-between items-center transition-colors",
-                    client.documentoCliente === selectedDocument ? 'bg-pink-100 text-pink-700 font-semibold' : 'text-gray-800'
+                    "px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm flex justify-between items-center transition-colors",
+                    client.documentoCliente === selectedDocument ? 'bg-gray-50 text-pink-700 font-semibold' : 'text-gray-800'
                   )}
                   onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
@@ -1840,7 +1840,7 @@ function ClientSearchSelect({ onSelect, selectedDocument, error, disabled }: any
                   <div className="flex items-center gap-3">
                     <Check
                       className={cn(
-                        "h-4 w-4 text-pink-500",
+                        "h-4 w-4 text-brand-pink",
                         client.documentoCliente === selectedDocument ? "opacity-100" : "opacity-0"
                       )}
                     />
@@ -1954,23 +1954,23 @@ function ProfessionalSearchSelect({
         className={cn(
           "flex items-center justify-between w-full px-4 py-3 border rounded-xl transition-all cursor-pointer bg-white",
           error ? "border-red-300 ring-red-100" : "border-gray-300 ring-pink-100",
-          !disabled && "hover:border-pink-300 focus-within:ring-2",
+          !disabled && "hover:border-brand-periwinkle focus-within:ring-2",
           disabled && "bg-gray-100 cursor-not-allowed opacity-75"
         )}
       >
         {!isOpen && !selectedEmployee ? (
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-pink-400" />
+            <User className="w-4 h-4 text-brand-pink" />
             <span className="text-gray-500">Seleccionar profesional...</span>
           </div>
         ) : !isOpen && selectedEmployee ? (
           <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-pink-400" />
+            <User className="w-4 h-4 text-brand-pink" />
             <span className="text-gray-800 font-medium">{selectedEmployee.nombre}</span>
           </div>
         ) : (
           <div className="flex-1 flex items-center">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-pink-400" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-brand-pink" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
             <input
               type="text"
               className="w-full bg-transparent text-sm focus:outline-none"
@@ -2013,8 +2013,8 @@ function ProfessionalSearchSelect({
                     key={emp.documentoEmpleado}
                     className={cn(
                       "px-4 py-3 text-sm flex justify-between items-center transition-colors",
-                      emp.documentoEmpleado === selectedDocument ? 'bg-pink-100 text-pink-700 font-semibold' : 'text-gray-800',
-                      isDisabled ? "opacity-50 cursor-not-allowed bg-gray-50" : "hover:bg-pink-50 cursor-pointer"
+                      emp.documentoEmpleado === selectedDocument ? 'bg-gray-50 text-pink-700 font-semibold' : 'text-gray-800',
+                      isDisabled ? "opacity-50 cursor-not-allowed bg-gray-50" : "hover:bg-gray-100 cursor-pointer"
                     )}
                     onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
@@ -2028,7 +2028,7 @@ function ProfessionalSearchSelect({
                     <div className="flex items-center gap-3">
                       <Check
                         className={cn(
-                          "h-4 w-4 text-pink-500",
+                          "h-4 w-4 text-brand-pink",
                           emp.documentoEmpleado === selectedDocument ? "opacity-100" : "opacity-0"
                         )}
                       />
@@ -2143,7 +2143,7 @@ function ServiceSearchSelect({
           </div>
         ) : (
           <div className="flex-1 flex items-center">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-pink-400" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-brand-pink" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
             <input
               type="text"
               className="w-full bg-transparent text-sm focus:outline-none font-medium"
@@ -2180,8 +2180,8 @@ function ServiceSearchSelect({
                     key={svc.servicioId}
                     className={cn(
                       "px-4 py-3 text-sm flex justify-between items-center transition-colors",
-                      isSelected ? 'bg-pink-100 text-pink-700 font-semibold' : 'text-gray-800',
-                      isAlreadyAdded ? "opacity-50 cursor-not-allowed bg-gray-50" : "hover:bg-pink-50 cursor-pointer"
+                      isSelected ? 'bg-gray-50 text-pink-700 font-semibold' : 'text-gray-800',
+                      isAlreadyAdded ? "opacity-50 cursor-not-allowed bg-gray-50" : "hover:bg-gray-100 cursor-pointer"
                     )}
                     onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
@@ -2195,7 +2195,7 @@ function ServiceSearchSelect({
                     <div className="flex items-center gap-3">
                       <Check
                         className={cn(
-                          "h-4 w-4 text-pink-500",
+                          "h-4 w-4 text-brand-pink",
                           isSelected ? "opacity-100" : "opacity-0"
                         )}
                       />

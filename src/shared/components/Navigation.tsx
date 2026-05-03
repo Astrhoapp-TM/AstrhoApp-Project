@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { User, Calendar, Home, Sparkles, Settings, Shield, Eye, ArrowLeft, ChevronDown, Edit, LogOut } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
@@ -92,25 +92,25 @@ export function Navigation({
 
   const getRoleBadgeColor = (role) => {
     switch (role) {
-      case 'super_admin': return 'bg-pink-100 text-pink-700 border border-pink-200';
-      case 'admin': return 'bg-red-100 text-red-700';
-      case 'asistente': return 'bg-blue-100 text-blue-700';
-      case 'customer': return 'bg-green-100 text-green-700';
+      case 'super_admin': return 'badge-role-super-admin';
+      case 'admin': return 'badge-role-admin';
+      case 'asistente': return 'badge-role-assistant';
+      case 'customer': return 'badge-role-customer';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-lg border-b border-pink-100">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-brand rounded-full flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold text-gradient-brand">
                 AsthroApp
               </span>
               {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'asistente') && (
@@ -132,8 +132,8 @@ export function Navigation({
                   onClick={() => setCurrentView(item.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
                     currentView === item.id
-                      ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white shadow-md'
-                      : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                      ? 'bg-gradient-brand text-white shadow-md'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-brand-indigo'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -151,8 +151,8 @@ export function Navigation({
                 onClick={toggleClientView}
                 className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center space-x-2 ${
                   isClientView
-                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                    : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                    ? 'bg-gray-50 text-brand-indigo hover:bg-gray-100'
+                    : 'bg-gray-50 text-brand-indigo hover:bg-gray-100'
                 }`}
                 title={isClientView ? 'Volver a Vista Admin' : 'Ir a Inicio (Vista Cliente)'}
               >
@@ -179,9 +179,9 @@ export function Navigation({
                 {/* User Avatar - Clickable */}
                 <button
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-pink-50 transition-colors"
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-brand rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <div className="hidden sm:block text-left">
@@ -197,17 +197,17 @@ export function Navigation({
 
                 {/* User Dropdown */}
                 {showUserDropdown && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50">
                     {/* User Info Header */}
-                    <div className="bg-gradient-to-r from-pink-400 to-purple-500 p-4 text-white">
+                    <div className="bg-gradient-brand p-4 text-white">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                           <User className="w-6 h-6" />
                         </div>
                         <div>
                           <div className="font-semibold">{currentUser.name}</div>
-                          <div className="text-xs text-pink-100">{currentUser.email}</div>
-                          <div className="text-xs text-pink-200 mt-1">
+                          <div className="text-xs text-white/80">{currentUser.email}</div>
+                          <div className="text-xs text-white/70 mt-1">
                             {getRoleDisplayName(currentUser.role)}
                           </div>
                         </div>
@@ -245,9 +245,9 @@ export function Navigation({
                           setShowUserProfile(true);
                           setShowUserDropdown(false);
                         }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-100 rounded-lg transition-colors"
                       >
-                        <Eye className="w-4 h-4 text-gray-500" />
+                        <Eye className="w-4 h-4 text-brand-periwinkle" />
                         <span className="text-gray-700">Mostrar Perfil</span>
                       </button>
                       
@@ -256,7 +256,7 @@ export function Navigation({
                           setShowUserDropdown(false);
                           onLogout();
                         }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-red-50 rounded-lg transition-colors text-red-600"
+                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors text-brand-pink"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Cerrar Sesión</span>
@@ -268,7 +268,7 @@ export function Navigation({
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200"
+                className="bg-gradient-brand text-white px-4 py-2 rounded-lg hover:shadow-lg hover:opacity-90 transition-all duration-200"
               >
                 Iniciar Sesión
               </button>
@@ -277,7 +277,7 @@ export function Navigation({
         </div>
 
         {/* Mobile Menu */}
-        <div className="md:hidden border-t border-pink-100 py-2">
+        <div className="md:hidden border-t border-gray-200 py-2">
           <div className="flex flex-wrap gap-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -287,8 +287,8 @@ export function Navigation({
                   onClick={() => setCurrentView(item.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1 ${
                     currentView === item.id
-                      ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white'
-                      : 'text-gray-700 hover:bg-pink-50'
+                      ? 'bg-gradient-brand text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   <Icon className="w-3 h-3" />
@@ -300,7 +300,7 @@ export function Navigation({
           
           {/* Mobile User Info */}
           {currentUser && (
-            <div className="mt-2 pt-2 border-t border-pink-100">
+            <div className="mt-2 pt-2 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <User className="w-4 h-4" />
@@ -314,7 +314,7 @@ export function Navigation({
                 {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'asistente') && toggleClientView && (
                   <button
                     onClick={toggleClientView}
-                    className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-lg hover:bg-purple-200 transition-colors flex items-center space-x-1"
+                    className="text-xs bg-gray-50 text-brand-indigo px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors flex items-center space-x-1"
                   >
                     <Home className="w-3 h-3" />
                     <span>{isClientView ? 'Admin' : 'Inicio'}</span>

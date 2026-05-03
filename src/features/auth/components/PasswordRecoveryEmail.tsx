@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Mail, Shield, Clock, MapPin, Phone } from 'lucide-react';
 
 interface PasswordRecoveryEmailProps {
@@ -55,7 +55,7 @@ export function PasswordRecoveryEmail({ userEmail = 'maria.rodriguez@gmail.com' 
           {/* Email Body */}
           <div className="p-0">
             {/* Header with Logo */}
-            <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white p-8 text-center">
+            <div className="bg-gradient-brand text-white p-8 text-center">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-white" />
               </div>
@@ -72,9 +72,9 @@ export function PasswordRecoveryEmail({ userEmail = 'maria.rodriguez@gmail.com' 
                 </p>
               </div>
 
-              <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 mb-8 border border-pink-200">
+              <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-6 mb-8 border border-brand-periwinkle">
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-brand rounded-full flex items-center justify-center flex-shrink-0">
                     <Shield className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -90,7 +90,7 @@ export function PasswordRecoveryEmail({ userEmail = 'maria.rodriguez@gmail.com' 
 
               {/* Reset Button */}
               <div className="text-center mb-8">
-                <button className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105">
+                <button className="bg-gradient-brand text-white px-8 py-4 rounded-2xl font-bold text-lg hover:shadow-lg transition-all transform hover:scale-105">
                   Restablecer mi contraseña
                 </button>
                 <p className="text-sm text-gray-500 mt-4">
@@ -121,7 +121,7 @@ export function PasswordRecoveryEmail({ userEmail = 'maria.rodriguez@gmail.com' 
               <div className="border-t border-gray-200 pt-8">
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6">
                   <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-brand rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold text-sm">AE</span>
                     </div>
                     <div className="flex-1">

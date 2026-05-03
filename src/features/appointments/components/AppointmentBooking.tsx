@@ -50,6 +50,62 @@ interface AppointmentBookingProps {
   appointmentToReschedule?: AgendaItem | null;
 }
 
+const ProgressHeader = ({ currentStep }: { currentStep: number }) => {
+  const steps = [
+    { num: 1, label: 'Servicios', icon: Scissors },
+    { num: 2, label: 'Profesional', icon: User },
+    { num: 3, label: 'Confirmación', icon: Calendar }
+  ];
+
+  return (
+    <div className="mb-8 relative">
+      <div className="flex items-center justify-between max-w-3xl mx-auto relative z-10">
+        {steps.map((step, index) => {
+          const isActive = currentStep === step.num;
+          const isCompleted = currentStep > step.num;
+          const Icon = step.icon;
+
+          return (
+            <div key={step.num} className="flex flex-col items-center flex-1 relative">
+              {/* Line connector */}
+              {index < steps.length - 1 && (
+                <div className={`absolute top-6 left-1/2 w-full h-1 -z-10 transition-all duration-500 ${
+                  currentStep > step.num ? 'bg-gradient-brand' : 'bg-gray-100'
+                }`} />
+              )}
+              
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 mb-3 shadow-sm ${
+                isActive 
+                  ? 'bg-gradient-brand text-white shadow-brand-pink/30 shadow-lg scale-110' 
+                  : isCompleted
+                    ? 'bg-brand-indigo text-white shadow-md'
+                    : 'bg-white text-gray-400 border-2 border-gray-100'
+              }`}>
+                {isCompleted ? <CheckCircle className="w-6 h-6" /> : <Icon className="w-5 h-5" />}
+              </div>
+              
+              <div className={`text-center transition-all duration-300 ${
+                isActive ? 'scale-105' : 'opacity-70'
+              }`}>
+                <span className={`text-[10px] font-black uppercase tracking-widest block mb-1 ${
+                  isActive ? 'text-brand-pink' : 'text-gray-400'
+                }`}>
+                  Paso {step.num}
+                </span>
+                <span className={`text-sm font-bold ${
+                  isActive ? 'text-gray-900' : 'text-gray-500'
+                }`}>
+                  {step.label}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export function AppointmentBooking({ currentUser, onBookingComplete, onBack, initialService, appointmentToReschedule }: AppointmentBookingProps) {
   const [step, setStep] = useState(1);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
@@ -57,6 +113,11 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   const [selectedMetodoPago, setSelectedMetodoPago] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<string>(formatDateToYYYYMMDD(new Date()));
   const [selectedTime, setSelectedTime] = useState<string>('');
+  
+  // Drag and Drop States
+  const [draggedService, setDraggedService] = useState<any>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [isDragOverLeft, setIsDragOverLeft] = useState(false);
   
   const { 
     data: services, 
@@ -326,6 +387,78 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     });
   };
 
+  // Drag and Drop Handlers
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, service: any) => {
+    setDraggedService(service);
+    // Firefox requires some data to be set for drag to work
+    e.dataTransfer.setData('text/plain', service.id.toString());
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedService(null);
+    setIsDragOver(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); // Necessary to allow dropping
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (draggedService) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (draggedService) {
+      setSelectedServices(prev => {
+        if (!prev.some(s => s.id === draggedService.id)) {
+          return [...prev, draggedService];
+        }
+        return prev;
+      });
+    }
+  };
+
+  const handleDragOverLeft = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnterLeft = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    // Only highlight if the dragged service is already selected
+    if (draggedService && selectedServices.some(s => s.id === draggedService.id)) {
+      setIsDragOverLeft(true);
+    }
+  };
+
+  const handleDragLeaveLeft = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOverLeft(false);
+  };
+
+  const handleDropLeft = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOverLeft(false);
+    if (draggedService) {
+      // If dropped back to the left panel, and it's currently selected, remove it
+      if (selectedServices.some(s => s.id === draggedService.id)) {
+        toggleServiceSelection(draggedService);
+      }
+    }
+  };
+
   // Check if time slot is available
   const isTimeSlotAvailable = (date: string, time: string, professionalId: string, duration: number) => {
     const appointments = existingAppointments.filter(apt =>
@@ -534,35 +667,12 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   if (step === 1) {
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
-        <div className="max-w-[950px] mx-auto px-4 sm:px-6">
-          {/* Progress Header */}
-          <div className="mb-10">
-            <div className="flex items-center justify-between max-w-2xl mx-auto">
-              {[1, 2, 3].map((num) => (
-                <div key={num} className="flex items-center flex-1 last:flex-none">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
-                    step >= num ? 'bg-pink-500 text-white shadow-lg scale-110' : 'bg-gray-200 text-gray-500'
-                  }`}>
-                    {step > num ? <CheckCircle className="w-6 h-6" /> : num}
-                  </div>
-                  {num < 3 && (
-                    <div className={`h-1 flex-1 mx-4 rounded ${
-                      step > num ? 'bg-pink-500' : 'bg-gray-200'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between max-w-2xl mx-auto mt-2 text-xs font-semibold text-gray-500">
-              <span className="text-pink-600">SERVICIOS</span>
-              <span>PROFESIONAL</span>
-              <span>FECHA Y HORA</span>
-            </div>
-          </div>
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6">
+          <ProgressHeader currentStep={step} />
 
-          <div className="text-center mb-10">
+          <div className="text-center mb-8">
             <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
-              Selecciona tus <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">Servicios</span>
+              Selecciona tus <span className="text-transparent bg-clip-text bg-gradient-brand">Servicios</span>
             </h2>
             <p className="text-base text-gray-600 font-medium">
               Elige los servicios que deseas para tu próxima cita
@@ -572,9 +682,15 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
           <div className="bg-white rounded-[2rem] shadow-2xl shadow-pink-100/10 border border-gray-100 p-6 sm:p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
               {/* Left Panel: Services */}
-              <div className="md:border-r border-black/10 md:pr-5 space-y-6">
+              <div 
+                className={`md:border-r border-black/10 md:pr-5 space-y-6 transition-all duration-300 rounded-2xl ${isDragOverLeft ? 'bg-gray-50/50 ring-4 ring-brand-periwinkle/30 scale-[1.01] p-2' : ''}`}
+                onDragOver={handleDragOverLeft}
+                onDragEnter={handleDragEnterLeft}
+                onDragLeave={handleDragLeaveLeft}
+                onDrop={handleDropLeft}
+              >
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-9 h-9 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center">
+                  <div className="w-9 h-9 bg-gray-50 text-brand-pink rounded-xl flex items-center justify-center">
                     <Scissors className="w-5 h-5" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900">Servicios</h3>
@@ -583,40 +699,47 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 {isLoadingServices ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <div className="relative">
-                      <div className="w-16 h-16 border-4 border-pink-100 border-t-pink-500 rounded-full animate-spin" />
-                      <Scissors className="w-6 h-6 text-pink-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                      <div className="w-16 h-16 border-4 border-gray-200 border-t-pink-500 rounded-full animate-spin" />
+                      <Scissors className="w-6 h-6 text-brand-pink absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                     </div>
                     <p className="mt-4 text-gray-500 font-semibold">Buscando servicios...</p>
                   </div>
                 ) : services.length > 0 ? (
                   <>
                     <div className="relative group mb-6">
-                      <Search className="absolute left-[20px] top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-pink-500 transition-colors" />
+                      <Search className="absolute left-[20px] top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
                       <input
                         type="text"
                         placeholder="¿Qué servicio buscas?"
                         value={serviceSearchTerm}
                         onChange={(e) => setServiceSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-2 border-transparent focus:border-pink-200 focus:bg-white rounded-xl outline-none transition-all text-gray-700 font-medium text-xs"
+                        className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-2 border-transparent focus:border-brand-periwinkle focus:bg-white rounded-xl outline-none transition-all text-gray-700 font-medium text-xs"
                       />
                     </div>
 
-                    <div className="flex flex-col space-y-2 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="flex flex-col space-y-2 mb-6 pr-2">
                       {services.map((service) => {
                         const isSelected = selectedServices.some(s => s.id === service.id);
+                        
+                        // Si el servicio ya está seleccionado (arrastrado a la derecha), lo ocultamos de la izquierda
+                        if (isSelected) return null;
+
                         return (
                           <div
                             key={service.id}
+                            draggable={!isSelected}
+                            onDragStart={(e) => handleDragStart(e, service)}
+                            onDragEnd={handleDragEnd}
                             onClick={() => toggleServiceSelection(service)}
-                            className={`group p-3 rounded-xl border-2 transition-all duration-300 cursor-pointer flex items-center justify-between ${
+                            className={`group p-3 rounded-xl border-2 transition-all duration-300 flex items-center justify-between ${
                               isSelected
-                                ? 'border-pink-500 bg-pink-50/50 ring-4 ring-pink-500/10 shadow-md shadow-pink-200/20'
-                                : 'border-gray-50 bg-white hover:border-pink-100 hover:shadow-sm'
+                                ? 'border-pink-500 bg-gray-50/50 ring-4 ring-pink-500/10 shadow-md shadow-pink-200/20 cursor-default'
+                                : 'border-gray-50 bg-white hover:border-gray-200 hover:shadow-sm cursor-grab active:cursor-grabbing'
                             }`}
                           >
                             <div className="flex items-center gap-3">
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                                isSelected ? 'bg-pink-500 text-white' : 'bg-pink-50 text-pink-500 group-hover:bg-pink-100'
+                                isSelected ? 'bg-pink-500 text-white' : 'bg-gray-50 text-brand-pink group-hover:bg-gray-100'
                               }`}>
                                 <Scissors className="w-3.5 h-3.5" />
                               </div>
@@ -635,12 +758,12 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
                             <div className="flex items-center gap-3 ml-4">
                               <div className={`font-black text-sm ${
-                                isSelected ? 'text-pink-600' : 'text-gray-900'
+                                isSelected ? 'text-brand-indigo' : 'text-gray-900'
                               }`}>
                                 ${service.price.toLocaleString()}
                               </div>
                               <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
-                                isSelected ? 'bg-pink-500 border-pink-500' : 'border-gray-200 group-hover:border-pink-200'
+                                isSelected ? 'bg-pink-500 border-pink-500' : 'border-gray-200 group-hover:border-brand-periwinkle'
                               }`}>
                                 {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
                               </div>
@@ -696,40 +819,33 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
               {/* Right Panel: Payment + Summary */}
               <div className="md:pl-5 space-y-10">
                 {/* Payment Methods */}
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center space-x-3 shrink-0">
                     <div className="w-8 h-8 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center">
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <h3 className="text-base font-bold text-gray-900">Método de Pago</h3>
                   </div>
 
-                  <div className="flex flex-row flex-wrap gap-3">
+                  <div className="flex bg-gray-100/80 p-1 rounded-xl shadow-inner w-full sm:w-auto">
                     {metodosPago.map((metodo) => {
                       const id = metodo.metodopagoId || metodo.metodoPagoId;
                       const isSelected = (selectedMetodoPago?.metodopagoId || selectedMetodoPago?.metodoPagoId) === id;
                       const isCash = metodo.nombre.toLowerCase().includes('efectivo') || metodo.nombre.toLowerCase().includes('cash');
                       
                       return (
-                        <div
+                        <button
                           key={id}
                           onClick={() => setSelectedMetodoPago(metodo)}
-                          className={`p-3 px-4 rounded-xl border transition-all duration-300 cursor-pointer flex items-center gap-3 w-fit ${
-                            isSelected
-                              ? 'bg-pink-600 border-pink-600 text-white shadow-md scale-[1.02]'
-                              : 'border-gray-200 bg-white hover:border-pink-200 text-gray-700'
+                          className={`flex-1 sm:flex-none relative flex items-center justify-center gap-2 py-2 px-4 rounded-lg font-bold text-xs transition-all duration-300 ${
+                            isSelected 
+                              ? 'text-brand-indigo shadow-md bg-white scale-[1.02] z-10' 
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
                           }`}
                         >
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
-                            isSelected ? 'bg-white/20 text-white' : 'bg-pink-50 text-pink-500'
-                          }`}>
-                            {isCash ? <Banknote className="w-5 h-5" /> : <ArrowRightLeft className="w-5 h-5" />}
-                          </div>
-                          <div className="text-left">
-                            <h4 className="font-bold text-[11px] leading-tight">{metodo.nombre}</h4>
-                          </div>
-                          {isSelected && <CheckCircle className="w-3.5 h-3.5 text-white shrink-0" />}
-                        </div>
+                          {isCash ? <Banknote className="w-4 h-4 shrink-0" /> : <ArrowRightLeft className="w-4 h-4 shrink-0" />}
+                          <span className="truncate max-w-[100px] sm:max-w-none">{metodo.nombre}</span>
+                        </button>
                       );
                     })}
                   </div>
@@ -738,18 +854,33 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 {/* Summary and Navigation */}
                 <div className="border-t border-gray-100 pt-10 space-y-6">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gray-50 text-brand-violet rounded-xl flex items-center justify-center">
                       <ShoppingBag className="w-4 h-4" />
                     </div>
                     <h3 className="text-base font-bold text-gray-900">Resumen</h3>
                   </div>
                   
+                  <div 
+                    onDragOver={handleDragOver}
+                    onDragEnter={handleDragEnter}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`transition-all duration-300 rounded-2xl ${
+                      isDragOver ? 'ring-4 ring-brand-periwinkle/50 bg-brand-periwinkle/10 scale-[1.02]' : ''
+                    }`}
+                  >
                   {selectedServices.length > 0 ? (
                     <div className="space-y-6">
                       <div className="bg-gray-50/50 rounded-2xl p-4 space-y-3">
-                        <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1 custom-scrollbar">
+                        <div className="space-y-2 pr-1">
                           {selectedServices.map((service) => (
-                            <div key={service.id} className="flex justify-between items-center text-xs group">
+                            <div 
+                              key={service.id} 
+                              draggable={true}
+                              onDragStart={(e) => handleDragStart(e, service)}
+                              onDragEnd={handleDragEnd}
+                              className="flex justify-between items-center text-xs group p-1 rounded hover:bg-gray-100/50 cursor-grab active:cursor-grabbing transition-colors"
+                            >
                               <div className="flex items-center gap-2 pr-2 min-w-0">
                                 <div className="w-1.5 h-1.5 rounded-full bg-pink-400 shrink-0" />
                                 <span className="font-bold text-gray-800 truncate">{service.name}</span>
@@ -759,9 +890,9 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                                 <span className="font-bold text-gray-900">${service.price.toLocaleString()}</span>
                                 <button
                                   onClick={(e) => { e.stopPropagation(); toggleServiceSelection(service); }}
-                                  className="p-1 hover:bg-pink-100 rounded-lg transition-colors"
+                                  className="p-1 hover:bg-white rounded-lg transition-colors"
                                 >
-                                  <X className="w-3 h-3 text-pink-500" />
+                                  <X className="w-3 h-3 text-brand-pink" />
                                 </button>
                               </div>
                             </div>
@@ -775,7 +906,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-bold text-gray-900">Total</span>
-                            <p className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">
+                            <p className="text-xl font-black text-transparent bg-clip-text bg-gradient-brand">
                               ${getTotalPrice().toLocaleString()}
                             </p>
                           </div>
@@ -794,7 +925,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                         )}
                         <button
                           onClick={() => setStep(2)}
-                          className="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                          className="flex-1 bg-gradient-brand text-white py-3 rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                         >
                           <span>Continuar</span>
                           <ArrowRight className="w-4 h-4" />
@@ -802,11 +933,16 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       </div>
                     </div>
                   ) : (
-                    <div className="py-10 text-center bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
-                      <ShoppingBag className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                      <p className="text-sm text-gray-400 font-medium">No hay servicios seleccionados</p>
+                    <div className={`py-10 text-center rounded-2xl border-2 border-dashed transition-colors ${
+                      isDragOver ? 'border-brand-periwinkle bg-brand-periwinkle/10' : 'bg-gray-50/50 border-gray-200'
+                    }`}>
+                      <ShoppingBag className={`w-8 h-8 mx-auto mb-3 ${isDragOver ? 'text-brand-periwinkle' : 'text-gray-300'}`} />
+                      <p className={`text-sm font-medium ${isDragOver ? 'text-brand-indigo' : 'text-gray-400'}`}>
+                        {isDragOver ? 'Suelta el servicio aquí' : 'Arrastra los servicios aquí o haz clic en ellos'}
+                      </p>
                     </div>
                   )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -821,34 +957,11 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   // Step 2: Select Professional
   if (step === 2) {
     return (
-      <section className="py-20 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Progress Header */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between max-w-2xl mx-auto">
-              {[1, 2, 3].map((num) => (
-                <div key={num} className="flex items-center flex-1 last:flex-none">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
-                    step >= num ? 'bg-pink-500 text-white shadow-lg scale-110' : 'bg-gray-200 text-gray-500'
-                  }`}>
-                    {step > num ? <CheckCircle className="w-6 h-6" /> : num}
-                  </div>
-                  {num < 3 && (
-                    <div className={`h-1 flex-1 mx-4 rounded ${
-                      step > num ? 'bg-pink-500' : 'bg-gray-200'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between max-w-2xl mx-auto mt-2 text-xs font-semibold text-gray-500">
-              <span className="text-pink-600">SERVICIOS</span>
-              <span className="text-pink-600">PROFESIONAL</span>
-              <span>FECHA Y HORA</span>
-            </div>
-          </div>
+      <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          <ProgressHeader currentStep={step} />
 
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">
               Selecciona a tu Profesional
             </h2>
@@ -860,7 +973,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
           <div className="bg-white rounded-3xl shadow-xl p-8">
             {isLoadingProfessionals ? (
               <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-12 h-12 text-pink-500 animate-spin mb-4" />
+                <Loader2 className="w-12 h-12 text-brand-pink animate-spin mb-4" />
                 <p className="text-gray-600 font-medium">Buscando profesionales disponibles...</p>
               </div>
             ) : (
@@ -868,19 +981,19 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 {/* Search Bar for Professionals */}
                 <div className="mb-8 relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400 group-focus-within:text-pink-500 transition-colors" />
+                    <Search className="h-5 w-5 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
                   </div>
                   <input
                     type="text"
                     placeholder="Buscar por nombre o especialidad..."
                     value={professionalSearchTerm}
                     onChange={(e) => setProfessionalSearchTerm(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 focus:bg-white transition-all text-lg"
+                    className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-periwinkle focus:bg-white transition-all text-lg"
                   />
                   {professionalSearchTerm && (
                     <button 
                       onClick={() => setProfessionalSearchTerm('')}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-pink-500"
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-pink"
                     >
                       <X className="h-5 w-5" />
                     </button>
@@ -899,12 +1012,12 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                           }}
                           className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md flex items-center space-x-4 group ${
                             selectedProfessional?.id === professional.id
-                              ? 'border-pink-500 bg-pink-50 shadow-md scale-[1.02]'
-                              : 'border-gray-100 hover:border-pink-200 bg-white'
+                              ? 'border-pink-500 bg-gray-50 shadow-md scale-[1.02]'
+                              : 'border-gray-100 hover:border-brand-periwinkle bg-white'
                           }`}
                         >
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-gray-800 text-base mb-0.5 truncate group-hover:text-pink-600 transition-colors">
+                            <h4 className="font-bold text-gray-800 text-base mb-0.5 truncate group-hover:text-brand-indigo transition-colors">
                               {professional.name}
                             </h4>
                             <p className="text-gray-500 text-xs font-medium truncate">
@@ -914,7 +1027,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${
                             selectedProfessional?.id === professional.id 
                               ? 'bg-pink-500 text-white rotate-0' 
-                              : 'bg-gray-50 text-gray-400 -rotate-45 group-hover:rotate-0 group-hover:bg-pink-100 group-hover:text-pink-500'
+                              : 'bg-gray-50 text-gray-400 -rotate-45 group-hover:rotate-0 group-hover:bg-gray-100 group-hover:text-brand-pink'
                           }`}>
                             <ArrowRight className="w-4 h-4" />
                           </div>
@@ -934,7 +1047,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                           className={`p-2 rounded-xl transition-all ${
                             professionalPage === 1 
                               ? 'text-gray-300 cursor-not-allowed' 
-                              : 'text-pink-500 hover:bg-pink-50'
+                              : 'text-brand-pink hover:bg-gray-100'
                           }`}
                         >
                           <ChevronLeft className="w-8 h-8" />
@@ -968,7 +1081,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                           className={`p-2 rounded-xl transition-all ${
                             professionalPage === totalProfessionalPages 
                               ? 'text-gray-300 cursor-not-allowed' 
-                              : 'text-pink-500 hover:bg-pink-50'
+                              : 'text-brand-pink hover:bg-gray-100'
                           }`}
                         >
                           <ChevronRight className="w-8 h-8" />
@@ -980,7 +1093,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
                     <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                       {hasProfessionalPermissionError ? (
-                        <ShieldCheck className="w-10 h-10 text-red-500" />
+                        <ShieldCheck className="w-10 h-10 text-brand-pink" />
                       ) : (
                         <Search className="w-10 h-10 text-gray-400" />
                       )}
@@ -996,7 +1109,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                         <p className="text-gray-600">Prueba con otro nombre o especialidad.</p>
                         <button 
                           onClick={() => setProfessionalSearchTerm('')}
-                          className="mt-6 text-pink-600 font-bold hover:underline"
+                          className="mt-6 text-brand-indigo font-bold hover:underline"
                         >
                           Ver todos los profesionales
                         </button>
@@ -1025,50 +1138,26 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   // Step 3: Select Date and Time
   if (step === 3) {
     return (
-      <section className="py-20 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Progress Header */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between max-w-2xl mx-auto">
-              {[1, 2, 3].map((num) => (
-                <div key={num} className="flex items-center flex-1 last:flex-none">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
-                    step >= num ? 'bg-pink-500 text-white shadow-lg scale-110' : 'bg-gray-200 text-gray-500'
-                  }`}>
-                    {step > num ? <CheckCircle className="w-6 h-6" /> : num}
-                  </div>
-                  {num < 3 && (
-                    <div className={`h-1 flex-1 mx-4 rounded ${
-                      step > num ? 'bg-pink-500' : 'bg-gray-200'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between max-w-2xl mx-auto mt-2 text-xs font-semibold text-gray-500">
-              <span className="text-pink-600">SERVICIOS</span>
-              <span className="text-pink-600">PROFESIONAL</span>
-              <span className="text-pink-600">FECHA Y HORA</span>
-            </div>
-          </div>
+      <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          <ProgressHeader currentStep={step} />
 
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">
-              Selecciona Fecha y Hora
-            </h2>
-            <p className="text-xl text-gray-600">
-              Disponibilidad para <span className="font-bold text-pink-600">{selectedProfessional?.name}</span>
-            </p>
-          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/50 p-6 rounded-3xl border border-white shadow-sm backdrop-blur-sm">
+            <div className="text-center md:text-left">
+              <h2 className="text-3xl font-black text-gray-800 mb-1 tracking-tight">
+                Selecciona Fecha y Hora
+              </h2>
+              <p className="text-base text-gray-600 font-medium">
+                Disponibilidad para <span className="font-bold text-brand-indigo">{selectedProfessional?.name}</span>
+              </p>
+            </div>
 
-          {/* Change Professional Button - Now at the top */}
-          <div className="flex justify-center mb-10">
             <button
               onClick={() => setStep(2)}
-              className="flex items-center space-x-3 px-8 py-3 bg-white border-2 border-pink-100 text-pink-600 rounded-2xl font-bold hover:bg-pink-50 hover:border-pink-300 transition-all shadow-sm hover:shadow-md"
+              className="flex items-center space-x-2 px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 hover:border-brand-periwinkle hover:text-brand-indigo transition-all shadow-sm group shrink-0"
             >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Cambiar Profesional ({selectedProfessional?.name})</span>
+              <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-brand-indigo transition-colors" />
+              <span>Cambiar Profesional</span>
             </button>
           </div>
 
@@ -1093,7 +1182,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   <div className="flex items-center space-x-4">
                     <button
                       onClick={goToToday}
-                      className="px-6 py-2 bg-white border-2 border-pink-200 text-pink-600 rounded-xl font-bold hover:bg-pink-50 transition-all shadow-sm"
+                      className="px-6 py-2 bg-white border-2 border-brand-periwinkle text-brand-indigo rounded-xl font-bold hover:bg-gray-100 transition-all shadow-sm"
                     >
                       Hoy
                     </button>
@@ -1134,10 +1223,10 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-transparent' 
                             : isActive 
                               ? 'bg-pink-500 text-white shadow-xl scale-110 z-10 cursor-pointer' 
-                              : 'bg-gray-50 text-gray-700 hover:bg-pink-100 hover:text-pink-600 cursor-pointer'
+                              : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-brand-indigo cursor-pointer'
                         }`}
                       >
-                        <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-pink-500'}`}>
+                        <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-brand-pink'}`}>
                           {date.toLocaleDateString('es-ES', { weekday: 'short' })}
                         </div>
                         <div className="text-2xl font-black">
@@ -1160,14 +1249,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 <div className="flex items-center justify-between mb-8">
                   <div>
                     <h4 className="text-xl font-black text-gray-800 flex items-center">
-                      <Clock className="w-6 h-6 text-pink-500 mr-2" />
+                      <Clock className="w-6 h-6 text-brand-pink mr-2" />
                       Horarios para el {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </h4>
                     <p className="text-gray-500 text-sm font-semibold">Selecciona la hora de inicio de tu cita</p>
                   </div>
                   <div className="hidden sm:flex items-center space-x-6 text-xs font-bold uppercase tracking-widest">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-white border-2 border-pink-100 rounded-sm"></div>
+                      <div className="w-3 h-3 bg-white border-2 border-gray-200 rounded-sm"></div>
                       <span className="text-gray-400">Disponible</span>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -1214,7 +1303,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                               Reservado
                             </div>
                           ) : absence ? (
-                            <div className="w-full h-16 bg-red-50 rounded-2xl flex flex-col items-center justify-center text-red-400 border-2 border-red-100 cursor-not-allowed opacity-60">
+                            <div className="w-full h-16 bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-red-400 border-2 border-red-100 cursor-not-allowed opacity-60">
                               <span className="text-lg font-black">{formatTo12Hour(time)}</span>
                               <span className="text-[9px] font-black uppercase tracking-tighter">Ausente</span>
                             </div>
@@ -1224,7 +1313,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                               disabled={!isAvailable}
                               className={`w-full h-16 rounded-2xl text-lg font-black transition-all flex flex-col items-center justify-center border-2 ${
                                 isAvailable
-                                  ? 'bg-white border-pink-100 text-pink-600 hover:border-pink-500 hover:bg-pink-50 hover:shadow-lg hover:-translate-y-1'
+                                  ? 'bg-white border-gray-200 text-brand-indigo hover:border-pink-500 hover:bg-gray-100 hover:shadow-lg hover:-translate-y-1'
                                   : 'bg-gray-100/50 text-gray-300 border-transparent cursor-not-allowed opacity-40'
                               }`}
                             >
@@ -1249,8 +1338,8 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
         {/* Booking Confirmation Modal */}
         {showBookingModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all duration-500 ease-out animate-in fade-in zoom-in-95 slide-in-from-bottom-10">
-              <div className="bg-gradient-to-r from-pink-400 to-purple-500 p-8 text-white">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all duration-500 ease-out animate-in fade-in zoom-in-95 slide-in-from-bottom-10">
+              <div className="bg-gradient-brand p-8 text-white">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-2xl font-bold">Confirmar Cita</h3>
                   <button
@@ -1263,61 +1352,61 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 <p className="text-pink-100 text-sm">Verifica los detalles antes de confirmar</p>
               </div>
 
-              <div className="p-8">
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center shrink-0">
-                      <Calendar className="w-5 h-5 text-pink-600" />
+              <div className="p-8 flex-1 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                  <div className="flex items-start space-x-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                    <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                      <Calendar className="w-5 h-5 text-brand-indigo" />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fecha y Hora</p>
-                      <p className="font-bold text-gray-800 capitalize">
+                      <p className="font-bold text-gray-800 capitalize leading-tight">
                         {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', {
                           weekday: 'long',
                           day: 'numeric',
                           month: 'long'
                         })}
                       </p>
-                      <p className="text-pink-600 font-black text-lg">a las {selectedTime}</p>
+                      <p className="text-brand-indigo font-black text-lg mt-0.5">a las {selectedTime}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
-                      <User className="w-5 h-5 text-purple-600" />
+                  <div className="flex items-start space-x-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                    <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                      <User className="w-5 h-5 text-brand-indigo" />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Profesional</p>
-                      <p className="font-bold text-gray-800">{selectedProfessional?.name}</p>
+                      <p className="font-bold text-gray-800 text-base">{selectedProfessional?.name}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                      <ShoppingBag className="w-5 h-5 text-blue-600" />
+                  <div className="flex items-start space-x-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                    <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                      <ShoppingBag className="w-5 h-5 text-brand-indigo" />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Método de Pago</p>
-                      <p className="font-bold text-gray-800">{selectedMetodoPago?.nombre || 'No seleccionado'}</p>
+                      <p className="font-bold text-gray-800 text-base">{selectedMetodoPago?.nombre || 'No seleccionado'}</p>
                     </div>
                   </div>
+                </div>
 
-                    <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-100">
-                      <p className="text-[10px] font-black text-pink-600 uppercase tracking-widest mb-4">Servicios a Realizar</p>
+                <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-100">
+                      <p className="text-[10px] font-black text-brand-indigo uppercase tracking-widest mb-4">Servicios a Realizar</p>
                       <div className="space-y-3">
                         {selectedServices.map((service) => (
                           <div key={service.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-50 shadow-sm">
                             <span className="text-sm font-bold text-gray-800">{service.name}</span>
-                            <span className="text-sm font-black text-pink-600">${service.price.toLocaleString()}</span>
+                            <span className="text-sm font-black text-brand-indigo">${service.price.toLocaleString()}</span>
                           </div>
                         ))}
                         <div className="pt-4 border-t-2 border-dashed border-gray-200 flex justify-between items-center mt-4">
-                          <span className="font-black text-pink-600 uppercase tracking-tighter">Total</span>
-                          <span className="font-black text-pink-600 text-3xl">${getTotalPrice().toLocaleString()}</span>
+                          <span className="font-black text-brand-indigo uppercase tracking-tighter">Total</span>
+                          <span className="font-black text-brand-indigo text-3xl">${getTotalPrice().toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
-                </div>
 
                 <div className="flex space-x-3 mt-8">
                   <button
@@ -1330,7 +1419,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   <button
                     onClick={handleBookingConfirm}
                     disabled={isBooking}
-                    className="flex-1 bg-gradient-to-r from-pink-400 to-purple-500 text-white px-4 py-4 rounded-2xl font-bold hover:shadow-xl transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                    className="flex-1 bg-gradient-brand text-white px-4 py-4 rounded-2xl font-bold hover:shadow-xl transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
                   >
                     {isBooking ? (
                       <>
@@ -1369,18 +1458,18 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 ? 'Tu cita ha sido actualizada con éxito. ' 
                 : 'Tu cita ha sido agendada con éxito. '}
               <br/>
-              <span className="text-pink-500 font-bold">¡Te esperamos pronto!</span>
+              <span className="text-brand-pink font-bold">¡Te esperamos pronto!</span>
             </p>
 
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-8 mb-10 text-left border border-pink-100/50">
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-8 mb-10 text-left border border-gray-200/50">
               <h4 className="font-black text-gray-800 mb-6 uppercase tracking-widest text-sm">Resumen de la Cita</h4>
               <div className="space-y-4">
-                <div className="flex items-center justify-between pb-4 border-b border-pink-100/50">
-                  <span className="text-pink-600 font-black uppercase tracking-widest text-[10px]">Profesional</span>
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
+                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Profesional</span>
                   <span className="font-black text-gray-800">{selectedProfessional?.name}</span>
                 </div>
-                <div className="flex items-center justify-between pb-4 border-b border-pink-100/50">
-                  <span className="text-pink-600 font-black uppercase tracking-widest text-[10px]">Fecha</span>
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
+                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Fecha</span>
                   <span className="font-black text-gray-800 capitalize">
                     {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', {
                       weekday: 'long',
@@ -1389,23 +1478,23 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     })}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pb-4 border-b border-pink-100/50">
-                  <span className="text-pink-600 font-black uppercase tracking-widest text-[10px]">Hora</span>
-                  <span className="font-black text-pink-600 text-xl">{formatTo12Hour(selectedTime)}</span>
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
+                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Hora</span>
+                  <span className="font-black text-brand-indigo text-xl">{formatTo12Hour(selectedTime)}</span>
                 </div>
                 <div className="py-2">
-                  <span className="text-pink-600 font-black text-[10px] uppercase tracking-widest mb-3 block">Servicios Agendados</span>
+                  <span className="text-brand-indigo font-black text-[10px] uppercase tracking-widest mb-3 block">Servicios Agendados</span>
                   <div className="space-y-2">
                     {selectedServices.map(s => (
-                      <div key={s.id} className="flex justify-between items-center bg-white/50 p-2 rounded-xl border border-pink-100/30">
+                      <div key={s.id} className="flex justify-between items-center bg-white/50 p-2 rounded-xl border border-gray-200/30">
                         <span className="text-sm font-bold text-gray-800">{s.name}</span>
-                        <span className="text-xs font-black text-pink-600">${s.price.toLocaleString()}</span>
+                        <span className="text-xs font-black text-brand-indigo">${s.price.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center justify-between pt-4 border-t-2 border-pink-200/30 mt-2">
-                  <span className="text-pink-600 font-black uppercase tracking-tighter">Total Pagado</span>
+                <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200 mt-2">
+                  <span className="text-brand-indigo font-black uppercase tracking-tighter">Total Pagado</span>
                   <span className="font-black text-gray-900 text-3xl">${getTotalPrice().toLocaleString()}</span>
                 </div>
               </div>
@@ -1414,7 +1503,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
               <button
                 onClick={resetBooking}
-                className="flex-1 bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:shadow-2xl hover:scale-[1.02] transition-all"
+                className="flex-1 bg-gradient-brand text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:shadow-2xl hover:scale-[1.02] transition-all"
               >
                 Nueva Cita
               </button>

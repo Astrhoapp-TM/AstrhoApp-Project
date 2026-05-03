@@ -138,7 +138,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   const getStatusColor = (estado: boolean) => {
     return estado
       ? 'bg-green-100 text-green-800'
-      : 'bg-red-100 text-red-800';
+      : 'bg-gray-100 text-red-800';
   };
 
   const getStatusLabel = (estado: boolean) => {
@@ -337,7 +337,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando compras...</p>
         </div>
       </div>
@@ -395,7 +395,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
               placeholder="Buscar por N° compra o proveedor..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
             />
           </div>
 
@@ -412,7 +412,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
             {hasPermission('manage_purchases') && (
               <button
                 onClick={handleCreatePurchase}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Registrar Compra</span>
@@ -424,12 +424,12 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8 text-center">
-          <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-          <p className="text-red-700">{error}</p>
+        <div className="bg-gray-50 border border-red-200 rounded-2xl p-6 mb-8 text-center">
+          <AlertTriangle className="w-8 h-8 text-brand-pink mx-auto mb-2" />
+          <p className="text-brand-pink">{error}</p>
           <button
             onClick={fetchPurchases}
-            className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 transition-colors font-semibold"
+            className="mt-4 px-4 py-2 bg-gray-100 text-brand-pink rounded-xl hover:bg-red-200 transition-colors font-semibold"
           >
             Reintentar
           </button>
@@ -441,7 +441,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
           {loading && (
             <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-              <Loader2 className="w-8 h-8 text-pink-500 animate-spin mb-2" />
+              <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
               <span className="text-sm font-medium text-gray-500">Buscando...</span>
             </div>
           )}
@@ -504,7 +504,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewDetail(purchase)}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                          className="p-2 bg-brand-lavender text-brand-indigo rounded-lg hover:brightness-105 transition-colors"
                           title="Ver Detalle"
                         >
                           <Eye className="w-4 h-4" />
@@ -521,7 +521,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
                         {hasPermission('manage_purchases') && purchase.estado && (
                           <button
                             onClick={() => handleCancelPurchase(purchase)}
-                            className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                            className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                             title="Anular Compra"
                           >
                             <Ban className="w-4 h-4" />
@@ -591,7 +591,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
   const getStatusColor = (estado: boolean) => {
     return estado
       ? 'bg-green-100 text-green-800'
-      : 'bg-red-100 text-red-800';
+      : 'bg-gray-100 text-red-800';
   };
 
   const getStatusLabel = (estado: boolean) => {
@@ -612,7 +612,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -644,7 +644,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
             <div className="grid md:grid-cols-2 gap-4">
               {/* Purchase Info */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-purple-500 mb-4">
+                <div className="flex items-center space-x-2 text-brand-violet mb-4">
                   <FileText className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de la Compra</h4>
                 </div>
@@ -668,7 +668,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
 
               {/* Supplier Info */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-pink-500 mb-4">
+                <div className="flex items-center space-x-2 text-brand-pink mb-4">
                   <Truck className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información del Proveedor</h4>
                 </div>
@@ -695,7 +695,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
 
             {/* Products Table */}
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <div className="flex items-center space-x-2 text-purple-500 mb-4">
+              <div className="flex items-center space-x-2 text-brand-violet mb-4">
                 <Package className="w-4 h-4" />
                 <h4 className="font-bold uppercase text-[10px] tracking-widest">Insumos Ordenados</h4>
               </div>
@@ -740,7 +740,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
                 </div>
                 <div className="flex justify-between border-t border-purple-300 pt-3">
                   <span className="font-bold text-gray-800">Total:</span>
-                  <span className="font-bold text-purple-700 text-xl">
+                  <span className="font-bold text-brand-indigo text-xl">
                     ${(purchase.total ?? 0).toLocaleString()}
                   </span>
                 </div>
@@ -834,17 +834,17 @@ function SupplierSearchSelect({ onSelect, selectedId, error, disabled }: any) {
       >
         {!isOpen && !selectedSupplier ? (
           <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-pink-400" />
+            <Truck className="w-4 h-4 text-brand-pink" />
             <span className="text-gray-500 text-sm">Seleccionar proveedor...</span>
           </div>
         ) : !isOpen && selectedSupplier ? (
           <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-pink-400" />
+            <Truck className="w-4 h-4 text-brand-pink" />
             <span className="text-gray-800 font-medium text-sm">{selectedSupplier.nombre}</span>
           </div>
         ) : (
           <div className="flex-1 flex items-center">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-pink-400" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-brand-pink" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
             <input
               type="text"
               className="w-full bg-transparent text-sm focus:outline-none"
@@ -876,8 +876,8 @@ function SupplierSearchSelect({ onSelect, selectedId, error, disabled }: any) {
                 <div
                   key={supplier.proveedorId}
                   className={cn(
-                    "px-4 py-3 hover:bg-pink-50 cursor-pointer text-sm flex justify-between items-center transition-colors",
-                    String(supplier.proveedorId) === selectedId ? 'bg-pink-100 text-pink-700 font-semibold' : 'text-gray-800'
+                    "px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm flex justify-between items-center transition-colors",
+                    String(supplier.proveedorId) === selectedId ? 'bg-gray-50 text-pink-700 font-semibold' : 'text-gray-800'
                   )}
                   onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
@@ -890,7 +890,7 @@ function SupplierSearchSelect({ onSelect, selectedId, error, disabled }: any) {
                   <div className="flex items-center gap-3">
                     <CheckCircle
                       className={cn(
-                        "h-4 w-4 text-pink-500",
+                        "h-4 w-4 text-brand-pink",
                         String(supplier.proveedorId) === selectedId ? "opacity-100" : "opacity-0"
                       )}
                     />
@@ -989,7 +989,7 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
           </div>
         ) : (
           <div className="flex-1 flex items-center">
-            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-pink-400" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-brand-pink" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
             <input
               type="text"
               className="w-full bg-transparent text-sm focus:outline-none font-bold"
@@ -1024,8 +1024,8 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
                     key={supply.insumoId}
                     className={cn(
                       "px-4 py-3 text-sm flex justify-between items-center transition-colors",
-                      String(supply.insumoId) === selectedId ? 'bg-pink-100 text-pink-700 font-semibold' : 'text-gray-800',
-                      isAlreadySelected ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-pink-50 cursor-pointer'
+                      String(supply.insumoId) === selectedId ? 'bg-gray-50 text-pink-700 font-semibold' : 'text-gray-800',
+                      isAlreadySelected ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-gray-100 cursor-pointer'
                     )}
                     onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
@@ -1039,7 +1039,7 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
                     <div className="flex items-center gap-3">
                       <CheckCircle
                         className={cn(
-                          "h-4 w-4 text-pink-500",
+                          "h-4 w-4 text-brand-pink",
                           String(supply.insumoId) === selectedId ? "opacity-100" : "opacity-0"
                         )}
                       />
@@ -1048,7 +1048,7 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] text-gray-400">Stock: {supply.stockActual} {supply.unidadMedida}</span>
                           <span className="text-[10px] text-gray-400">•</span>
-                          <span className="text-[10px] text-pink-500 font-bold">${(supply.precioPromedio || 0).toLocaleString()}</span>
+                          <span className="text-[10px] text-brand-pink font-bold">${(supply.precioPromedio || 0).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -1211,7 +1211,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -1243,15 +1243,15 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
           <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
             {/* Form Alert */}
             {Object.keys(errors).length > 0 && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <p className="text-sm text-red-700">Por favor, completa los campos obligatorios.</p>
+              <div className="bg-gray-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
+                <AlertCircle className="w-5 h-5 text-brand-pink" />
+                <p className="text-sm text-brand-pink">Por favor, completa los campos obligatorios.</p>
               </div>
             )}
 
             {/* Basic Info Card */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
-              <div className="flex items-center space-x-2 text-purple-500">
+              <div className="flex items-center space-x-2 text-brand-violet">
                 <FileText className="w-4 h-4" />
                 <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de la Orden</h4>
               </div>
@@ -1265,7 +1265,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                       onSelect={(s: SupplierAPI) => setFormData({ ...formData, proveedorId: String(s.proveedorId) })}
                       error={!!errors.proveedorId}
                     />
-                    {errors.proveedorId && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.proveedorId}</p>}
+                    {errors.proveedorId && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.proveedorId}</p>}
                   </div>
 
                   <div>
@@ -1279,12 +1279,12 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                         value={formData.purchaseNumber}
                         onChange={handleInputChange}
                         className={cn(
-                          "w-full pl-10 pr-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700",
+                          "w-full pl-10 pr-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700",
                           errors.purchaseNumber ? 'border-red-300' : 'border-gray-200'
                         )}
                       />
                     </div>
-                    {errors.purchaseNumber && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.purchaseNumber}</p>}
+                    {errors.purchaseNumber && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.purchaseNumber}</p>}
                   </div>
                 </div>
 
@@ -1299,7 +1299,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                         value={formData.orderDate}
                         max={getCurrentDate()}
                         onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700"
+                        className="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
                       />
                     </div>
                   </div>
@@ -1312,7 +1312,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                       onChange={handleInputChange}
                       rows={2}
                       placeholder="Notas adicionales sobre la compra..."
-                      className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 resize-none"
+                      className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 resize-none"
                     />
                   </div>
                 </div>
@@ -1323,13 +1323,13 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Package className="w-4 h-4 text-pink-400" />
+                  <Package className="w-4 h-4 text-brand-pink" />
                   <h4 className="font-bold text-gray-700 text-sm">Insumos a Comprar</h4>
                 </div>
                 <button
                   type="button"
                   onClick={addProduct}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all flex items-center space-x-2"
+                  className="bg-gradient-brand text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all flex items-center space-x-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Añadir Insumo</span>
@@ -1359,7 +1359,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                             value={item.cantidad}
                             onChange={(e) => updateProduct(index, 'cantidad', e.target.value)}
                             className={cn(
-                              "w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-pink-300 transition-all font-bold text-gray-700 text-sm",
+                              "w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 transition-all font-bold text-gray-700 text-sm",
                               errors[`quantity_${index}`] ? 'border-red-300' : 'border-gray-200'
                             )}
                           />
@@ -1377,7 +1377,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                               value={item.precioUnitario === 0 ? '' : item.precioUnitario}
                               onChange={(e) => updateProduct(index, 'precioUnitario', e.target.value)}
                               className={cn(
-                                "w-full pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-pink-300 transition-all font-bold text-gray-700 text-sm",
+                                "w-full pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 transition-all font-bold text-gray-700 text-sm",
                                 item.precioUnitario === 0 ? 'pl-7' : 'pl-3',
                                 errors[`price_${index}`] ? 'border-red-300' : 'border-gray-200'
                               )}
@@ -1396,7 +1396,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                         <button
                           type="button"
                           onClick={() => removeProduct(index)}
-                          className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all mb-1"
+                          className="p-2 text-red-400 hover:text-brand-pink hover:bg-gray-50 rounded-xl transition-all mb-1"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1409,7 +1409,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                     <p className="text-sm text-gray-400 font-medium">No has agregado ningún insumo aún</p>
                   </div>
                 )}
-                {errors.items && <p className="text-red-500 text-[10px] mt-2 text-center font-black uppercase tracking-widest">{errors.items}</p>}
+                {errors.items && <p className="text-brand-pink text-[10px] mt-2 text-center font-black uppercase tracking-widest">{errors.items}</p>}
               </div>
             </div>
 
@@ -1431,7 +1431,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                         name="iva"
                         value={formData.iva}
                         onChange={handleInputChange}
-                        className="w-14 bg-white border border-purple-200 rounded-lg px-2 py-0.5 text-center font-bold text-purple-600 text-sm focus:ring-2 focus:ring-pink-300 focus:border-pink-400 transition-all"
+                        className="w-14 bg-white border border-purple-200 rounded-lg px-2 py-0.5 text-center font-bold text-brand-indigo text-sm focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-indigo transition-all"
                       />
                       <span>%):</span>
                     </div>
@@ -1441,7 +1441,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                   </div>
                   <div className="flex justify-between items-center border-t border-purple-300 pt-3">
                     <span className="font-bold text-gray-800">Total:</span>
-                    <span className="font-bold text-purple-700 text-xl">
+                    <span className="font-bold text-brand-indigo text-xl">
                       ${total.toLocaleString()}
                     </span>
                   </div>
@@ -1462,7 +1462,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
           </button>
           <button
             onClick={handleSubmit}
-            className="px-8 py-2.5 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
           >
             <Save className="w-4 h-4" />
             <span>Registrar Compra</span>
@@ -1524,8 +1524,8 @@ function CancelConfirmationModal({ purchase, onClose, onConfirm }: {
         <div className="p-6 space-y-5">
           {/* Centered alert icon */}
           <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-8 h-8 text-red-500" />
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-8 h-8 text-brand-pink" />
             </div>
             <h4 className="text-lg font-bold text-gray-800 mb-2">
               ¿Anular compra #{purchase.compraId}?
@@ -1537,14 +1537,14 @@ function CancelConfirmationModal({ purchase, onClose, onConfirm }: {
           </div>
 
           {/* Item card */}
-          <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-2xl p-4">
-            <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <ShoppingCart className="w-5 h-5 text-red-500" />
+          <div className="flex items-center gap-3 bg-gray-50 border border-red-100 rounded-2xl p-4">
+            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <ShoppingCart className="w-5 h-5 text-brand-pink" />
             </div>
             <div>
               <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Compra a anular</p>
-              <p className="font-bold text-red-700">Compra #{purchase.compraId}</p>
-              <p className="text-xs text-red-500">{purchase.proveedorNombre} | ${(purchase.total ?? 0).toLocaleString()}</p>
+              <p className="font-bold text-brand-pink">Compra #{purchase.compraId}</p>
+              <p className="text-xs text-brand-pink">{purchase.proveedorNombre} | ${(purchase.total ?? 0).toLocaleString()}</p>
             </div>
           </div>
 
@@ -1570,7 +1570,7 @@ function CancelConfirmationModal({ purchase, onClose, onConfirm }: {
             </button>
             <button
               onClick={handleConfirm}
-              className="flex-1 px-6 py-3 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-200 uppercase text-xs tracking-widest flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-gray-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-200 uppercase text-xs tracking-widest flex items-center justify-center gap-2"
             >
               <Ban className="w-4 h-4" />
               Anular

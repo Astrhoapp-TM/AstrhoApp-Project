@@ -53,6 +53,18 @@
   --color-sidebar-border: #e5e7eb; /* gray-200 */
   --color-sidebar-ring: var(--color-brand-periwinkle);
   
+  /* Status Colors (Brand-aligned) */
+  --color-status-pending: var(--color-brand-lavender);
+  --color-status-pending-foreground: var(--color-brand-indigo);
+  --color-status-confirmed: var(--color-brand-periwinkle);
+  --color-status-confirmed-foreground: var(--color-brand-indigo);
+  --color-status-completed: var(--color-brand-violet);
+  --color-status-completed-foreground: #ffffff;
+  --color-status-cancelled: var(--color-brand-pink);
+  --color-status-cancelled-foreground: #ffffff;
+  --color-status-inactive: #9ca3af; /* gray-400 */
+  --color-status-inactive-foreground: #ffffff;
+
   /* Charts */
   --color-chart-1: var(--color-brand-pink);
   --color-chart-2: var(--color-brand-violet);

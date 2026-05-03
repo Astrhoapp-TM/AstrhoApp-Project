@@ -388,11 +388,11 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
   const getRoleBadgeColor = (rolNombre: string) => {
     const name = (rolNombre || '').toLowerCase();
-    if (name === 'super admin') return 'bg-gray-50 text-purple-800 border border-purple-200';
-    if (name === 'administrador') return 'bg-gray-100 text-red-800';
-    if (name === 'asistente') return 'bg-blue-100 text-blue-800';
-    if (name === 'cliente') return 'bg-green-100 text-green-800';
-    return 'bg-gray-100 text-gray-800';
+    if (name === 'super admin') return 'status-confirmed';
+    if (name === 'administrador') return 'status-cancelled';
+    if (name === 'asistente') return 'status-completed';
+    if (name === 'cliente') return 'status-confirmed';
+    return 'status-inactive';
   };
 
 
@@ -566,7 +566,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewUser(user)}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                          className="p-2 action-btn-view rounded-lg transition-colors"
                           title="Ver detalles"
                         >
                           <Eye className="w-4 h-4" />
@@ -576,7 +576,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                           <>
                             <button
                               onClick={() => handleEditUser(user)}
-                              className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                              className="p-2 action-btn-edit rounded-lg transition-colors"
                               title="Editar usuario"
                             >
                               <Edit className="w-4 h-4" />
@@ -585,7 +585,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                             {(user.rolNombre || '').toLowerCase() !== 'super admin' && (
                               <button
                                 onClick={() => handleDeleteUser(user)}
-                                className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
+                                className="p-2 action-btn-delete rounded-lg transition-colors"
                                 title="Eliminar usuario"
                               >
                                 <Trash2 className="w-4 h-4" />

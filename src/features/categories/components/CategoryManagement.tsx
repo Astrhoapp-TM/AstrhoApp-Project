@@ -424,7 +424,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
                             setSelectedCategory(category);
                             setShowDetailModal(true);
                           }}
-                          className="p-2 bg-brand-lavender text-brand-indigo rounded-lg hover:brightness-105 transition-colors"
+                          className="p-2 action-btn-view rounded-lg transition-colors"
                           title="Ver Detalle"
                         >
                           <Eye className="w-4 h-4" />
@@ -434,7 +434,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
                           <>
                             <button
                               onClick={() => handleEditCategory(category)}
-                              className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                              className="p-2 action-btn-edit rounded-lg transition-colors"
                               title="Editar"
                             >
                               <Edit className="w-4 h-4" />
@@ -442,7 +442,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
 
                             <button
                               onClick={() => handleDeleteCategory(category)}
-                              className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
+                              className="p-2 action-btn-delete rounded-lg transition-colors"
                               title="Eliminar"
                             >
                               <Trash2 className="w-4 h-4" />

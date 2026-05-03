@@ -1,36 +1,27 @@
-﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Bell, AlertTriangle, ShoppingBag, CheckCircle, X, Calendar, Clock } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { Bell, AlertTriangle, CheckCircle, X, Calendar, Clock, Layers, Filter } from 'lucide-react';
 import { supplyService } from '@/features/supply/services/supplyService';
 import { agendaService } from '@/features/appointments/services/agendaService';
-
-interface Alert {
-  id: number | string;
-  type: 'warning' | 'info' | 'success';
-  message: string;
-  action: string;
-  time: string;
-  icon: any;
-  color: string;
-  view?: string;
-}
+import {
+  buildNotificationsFromData,
+  loadNotificationState,
+  mergeAndPersistNotifications,
+  saveNotificationState,
+  type AppNotification,
+  type NotificationCategory,
+} from '@/shared/services/notificationService';
 
 interface NotificationBellProps {
   currentUser: any;
+  onNavigateFromNotification?: (targetTab?: string) => void;
 }
 
-export function NotificationBell({ currentUser }: NotificationBellProps) {
+export function NotificationBell({ currentUser, onNavigateFromNotification }: NotificationBellProps) {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [alerts, setAlerts] = useState<Alert[]>([
-    {
-      id: 1,
-      type: 'warning',
-      message: 'Sistema de alertas activo',
-      action: 'Configurar',
-      time: 'Ahora',
-      icon: AlertTriangle,
-      color: 'text-yellow-600 bg-yellow-100'
-    }
-  ]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [filterCategory, setFilterCategory] = useState<'all' | NotificationCategory>('all');
+  const [filterRead, setFilterRead] = useState<'all' | 'unread' | 'read'>('all');
+  const [loading, setLoading] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -48,168 +39,159 @@ export function NotificationBell({ currentUser }: NotificationBellProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!currentUser) return;
+    const persisted = loadNotificationState(currentUser);
+    setNotifications(persisted.notifications);
+  }, [currentUser]);
+
+  const fetchAllAppointments = useCallback(async () => {
+    const pageSize = 200;
+    let page = 1;
+    let totalPages = 1;
+    const all: any[] = [];
+
+    do {
+      const params = { page, pageSize };
+      const response =
+        currentUser?.role === 'asistente'
+          ? await agendaService.getMisCitasEmpleado(params)
+          : await agendaService.getAll(params);
+
+      const chunk = Array.isArray(response)
+        ? response
+        : Array.isArray((response as any)?.data)
+          ? (response as any).data
+          : [];
+
+      all.push(...chunk);
+      totalPages = Array.isArray(response) ? 1 : ((response as any)?.totalPages || 1);
+      page += 1;
+    } while (page <= totalPages);
+
+    const byId = new Map<number, any>();
+    all.forEach((apt) => {
+      if (apt?.agendaId != null) byId.set(apt.agendaId, apt);
+    });
+    return [...byId.values()];
+  }, [currentUser?.role]);
+
   const loadNotifications = useCallback(async () => {
     if (!currentUser) return;
     
     try {
-      const newAlerts: Alert[] = [];
-
-      // 1. Check Low Stock
-      const suppliesRes = await supplyService.getSupplies();
+      setLoading(true);
+      const [suppliesRes, appointments] = await Promise.all([
+        supplyService.getSupplies({ page: 1, pageSize: 400 }),
+        fetchAllAppointments(),
+      ]);
       const supplies = suppliesRes.data || [];
-      const lowStockItems = supplies.filter((s: any) => s.estado && s.stock <= 5);
-      
-      if (lowStockItems.length > 0) {
-        newAlerts.push({
-          id: 'low-stock-' + Date.now(),
-          type: 'warning',
-          message: `${lowStockItems.length} insumos con stock bajo`,
-          action: 'Ver inventario',
-          time: 'Ahora',
-          icon: AlertTriangle,
-          color: 'text-yellow-600 bg-yellow-100',
-          view: 'inventario'
-        });
-      }
+      const previousState = loadNotificationState(currentUser);
 
-      // 2. Check Completed Appointments Today
-      const today = new Date().toISOString().split('T')[0];
-      const agendaRes = await agendaService.getAll();
-      const agenda = agendaRes.data || [];
-      const completedToday = agenda.filter(a => 
-        a.fechaCita === today && 
-        a.estado.toLowerCase() === 'completado'
-      );
-
-      if (completedToday.length > 0) {
-        newAlerts.push({
-          id: 'completed-apt-' + Date.now(),
-          type: 'success',
-          message: `${completedToday.length} citas completadas hoy`,
-          action: 'Ver agenda',
-          time: 'Hoy',
-          icon: CheckCircle,
-          color: 'text-green-600 bg-green-100',
-          view: 'agenda'
-        });
-      }
-
-      // 3. Check Upcoming & Overdue Appointments
-      const now = new Date();
-      const todayStr = now.toISOString().split('T')[0];
-      
-      const timeToMinutes = (time: string) => {
-        const [h, m] = time.split(':').map(Number);
-        return h * 60 + m;
-      };
-
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-      const upcomingApts = agenda.filter(a => {
-        const isToday = a.fechaCita === todayStr;
-        if (!isToday) return false;
-        
-        const startMin = timeToMinutes(a.horaInicio);
-        const diff = startMin - currentMinutes;
-        const status = a.estado.toLowerCase();
-        
-        // "No pendientes" within 2 hours
-        return (
-          status !== 'pendiente' && 
-          status !== 'cancelado' &&
-          status !== 'sin agendar' &&
-          status !== 'completado' &&
-          diff > 0 && diff <= 120
-        );
+      const { additions, nextSnapshot } = buildNotificationsFromData({
+        appointments,
+        supplies,
+        previousSnapshot: previousState.snapshot,
+        now: new Date(),
       });
 
-      const overdueApts = agenda.filter(a => {
-        const aptDate = new Date(a.fechaCita + 'T' + a.horaInicio);
-        const status = a.estado.toLowerCase();
-        const nonCompletedStates = ['pendiente', 'confirmado'];
-        
-        return (
-          nonCompletedStates.includes(status) &&
-          aptDate < now
-        );
-      });
-
-      if (upcomingApts.length > 0) {
-        newAlerts.push({
-          id: 'upcoming-apt-' + Date.now(),
-          type: 'warning',
-          message: `${upcomingApts.length} cita${upcomingApts.length > 1 ? 's' : ''} próxima${upcomingApts.length > 1 ? 's' : ''} a iniciar`,
-          action: 'Ver agenda',
-          time: 'En 2h',
-          icon: Clock,
-          color: 'text-brand-pink bg-gray-50',
-          view: 'agenda'
-        });
-      }
-
-      if (overdueApts.length > 0) {
-        newAlerts.push({
-          id: 'overdue-apt-' + Date.now(),
-          type: 'warning',
-          message: `${overdueApts.length} cita${overdueApts.length > 1 ? 's' : ''} vencida${overdueApts.length > 1 ? 's' : ''} sin completar`,
-          action: 'Revisar agenda',
-          time: 'Vencido',
-          icon: AlertTriangle,
-          color: 'text-brand-pink bg-gray-100',
-          view: 'agenda'
-        });
-      }
-
-      // 4. Check Auto-cancelled Appointments
-      const autoCancelled = agenda.filter(a => 
-        a.estado.toLowerCase() === 'cancelado' &&
-        a.observaciones?.includes('Cancelación automática')
-      );
-
-      if (autoCancelled.length > 0) {
-        newAlerts.push({
-          id: 'auto-cancelled-' + Date.now(),
-          type: 'info',
-          message: `${autoCancelled.length} cita${autoCancelled.length > 1 ? 's' : ''} cancelada${autoCancelled.length > 1 ? 's' : ''} automáticamente`,
-          action: 'Ver agenda',
-          time: 'Reciente',
-          icon: X,
-          color: 'text-gray-600 bg-gray-100',
-          view: 'agenda'
-        });
-      }
-      
-      if (newAlerts.length > 0) {
-        setAlerts((prev: Alert[]) => {
-          // Keep unique notifications based on message content to avoid spam
-          const existingMessages = new Set(prev.map(a => a.message));
-          const additions = newAlerts.filter(a => !existingMessages.has(a.message));
-          return [...additions, ...prev].slice(0, 10);
-        });
-      }
+      const merged = mergeAndPersistNotifications(currentUser, previousState, additions, nextSnapshot);
+      setNotifications(merged.notifications);
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
+    } finally {
+      setLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, fetchAllAppointments]);
 
   // Load notifications on mount and periodically
   useEffect(() => {
     loadNotifications();
-    const interval = setInterval(loadNotifications, 60000); // Every minute
+    const interval = setInterval(loadNotifications, 60000);
     return () => clearInterval(interval);
   }, [loadNotifications]);
 
-  const handleDismiss = (id: number | string, e: React.MouseEvent) => {
+  const handleDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setAlerts((prev: Alert[]) => prev.filter((alert: Alert) => alert.id !== id));
+    const next = notifications.filter((n) => n.id !== id);
+    const state = loadNotificationState(currentUser);
+    saveNotificationState(currentUser, { ...state, notifications: next });
+    setNotifications(next);
   };
 
-  const unreadCount = alerts.length;
+  const markAsRead = (id: string) => {
+    const next = notifications.map((n) => (n.id === id ? { ...n, read: true } : n));
+    const state = loadNotificationState(currentUser);
+    saveNotificationState(currentUser, { ...state, notifications: next });
+    setNotifications(next);
+  };
+
+  const markAllAsRead = () => {
+    const next = notifications.map((n) => ({ ...n, read: true }));
+    const state = loadNotificationState(currentUser);
+    saveNotificationState(currentUser, { ...state, notifications: next });
+    setNotifications(next);
+  };
+
+  const clearAll = () => {
+    const state = loadNotificationState(currentUser);
+    saveNotificationState(currentUser, { ...state, notifications: [] });
+    setNotifications([]);
+  };
+
+  const handleNotificationClick = (item: AppNotification) => {
+    markAsRead(item.id);
+    if (item.targetTab && onNavigateFromNotification) {
+      setShowNotifications(false);
+      onNavigateFromNotification(item.targetTab);
+    }
+  };
+
+  const sortedNotifications = useMemo(() => {
+    const priorityRank: Record<string, number> = { alta: 0, media: 1, baja: 2 };
+    return [...notifications].sort((a, b) => {
+      const aRank = priorityRank[a.priority] ?? 99;
+      const bRank = priorityRank[b.priority] ?? 99;
+      if (aRank !== bRank) return aRank - bRank;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [notifications]);
+
+  const filteredNotifications = useMemo(() => {
+    return sortedNotifications.filter((item) => {
+      const categoryMatch = filterCategory === 'all' || item.category === filterCategory;
+      const readMatch =
+        filterRead === 'all' ||
+        (filterRead === 'read' && item.read) ||
+        (filterRead === 'unread' && !item.read);
+      return categoryMatch && readMatch;
+    });
+  }, [sortedNotifications, filterCategory, filterRead]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Only show for admin and asistente users
   if (!currentUser || currentUser.role === 'customer') {
     return null;
   }
+
+  const categoryLabel: Record<NotificationCategory, string> = {
+    citas: 'Citas',
+    inventario: 'Inventario',
+    sistema: 'Sistema',
+  };
+
+  const priorityColor: Record<string, string> = {
+    alta: 'text-brand-pink bg-gray-100',
+    media: 'text-brand-indigo bg-gray-50',
+    baja: 'text-gray-600 bg-gray-100',
+  };
+
+  const categoryIcon = (category: NotificationCategory) => {
+    if (category === 'inventario') return AlertTriangle;
+    if (category === 'citas') return Calendar;
+    return Layers;
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -228,42 +210,99 @@ export function NotificationBell({ currentUser }: NotificationBellProps) {
 
       {/* Notifications Dropdown */}
       {showNotifications && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 max-h-[600px] flex flex-col">
+        <div className="absolute right-0 mt-2 w-[28rem] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 max-h-[620px] flex flex-col">
           {/* Header */}
           <div className="bg-gradient-brand p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-lg">Alertas en Tiempo Real</h3>
-                <p className="text-xs text-white/80">Notificaciones del sistema</p>
+                <h3 className="font-bold text-lg">Notificaciones</h3>
+                <p className="text-xs text-white/80">Sistema proactivo de agenda e inventario</p>
               </div>
-              {alerts.length > 0 && (
+              {notifications.length > 0 && (
                 <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  {alerts.length}
+                  {unreadCount} sin leer
                 </span>
               )}
             </div>
           </div>
 
+          <div className="p-3 border-b border-gray-100 bg-gray-50/50 space-y-2">
+            <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              <Filter className="w-3.5 h-3.5" />
+              <span>Filtros</span>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {(['all', 'citas', 'inventario', 'sistema'] as const).map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setFilterCategory(cat)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
+                    filterCategory === cat ? 'bg-brand-indigo text-white' : 'bg-white text-gray-600 border border-gray-200'
+                  }`}
+                >
+                  {cat === 'all' ? 'Todo' : categoryLabel[cat]}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {([
+                { key: 'all', label: 'Todos' },
+                { key: 'unread', label: 'No leídos' },
+                { key: 'read', label: 'Leídos' },
+              ] as const).map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => setFilterRead(item.key)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
+                    filterRead === item.key ? 'bg-brand-indigo text-white' : 'bg-white text-gray-600 border border-gray-200'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Notifications List */}
           <div className="overflow-y-auto flex-1">
-            {alerts.length > 0 ? (
+            {filteredNotifications.length > 0 ? (
               <div className="p-2">
-                {alerts.map((alert) => {
-                  const Icon = alert.icon;
+                {filteredNotifications.map((item) => {
+                  const Icon = categoryIcon(item.category);
+                  const createdAt = new Date(item.createdAt);
+                  const timeLabel = Number.isNaN(createdAt.getTime())
+                    ? 'Reciente'
+                    : createdAt.toLocaleString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      });
                   return (
                     <div 
-                      key={alert.id} 
-                      className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-xl transition-colors mb-2 group relative"
+                      key={item.id}
+                      className={`flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-xl transition-colors mb-2 group relative border ${
+                        item.read ? 'border-transparent' : 'border-brand-periwinkle/40 bg-brand-periwinkle/10'
+                      }`}
+                      onClick={() => handleNotificationClick(item)}
                     >
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${alert.color}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${priorityColor[item.priority]}`}>
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-800">{alert.message}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Hace {alert.time}</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-semibold text-gray-800">{item.title}</p>
+                          {!item.read && <span className="w-2 h-2 rounded-full bg-brand-pink" />}
+                        </div>
+                        <p className="text-xs text-gray-600">{item.message}</p>
+                        <div className="flex items-center gap-2 mt-1.5 text-[11px] text-gray-500">
+                          <span className="px-2 py-0.5 rounded-full bg-gray-100">{categoryLabel[item.category]}</span>
+                          <span className="px-2 py-0.5 rounded-full bg-gray-100 capitalize">{item.priority}</span>
+                          <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{timeLabel}</span>
+                        </div>
                       </div>
                       <button
-                        onClick={(e) => handleDismiss(alert.id, e)}
+                        onClick={(e) => handleDismiss(item.id, e)}
                         className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-gray-200"
                         title="Descartar"
                       >
@@ -278,20 +317,26 @@ export function NotificationBell({ currentUser }: NotificationBellProps) {
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Bell className="w-8 h-8 text-gray-400" />
                 </div>
-                <p className="text-gray-500 text-sm">No hay notificaciones</p>
-                <p className="text-gray-400 text-xs mt-1">Te mantendremos informado</p>
+                <p className="text-gray-500 text-sm">{loading ? 'Actualizando notificaciones...' : 'No hay notificaciones'}</p>
+                <p className="text-gray-400 text-xs mt-1">Te mantendremos informado en tiempo real</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          {alerts.length > 0 && (
-            <div className="p-3 border-t border-gray-100">
+          {notifications.length > 0 && (
+            <div className="p-3 border-t border-gray-100 grid grid-cols-2 gap-2">
               <button
-                onClick={() => setAlerts([])}
-                className="w-full text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                onClick={markAllAsRead}
+                className="text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors border border-gray-200 rounded-lg py-2"
               >
-                Descartar todas las notificaciones
+                Marcar todo leído
+              </button>
+              <button
+                onClick={clearAll}
+                className="text-sm text-gray-600 hover:text-gray-800 font-medium transition-colors border border-gray-200 rounded-lg py-2"
+              >
+                Limpiar todo
               </button>
             </div>
           )}

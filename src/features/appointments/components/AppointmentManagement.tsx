@@ -269,13 +269,13 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
   // ── Helpers ──
   const getStatusColor = (status: string) => {
-    const s = (status || '').toLowerCase();
-    if (s === 'confirmado' || s === 'confirmed') return 'bg-green-100 text-green-800 border-green-200';
-    if (s === 'pendiente' || s === 'pending') return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    if (s === 'sin agendar') return 'bg-gray-100 text-gray-600 border-gray-200';
-    if (s === 'completado' || s === 'completed') return 'bg-gray-50 text-purple-800 border-purple-200';
-    if (s === 'cancelado' || s === 'cancelled') return 'bg-gray-100 text-red-800 border-red-200';
-    return 'bg-gray-100 text-gray-800 border-gray-200';
+    const s = normalizeEstadoKey(status);
+    if (s === 'confirmado' || s === 'confirmed') return 'status-confirmed';
+    if (s === 'pendiente' || s === 'pending') return 'status-pending';
+    if (s === 'sin agendar') return 'status-inactive';
+    if (s === 'completado' || s === 'completed') return 'status-completed';
+    if (s === 'cancelado' || s === 'cancelled') return 'status-cancelled';
+    return 'status-inactive';
   };
 
   // Helper: get estadoId from label using loaded estados
@@ -652,15 +652,15 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                       </div>
                     </td>
                     <td className="p-4">
-                      <div className="space-y-1">
-                        {apt.servicios.map((svc, i) => (
-                          <span
-                            key={i}
-                            className="inline-block bg-gray-50 text-brand-indigo text-xs px-2 py-1 rounded-full mr-1"
-                          >
-                            {svc}
+                      <div className="flex items-center space-x-2 group/services cursor-help" title={apt.servicios.join(', ')}>
+                        <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 group-hover/services:border-brand-periwinkle transition-colors shadow-sm">
+                          <Scissors className="w-4 h-4 text-brand-pink" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-gradient-brand leading-none">
+                            {apt.servicios.length} {apt.servicios.length === 1 ? 'servicio' : 'servicios'}
                           </span>
-                        ))}
+                        </div>
                       </div>
                     </td>
                     <td className="p-4">
@@ -689,7 +689,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewDetail(apt)}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                          className="p-2 action-btn-view rounded-lg transition-all shadow-sm"
                           title="Ver detalle"
                         >
                           <Eye className="w-4 h-4" />
@@ -697,7 +697,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         <button
                           onClick={() => handleEditAppointment(apt)}
                           disabled={isLocked}
-                          className={`p-2 rounded-lg transition-colors ${isLocked ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                          className={`p-2 rounded-lg transition-colors ${isLocked ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'action-btn-edit'}`}
                           title="Editar cita"
                         >
                           <Edit className="w-4 h-4" />
@@ -705,7 +705,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         <button
                           onClick={() => handleDeleteAppointment(apt)}
                           disabled={estadoLower === 'completado' || estadoLower === 'completed'}
-                          className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-brand-pink hover:bg-red-200'}`}
+                          className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'action-btn-delete'}`}
                           title="Eliminar cita"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -803,13 +803,13 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                   setShowStatusModal(false);
                   setAppointmentToChangeStatus(null);
                 }}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+                className="flex-1 px-6 py-3 border border-gray-200 text-gray-500 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={confirmStatusChange}
-                className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+                className="flex-1 bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-indigo-100 transition-all"
               >
                 Confirmar
               </button>
@@ -2333,7 +2333,7 @@ function ServiceSearchSelect({
           </div>
         ) : !isOpen && selectedService ? (
           <div className="flex items-center gap-2">
-            <span className="text-gray-800 font-bold text-sm">{selectedService.nombre}</span>
+            <span className="font-bold text-sm text-gradient-brand">{selectedService.nombre}</span>
           </div>
         ) : (
           <div className="flex-1 flex items-center">
@@ -2394,7 +2394,7 @@ function ServiceSearchSelect({
                         )}
                       />
                       <div className="flex flex-col">
-                        <span className="font-medium">{svc.nombre}</span>
+                        <span className="font-bold text-gradient-brand">{svc.nombre}</span>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] text-gray-400">{svc.duracion} min</span>
                           <span className="text-[10px] text-gray-400">•</span>

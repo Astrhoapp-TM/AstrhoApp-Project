@@ -67,32 +67,84 @@
   color: transparent !important;
 }
 
+/* --- Utilidades de Texto con Gradiente --- */
+.text-gradient-brand {
+  background: linear-gradient(to right, #F279DE, #8477D9) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  display: inline-block;
+}
+
 /* --- Utilidades de Color Explícitas --- */
-.bg-brand-pink { background-color: var(--brand-pink) !important; }
-.bg-brand-violet { background-color: var(--brand-violet) !important; }
-.bg-brand-indigo { background-color: var(--brand-indigo) !important; }
-.bg-brand-periwinkle { background-color: var(--brand-periwinkle) !important; }
-.bg-brand-lavender { background-color: var(--brand-lavender) !important; }
+.bg-brand-pink { background-color: #F279DE !important; }
+.bg-brand-violet { background-color: #BF84D9 !important; }
+.bg-brand-indigo { background-color: #8477D9 !important; }
+.bg-brand-periwinkle { background-color: #B5B3F2 !important; }
+.bg-brand-lavender { background-color: #BBC3F2 !important; }
 
+.text-brand-pink { color: #F279DE !important; }
+.text-brand-violet { color: #BF84D9 !important; }
+.text-brand-indigo { color: #8477D9 !important; }
+.text-brand-periwinkle { color: #B5B3F2 !important; }
+.text-brand-lavender { color: #BBC3F2 !important; }
 
-/* --- Badges de rol --- */
-.badge-role-super-admin {
-  background-color: #f3f4f6; /* gray-100 */
-  color: var(--brand-indigo);
-  border: 1px solid var(--brand-indigo);
+/* --- Badges de Estado Estandarizados --- */
+.status-badge {
+  @apply px-3 py-1 rounded-full text-sm font-bold border-2 transition-all duration-200;
 }
-.badge-role-admin {
-  background-color: #ffffff;
-  color: var(--brand-indigo);
-  border: 1px solid var(--brand-indigo);
+
+.status-confirmed {
+  background-color: #B5B3F2 !important; /* periwinkle solicitado */
+  color: #000000 !important;
+  border-color: rgba(181, 179, 242, 0.4) !important;
 }
-.badge-role-assistant {
-  background-color: #f9fafb; /* gray-50 */
-  color: var(--brand-periwinkle);
-  border: 1px solid var(--brand-periwinkle);
+
+.status-pending {
+  background-color: #B5B3F2 !important; /* periwinkle solicitado (igual que confirmado) */
+  color: #000000 !important;
+  border-color: rgba(181, 179, 242, 0.4) !important;
 }
-.badge-role-customer {
-  background-color: #ffffff;
-  color: #4b5563; /* gray-600 */
-  border: 1px solid #d1d5db; /* gray-300 */
+
+.status-completed {
+  background-image: linear-gradient(to right, #F279DE, #8477D9) !important; /* Gradiente solicitado */
+  color: #000000 !important;
+  border: none !important;
+}
+
+.status-cancelled {
+  background-color: #F279DE !important; /* rosa solicitado */
+  color: #000000 !important;
+  border-color: rgba(242, 121, 222, 0.3) !important;
+}
+
+.status-inactive {
+  background-color: #f3f4f6 !important;
+  color: #6b7280 !important;
+  border-color: #e5e7eb !important;
+}
+
+/* --- Botones de Acción en Listas --- */
+.action-btn-view {
+  background-color: #BBC3F2 !important; /* brand-lavender pleno */
+  color: #000000 !important; /* Icono negro solicitado */
+}
+.action-btn-view:hover { 
+  background-color: #A5ADE6 !important; /* un poco más oscuro en hover */
+  transform: translateY(-1px);
+}
+
+.action-btn-edit {
+  background-color: rgba(181, 179, 242, 0.3) !important;
+  color: #000000 !important; /* Icono negro solicitado */
+}
+.action-btn-edit:hover { background-color: rgba(181, 179, 242, 0.5) !important; }
+
+.action-btn-delete {
+  background-color: #F279DE !important; /* rosa solicitado */
+  color: #000000 !important; /* Icono negro */
+}
+.action-btn-delete:hover { 
+  background-color: #D95EB6 !important; /* un poco más oscuro en hover */
+  transform: translateY(-1px);
 }

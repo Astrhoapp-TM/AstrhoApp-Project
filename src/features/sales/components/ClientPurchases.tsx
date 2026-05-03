@@ -56,7 +56,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
     if (s === 'completed' || s === 'completada' || s === 'pagada') return 'bg-green-100 text-green-800 border-green-200';
-    if (s === 'refunded' || s === 'reembolsada' || s === 'anulada' || s === 'cancelado') return 'bg-red-100 text-red-800 border-red-200';
+    if (s === 'refunded' || s === 'reembolsada' || s === 'anulada' || s === 'cancelado') return 'bg-gray-100 text-red-800 border-red-200';
     return 'bg-blue-100 text-blue-800 border-blue-200';
   };
 
@@ -98,7 +98,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50/30 to-purple-50/30">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-pink-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-pink animate-spin mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Cargando tu historial de compras...</p>
         </div>
       </div>
@@ -129,7 +129,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
             </div>
             
             <div className="relative max-w-md w-full sm:w-80 group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-pink-500 pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-brand-pink pointer-events-none" />
               <input
                 type="text"
                 placeholder="Buscar por ID o servicio..."
@@ -138,7 +138,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-200 focus:border-pink-400 focus:bg-white outline-none transition-all duration-200 text-sm font-medium text-gray-700 placeholder:text-gray-400"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/200 focus:border-brand-indigo focus:bg-white outline-none transition-all duration-200 text-sm font-medium text-gray-700 placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -161,14 +161,14 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                         <div className="flex items-start justify-between mb-4">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-black text-pink-500 uppercase tracking-widest">Factura</span>
+                              <span className="text-xs font-black text-brand-pink uppercase tracking-widest">Factura</span>
                               <h4 className="text-xl font-bold text-gray-800">
                                 {sale.id}
                               </h4>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-3">
                               <span className="flex items-center space-x-1">
-                                <Calendar className="w-4 h-4 text-pink-400" />
+                                <Calendar className="w-4 h-4 text-brand-pink" />
                                 <span>{new Date(sale.date + 'T00:00:00').toLocaleDateString('es-ES', {
                                   weekday: 'long',
                                   year: 'numeric',
@@ -177,18 +177,18 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                                 })}</span>
                               </span>
                               <span className="flex items-center space-x-1">
-                                <Clock className="w-4 h-4 text-pink-400" />
+                                <Clock className="w-4 h-4 text-brand-pink" />
                                 <span>{sale.time}</span>
                               </span>
                               <span className="flex items-center space-x-1">
-                                <CreditCard className="w-4 h-4 text-pink-400" />
+                                <CreditCard className="w-4 h-4 text-brand-pink" />
                                 <span>{getPaymentMethodLabel(sale.paymentMethod)}</span>
                               </span>
                             </div>
                             
                             <div className="flex flex-wrap gap-2 mt-2">
                               {sale.services.map((svc, idx) => (
-                                <span key={idx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
+                                <span key={idx} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-50 text-brand-indigo border border-purple-100">
                                   <Sparkles className="w-3 h-3 mr-1" />
                                   {svc.name}
                                 </span>
@@ -203,7 +203,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                             </div>
                             <div className="mt-3">
                               <span className="text-xs text-gray-400 block uppercase font-bold tracking-widest">Total Pagado</span>
-                              <span className="text-2xl font-black text-pink-600">{formatCurrency(sale.total)}</span>
+                              <span className="text-2xl font-black text-brand-indigo">{formatCurrency(sale.total)}</span>
                             </div>
                           </div>
                         </div>
@@ -216,7 +216,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                             setSelectedSale(sale);
                             setShowDetailModal(true);
                           }}
-                          className="bg-purple-50 text-purple-700 px-6 py-3 rounded-xl font-bold hover:bg-purple-100 transition-all flex items-center justify-center space-x-2 border border-purple-100 shadow-sm"
+                          className="bg-brand-lavender text-brand-indigo px-6 py-3 rounded-xl font-bold hover:brightness-105 transition-all flex items-center justify-center space-x-2 border border-transparent shadow-sm"
                         >
                           <Eye className="w-5 h-5" />
                           <span>Ver Detalle</span>
@@ -257,7 +257,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                       onClick={() => setCurrentPage(index + 1)}
                       className={`px-3 py-2 text-sm rounded-lg font-bold ${
                         currentPage === index + 1
-                          ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white shadow-md'
+                          ? 'bg-gradient-brand text-white shadow-md'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
                     >
@@ -284,7 +284,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+            <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -324,7 +324,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                 <div className="grid md:grid-cols-3 gap-4">
                   {/* Date Card */}
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <div className="flex items-center space-x-2 text-pink-500 mb-3">
+                    <div className="flex items-center space-x-2 text-brand-pink mb-3">
                       <Calendar className="w-4 h-4" />
                       <h4 className="font-bold uppercase text-[10px] tracking-widest">Fecha de Venta</h4>
                     </div>
@@ -337,7 +337,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                           day: 'numeric'
                         })}
                       </p>
-                      <p className="text-pink-600 font-bold flex items-center">
+                      <p className="text-brand-indigo font-bold flex items-center">
                         <Clock className="w-4 h-4 mr-1" />
                         {selectedSale.time}
                       </p>
@@ -346,13 +346,13 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
 
                   {/* Payment Card */}
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <div className="flex items-center space-x-2 text-purple-500 mb-3">
+                    <div className="flex items-center space-x-2 text-brand-violet mb-3">
                       <CreditCard className="w-4 h-4" />
                       <h4 className="font-bold uppercase text-[10px] tracking-widest">Método de Pago</h4>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-purple-600" />
+                      <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-brand-indigo" />
                       </div>
                       <div>
                         <p className="font-bold text-gray-800">{getPaymentMethodLabel(selectedSale.paymentMethod)}</p>
@@ -378,10 +378,10 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                 <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                   <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
                     <div className="flex items-center space-x-2 text-gray-800">
-                      <Sparkles className="w-5 h-5 text-pink-500" />
+                      <Sparkles className="w-5 h-5 text-brand-pink" />
                       <h4 className="font-bold uppercase text-xs tracking-widest">Servicios Adquiridos</h4>
                     </div>
-                    <span className="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    <span className="bg-gray-50 text-brand-indigo px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
                       {selectedSale.services.length} Item{selectedSale.services.length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -398,7 +398,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                           <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                             <td className="px-6 py-4">
                               <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center">
+                                <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center">
                                   <Sparkles className="w-4 h-4 text-purple-400" />
                                 </div>
                                 <span className="font-bold text-gray-800 text-sm">{svc.name}</span>
@@ -430,7 +430,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                   </div>
 
                   {/* Summary */}
-                  <div className="bg-pink-50 rounded-3xl p-8 border border-pink-100 shadow-sm flex flex-col justify-center space-y-3">
+                  <div className="bg-gray-50 rounded-3xl p-8 border border-gray-200 shadow-sm flex flex-col justify-center space-y-3">
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-bold uppercase tracking-widest text-pink-700/70 text-[10px]">Subtotal</span>
                       <span className="font-bold text-gray-700">{formatCurrency(selectedSale.subtotal)}</span>
@@ -447,10 +447,10 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                         <span className="font-bold text-gray-700">{formatCurrency(selectedSale.tax)}</span>
                       </div>
                     )}
-                    <div className="h-px bg-pink-200/50 w-full" />
+                    <div className="h-px bg-gray-50/50 w-full" />
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-black uppercase tracking-widest text-pink-800">Total Pagado</span>
-                      <span className="font-black text-2xl text-pink-600">{formatCurrency(selectedSale.total)}</span>
+                      <span className="font-black text-2xl text-brand-indigo">{formatCurrency(selectedSale.total)}</span>
                     </div>
                   </div>
                 </div>
@@ -461,7 +461,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
             <div className="p-6 bg-white border-t border-gray-100 flex justify-end">
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="px-8 py-3 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-2xl font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
+                className="px-8 py-3 bg-gradient-brand text-white rounded-2xl font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all"
               >
                 Cerrar Detalle
               </button>

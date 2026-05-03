@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { ShoppingCart, Star, Heart, Filter, Search } from 'lucide-react';
 import { ImageWithFallback } from '@/shared/components/figma/ImageWithFallback';
 
@@ -165,7 +165,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
                     placeholder="Buscar productos..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-pink-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-brand-periwinkle rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
                   />
                 </div>
 
@@ -178,8 +178,8 @@ export function Products({ addToCart, limit }: ProductsProps) {
                       onClick={() => setSelectedCategory(category)}
                       className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                         selectedCategory === category
-                          ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white shadow-md'
-                          : 'bg-white text-gray-700 hover:bg-pink-50 border border-pink-200'
+                          ? 'bg-gradient-brand text-white shadow-md'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-brand-periwinkle'
                       }`}
                     >
                       {category}
@@ -196,7 +196,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-pink-100"
+              className="group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200"
             >
               {/* Image */}
               <div className="relative overflow-hidden">
@@ -208,7 +208,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
                 
                 {/* Badge */}
                 {product.badge && (
-                  <div className="absolute top-3 left-3 bg-gradient-to-r from-pink-400 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                  <div className="absolute top-3 left-3 bg-gradient-brand text-white px-3 py-1 rounded-full text-xs font-semibold">
                     {product.badge}
                   </div>
                 )}
@@ -221,7 +221,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
                   <Heart 
                     className={`w-4 h-4 ${
                       favorites.includes(product.id) 
-                        ? 'text-pink-500 fill-current' 
+                        ? 'text-brand-pink fill-current' 
                         : 'text-gray-400'
                     }`} 
                   />
@@ -238,7 +238,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
               {/* Content */}
               <div className="p-5">
                 <div className="mb-2">
-                  <span className="text-xs text-purple-600 font-semibold uppercase tracking-wide">
+                  <span className="text-xs text-brand-indigo font-semibold uppercase tracking-wide">
                     {product.category}
                   </span>
                 </div>
@@ -254,7 +254,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
                 {/* Price */}
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <span className="text-xl font-bold text-pink-600">
+                    <span className="text-xl font-bold text-brand-indigo">
                       ${product.price.toLocaleString()}
                     </span>
                     {product.originalPrice && (
@@ -276,7 +276,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
                   disabled={!product.inStock}
                   className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 ${
                     product.inStock
-                      ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white hover:shadow-lg transform hover:-translate-y-0.5'
+                      ? 'bg-gradient-brand text-white hover:shadow-lg transform hover:-translate-y-0.5'
                       : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   }`}
                 >
@@ -290,7 +290,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
 
         {limit && (
           <div className="text-center mt-12">
-            <button className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
+            <button className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300">
               Ver Todos los Productos
             </button>
           </div>

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AdminPaginationProps {
@@ -55,7 +55,7 @@ export function AdminPagination({
           Anterior
         </button>
 
-        <div className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-semibold text-sm min-w-[40px] text-center">
+        <div className="px-4 py-2 bg-gradient-brand text-white rounded-lg font-semibold text-sm min-w-[40px] text-center">
           {currentPage}
         </div>
 

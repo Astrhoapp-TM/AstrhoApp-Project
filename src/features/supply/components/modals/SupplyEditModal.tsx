@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { X, Save, AlertCircle, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
 import { type Supply } from '@/shared/data/management';
 import { SUPPLY_TYPES, SUPPLY_STATUSES } from '../../data/supplyConstants';
@@ -106,7 +106,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -136,9 +136,9 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
           <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
             {/* Form Alert */}
             {Object.keys(errors).length > 0 && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <p className="text-sm text-red-700">Por favor, corrige los errores antes de guardar.</p>
+              <div className="bg-gray-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
+                <AlertCircle className="w-5 h-5 text-brand-pink" />
+                <p className="text-sm text-brand-pink">Por favor, corrige los errores antes de guardar.</p>
               </div>
             )}
 
@@ -180,7 +180,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
 
               {/* Basic Data Card */}
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
-                <div className="flex items-center space-x-2 text-purple-500">
+                <div className="flex items-center space-x-2 text-brand-violet">
                   <Plus className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Datos del Insumo</h4>
                 </div>
@@ -196,7 +196,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.name ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="Nombre comercial"
                     />
-                    {errors.name && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.name}</p>}
+                    {errors.name && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.name}</p>}
                   </div>
 
                   <div>
@@ -209,7 +209,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.sku ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="Identificador único"
                     />
-                    {errors.sku && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.sku}</p>}
+                    {errors.sku && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.sku}</p>}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -246,7 +246,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
 
             {/* Detailed Info Section */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
-              <div className="flex items-center space-x-2 text-pink-500">
+              <div className="flex items-center space-x-2 text-brand-pink">
                 <ImageIcon className="w-4 h-4" />
                 <h4 className="font-bold uppercase text-[10px] tracking-widest">Configuración y Stock</h4>
               </div>
@@ -341,7 +341,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                     rows={4}
                     placeholder="Describe el uso y características..."
                   />
-                  {errors.description && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.description}</p>}
+                  {errors.description && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.description}</p>}
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Notas Adicionales</label>
@@ -371,7 +371,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
           <button
             onClick={handleSubmit}
             disabled={isSaving}
-            className="px-8 py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
           >
             {isSaving ? <Plus className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{isSaving ? 'Guardando...' : 'Actualizar Insumo'}</span>
@@ -484,7 +484,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -541,7 +541,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
                       <button
                         type="button"
                         onClick={() => removeSupply(index)}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                        className="p-2 text-red-400 hover:text-brand-pink hover:bg-gray-50 rounded-xl transition-all"
                         title="Eliminar de la lista"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -668,7 +668,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
           <button
             onClick={handleSubmit}
             disabled={isSaving}
-            className="px-8 py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
           >
             {isSaving ? <Plus className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{isSaving ? 'Guardando...' : `Registrar ${supplies.length} Insumos`}</span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Star, Heart, MessageCircle, ThumbsUp, User } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -174,8 +174,8 @@ export function Reviews() {
                       onClick={() => setSelectedService(service)}
                       className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         selectedService === service
-                          ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white'
-                          : 'text-gray-700 hover:bg-pink-50'
+                          ? 'bg-gradient-brand text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
                       }`}
                     >
                       {service}
@@ -219,7 +219,7 @@ export function Reviews() {
                             />
                           ))}
                         </div>
-                        <span className="text-sm text-purple-600 font-semibold">
+                        <span className="text-sm text-brand-indigo font-semibold">
                           {review.service}
                         </span>
                       </div>
@@ -238,7 +238,7 @@ export function Reviews() {
                         onClick={() => toggleHelpful(review.id)}
                         className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                           helpfulReviews.includes(review.id)
-                            ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white'
+                            ? 'bg-gradient-brand text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -267,7 +267,7 @@ export function Reviews() {
               <p className="text-gray-600 mb-6">
                 Comparte tu experiencia y ayuda a otros clientes a conocer nuestro trabajo
               </p>
-              <button className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2 mx-auto">
+              <button className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-300 flex items-center space-x-2 mx-auto">
                 <Star className="w-5 h-5" />
                 <span>Escribir Reseña</span>
               </button>

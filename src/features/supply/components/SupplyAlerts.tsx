@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { AlertTriangle, AlertCircle, Calendar } from 'lucide-react';
 import { type Supply } from '@/shared/data/management';
 import { isExpired, isExpiringSoon } from '../utils/supplyUtils';
@@ -42,20 +42,20 @@ export function SupplyAlerts({ supplies }: SupplyAlertsProps) {
         )}
         
         {expiredSupplies.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="bg-gray-50 border border-red-200 rounded-xl p-4">
             <div className="flex items-center space-x-2 mb-3">
-              <AlertCircle className="w-5 h-5 text-red-600" />
+              <AlertCircle className="w-5 h-5 text-brand-pink" />
               <h4 className="font-semibold text-red-800">Vencidos ({expiredSupplies.length})</h4>
             </div>
             <div className="space-y-2">
               {expiredSupplies.slice(0, 3).map(supply => (
                 <div key={supply.id} className="flex justify-between text-sm">
-                  <span className="text-red-700">{supply.name}</span>
-                  <span className="text-red-600 font-semibold">{supply.expirationDate}</span>
+                  <span className="text-brand-pink">{supply.name}</span>
+                  <span className="text-brand-pink font-semibold">{supply.expirationDate}</span>
                 </div>
               ))}
               {expiredSupplies.length > 3 && (
-                <div className="text-xs text-red-600">+{expiredSupplies.length - 3} más</div>
+                <div className="text-xs text-brand-pink">+{expiredSupplies.length - 3} más</div>
               )}
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import {
   Clock,
   Star,
@@ -303,7 +303,7 @@ function StatCard({ title, value, icon, color, loading }: StatCardProps) {
             <p className="text-3xl font-bold text-gray-800">{value}</p>
           )}
         </div>
-        <div className="w-14 h-14 bg-gradient-to-r from-pink-400 to-purple-500 rounded-2xl flex items-center justify-center text-white">
+        <div className="w-14 h-14 bg-gradient-brand rounded-2xl flex items-center justify-center text-white">
           {icon}
         </div>
       </div>
@@ -561,7 +561,7 @@ export function DashboardOverview({
           <select
             value={selectedPeriod}
             onChange={(e) => setSelectedPeriod(e.target.value as Period)}
-            className="bg-white border border-gray-300 rounded-xl px-4 py-2 font-medium text-gray-700 focus:ring-2 focus:ring-pink-300"
+            className="bg-white border border-gray-300 rounded-xl px-4 py-2 font-medium text-gray-700 focus:ring-2 focus:ring-brand-periwinkle/300"
           >
             <option value="today">Hoy</option>
             <option value="week">Esta Semana</option>
@@ -573,7 +573,7 @@ export function DashboardOverview({
       </div>
 
       {error && (
-        <div className="flex items-center space-x-2 bg-red-50 text-red-700 px-4 py-3 rounded-xl border border-red-200">
+        <div className="flex items-center space-x-2 bg-gray-50 text-brand-pink px-4 py-3 rounded-xl border border-red-200">
           <AlertTriangle className="w-5 h-5 flex-shrink-0" />
           <span className="text-sm">
             {error} Los datos mostrados pueden ser incompletos.
@@ -724,7 +724,7 @@ export function DashboardOverview({
                     key={apt.agendaId}
                     className="flex items-center space-x-4 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl"
                   >
-                    <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-gradient-brand rounded-full flex items-center justify-center flex-shrink-0">
                       <UserCheck className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -797,14 +797,14 @@ export function DashboardOverview({
                         </p>
                       </div>
                       <div className="text-right">
-                        <span className="text-2xl font-bold text-pink-600">
+                        <span className="text-2xl font-bold text-brand-indigo">
                           {service.percentage}%
                         </span>
                       </div>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-pink-400 to-purple-500 h-2 rounded-full transition-all duration-500"
+                        className="bg-gradient-brand h-2 rounded-full transition-all duration-500"
                         style={{ width: `${service.percentage}%` }}
                       />
                     </div>

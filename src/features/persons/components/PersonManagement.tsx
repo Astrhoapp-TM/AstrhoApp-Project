@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
     Users, Plus, Search, Filter, Eye, Edit, Calendar,
     Phone, Mail, MapPin, Heart, Scissors, ShoppingBag,
@@ -309,7 +309,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
         return (
             <div className="p-8 flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+                    <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
                     <p className="text-gray-600 text-lg">Cargando personas...</p>
                 </div>
             </div>
@@ -362,8 +362,8 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 <button
                     onClick={() => setPersonType('client')}
                     className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center space-x-2 ${personType === 'client'
-                        ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white shadow-lg'
-                        : 'bg-white text-gray-600 hover:bg-pink-50 hover:text-pink-600 shadow-sm border border-gray-100'
+                        ? 'bg-gradient-brand text-white shadow-lg'
+                        : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-brand-indigo shadow-sm border border-gray-100'
                         }`}
                 >
                     <Users className={`w-5 h-5 ${personType === 'client' ? 'text-white' : 'text-gray-400'}`} />
@@ -372,8 +372,8 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 <button
                     onClick={() => setPersonType('employee')}
                     className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center space-x-2 ${personType === 'employee'
-                        ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white shadow-lg'
-                        : 'bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 shadow-sm border border-gray-100'
+                        ? 'bg-gradient-brand text-white shadow-lg'
+                        : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-brand-indigo shadow-sm border border-gray-100'
                         }`}
                 >
                     <Briefcase className={`w-5 h-5 ${personType === 'employee' ? 'text-white' : 'text-gray-400'}`} />
@@ -391,7 +391,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                             placeholder="Buscar por nombre, documento o teléfono..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
                         />
                     </div>
 
@@ -411,7 +411,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                                     setEditingPerson(null);
                                     setShowNewPersonModal(true);
                                 }}
-                                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
                             >
                                 <Plus className="w-5 h-5" />
                                 <span>Registrar {personType === 'client' ? 'Cliente' : 'Empleado'}</span>
@@ -484,11 +484,8 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                                                         disabled={person.documentId === '8729451090'}
                                                         className="sr-only peer"
                                                     />
-                                                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                                                    <span className={`ml-3 text-sm font-medium ${person.status === 'active' ? 'text-green-600' : 'text-red-600'
-                                                        }`}>
-                                                        {person.status === 'active' ? 'Activo' : 'Inactivo'}
-                                                    </span>
+                                                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                                                    
                                                 </label>
                                             )}
                                         </div>
@@ -517,7 +514,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                                                     {person.documentId !== '8729451090' && (
                                                         <button
                                                             onClick={() => handleDeletePerson(person)}
-                                                            className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                                            className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                                                             title="Eliminar registro"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -587,8 +584,8 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
 
                         <div className="p-8">
                             <div className="text-center mb-8">
-                                <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-                                    <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+                                <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+                                    <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
                                 </div>
                                 
                                 <h4 className="text-lg font-bold text-gray-800 mb-2">
@@ -711,19 +708,14 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                             <h4 className="text-2xl font-bold text-gray-800 mb-1">{person.name}</h4>
                             <p className="text-gray-500 text-sm mb-4">{person.documentType || 'CC'}: {person.documentId}</p>
                             <div className="flex justify-center">
-                                <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-sm ${person.status === 'active'
-                                        ? 'bg-green-100 text-green-700 border border-green-200'
-                                        : 'bg-red-100 text-red-700 border border-red-200'
-                                    }`}>
-                                    {person.status === 'active' ? 'Estado Activo' : 'Estado Inactivo'}
-                                </span>
+                                
                             </div>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-6">
                             {/* Contact Information Card */}
                             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                                <div className="flex items-center space-x-2 text-pink-500 mb-5">
+                                <div className="flex items-center space-x-2 text-brand-pink mb-5">
                                     <Phone className="w-5 h-5" />
                                     <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de Contacto</h4>
                                 </div>
@@ -732,7 +724,7 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                                     <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors">
                                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Teléfono Principal</span>
                                         <div className="flex items-center space-x-3">
-                                            <Phone className="w-4 h-4 text-pink-400" />
+                                            <Phone className="w-4 h-4 text-brand-pink" />
                                             <span className="font-bold text-gray-700">{person.phone || 'No registrado'}</span>
                                         </div>
                                     </div>
@@ -749,7 +741,7 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
 
                             {/* Additional Details Card */}
                             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                                <div className="flex items-center space-x-2 text-purple-500 mb-5">
+                                <div className="flex items-center space-x-2 text-brand-violet mb-5">
                                     <Shield className="w-5 h-5" />
                                     <h4 className="font-bold uppercase text-[10px] tracking-widest">Detalles del Registro</h4>
                                 </div>
@@ -884,7 +876,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                     <div className="max-w-4xl mx-auto space-y-6">
                         {/* Errors Notification */}
                         {Object.keys(errors).length > 0 && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
+                            <div className="bg-gray-50 border border-red-200 text-brand-pink px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
                                 <AlertCircle className="w-5 h-5 shrink-0" />
                                 <p className="font-semibold text-sm">Por favor corrija los errores en el formulario</p>
                             </div>
@@ -894,7 +886,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                             {/* Identity Section */}
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                                    <Shield className="w-4 h-4 text-pink-500" />
+                                    <Shield className="w-4 h-4 text-brand-pink" />
                                     <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Identificación</h4>
                                 </div>
                                 <div className="p-6 space-y-4">
@@ -906,7 +898,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                 <select
                                                     value={formData.documentType}
                                                     onChange={(e) => handleChange('documentType', e.target.value)}
-                                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none appearance-none"
+                                                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none appearance-none"
                                                     disabled={!!editingPerson}
                                                 >
                                                     <option value="TI">Tarjeta Identidad (TI)</option>
@@ -924,7 +916,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                     type="text"
                                                     value={formData.documentId}
                                                     onChange={(e) => handleChange('documentId', e.target.value)}
-                                                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${errors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                                                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                         }`}
                                                     placeholder="1234567890"
                                                     disabled={!!editingPerson}
@@ -941,7 +933,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                 type="text"
                                                 value={formData.name}
                                                 onChange={(e) => handleChange('name', e.target.value)}
-                                                className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                                                className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                     }`}
                                                 placeholder="Nombres y Apellidos"
                                             />
@@ -973,7 +965,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                             {/* Contact Section */}
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                                    <Phone className="w-4 h-4 text-purple-500" />
+                                    <Phone className="w-4 h-4 text-brand-violet" />
                                     <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Contacto y Ubicación</h4>
                                 </div>
                                 <div className="p-6 space-y-4">
@@ -985,7 +977,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                 type="tel"
                                                 value={formData.phone}
                                                 onChange={(e) => handleChange('phone', e.target.value)}
-                                                className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${errors.phone ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                                                className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.phone ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                     }`}
                                                 placeholder="300 123 4567"
                                             />
@@ -1000,7 +992,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                 type="text"
                                                 value={formData.address}
                                                 onChange={(e) => handleChange('address', e.target.value)}
-                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none"
+                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
                                                 placeholder="Calle 10 #20-30"
                                             />
                                         </div>
@@ -1015,7 +1007,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                     type="email"
                                                     value={formData.email}
                                                     onChange={(e) => handleChange('email', e.target.value)}
-                                                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all outline-none ${errors.email ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                                                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.email ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                         }`}
                                                     placeholder="correo@ejemplo.com"
                                                 />
@@ -1027,9 +1019,9 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                         </div>
 
                         {/* Additional Info / Footer Summary */}
-                        <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-pink-100 shadow-sm">
+                        <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
                             <div className="flex items-center space-x-3 mb-3">
-                                <Star className="w-5 h-5 text-pink-400" />
+                                <Star className="w-5 h-5 text-brand-pink" />
                                 <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Resumen del Registro</h4>
                             </div>
                             <p className="text-sm text-gray-600 italic">
@@ -1056,7 +1048,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                         type="submit"
                         disabled={isSaving}
                         className={`px-8 py-2.5 rounded-xl font-black text-white active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg flex items-center space-x-2 ${personType === 'client'
-                                ? 'bg-gradient-to-r from-pink-500 to-purple-600 hover:shadow-pink-200'
+                                ? 'bg-gradient-brand hover:shadow-pink-200'
                                 : 'bg-gradient-to-r from-purple-500 to-blue-600 hover:shadow-purple-200'
                             } disabled:opacity-50`}
                     >

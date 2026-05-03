@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { X, Plus, Minus, ShoppingBag, CreditCard, Truck, MapPin, Clock } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -45,8 +45,8 @@ export function Cart({ items, onClose, onRemoveItem, onUpdateQuantity, currentUs
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center">
-          <div className="w-20 h-20 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ShoppingBag className="w-10 h-10 text-pink-400" />
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShoppingBag className="w-10 h-10 text-brand-violet" />
           </div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Tu carrito está vacío
@@ -56,7 +56,7 @@ export function Cart({ items, onClose, onRemoveItem, onUpdateQuantity, currentUs
           </p>
           <button
             onClick={onClose}
-            className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+            className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transition-all"
           >
             Seguir Comprando
           </button>
@@ -69,11 +69,11 @@ export function Cart({ items, onClose, onRemoveItem, onUpdateQuantity, currentUs
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-end">
       <div className="bg-white h-full w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-pink-400 to-purple-500 p-6 text-white">
+        <div className="bg-gradient-brand p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">Mi Carrito</h2>
-              <p className="text-pink-100">{items.length} productos</p>
+              <p className="text-white/80">{items.length} productos</p>
             </div>
             <button
               onClick={onClose}
@@ -98,7 +98,7 @@ export function Cart({ items, onClose, onRemoveItem, onUpdateQuantity, currentUs
                   
                   <div className="flex-1">
                     <h4 className="font-semibold text-gray-800 mb-1">{item.name}</h4>
-                    <div className="text-lg font-bold text-pink-600">
+                    <div className="text-lg font-bold text-brand-indigo">
                       ${item.price.toLocaleString()}
                     </div>
                   </div>
@@ -127,7 +127,7 @@ export function Cart({ items, onClose, onRemoveItem, onUpdateQuantity, currentUs
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
                   <button
                     onClick={() => onRemoveItem(item.id)}
-                    className="text-red-600 text-sm font-medium hover:text-red-700 transition-colors"
+                    className="text-brand-pink text-sm font-medium hover:text-brand-pink transition-colors"
                   >
                     Eliminar
                   </button>
@@ -140,24 +140,24 @@ export function Cart({ items, onClose, onRemoveItem, onUpdateQuantity, currentUs
           </div>
 
           {/* Pickup Info */}
-          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl">
+          <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-2xl">
             <div className="flex items-center space-x-3 mb-3">
-              <Truck className="w-5 h-5 text-blue-600" />
-              <h4 className="font-semibold text-blue-800">Recogida en Salón</h4>
+              <Truck className="w-5 h-5 text-brand-indigo" />
+              <h4 className="font-semibold text-brand-indigo">Recogida en Salón</h4>
             </div>
-            <div className="space-y-2 text-sm text-blue-700">
+            <div className="space-y-2 text-sm text-gray-600">
               <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-blue-600" />
+                <MapPin className="w-4 h-4 text-brand-indigo" />
                 <span><strong>Dirección:</strong> Cll 55 #42-16, Medellín</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-blue-600" />
+                <Clock className="w-4 h-4 text-brand-indigo" />
                 <span><strong>Horario:</strong> Lunes a Sábado, 9:00 AM - 7:00 PM</span>
               </div>
               <p className="mt-2">
                 <strong>Atendido por:</strong> Astrid Eugenia Hoyos y su equipo profesional
               </p>
-              <p className="text-xs text-blue-600 mt-2">
+              <p className="text-xs text-brand-violet mt-2">
                 Te notificaremos por WhatsApp cuando tu pedido esté listo para recoger.
               </p>
             </div>
@@ -172,21 +172,21 @@ export function Cart({ items, onClose, onRemoveItem, onUpdateQuantity, currentUs
                 placeholder="Nombre completo"
                 value={customerInfo.name}
                 onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                className="w-full px-4 py-3 border border-brand-lavender rounded-xl focus:ring-2 focus:ring-brand-periwinkle focus:border-transparent"
               />
               <input
                 type="email"
                 placeholder="Email"
                 value={customerInfo.email}
                 onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                className="w-full px-4 py-3 border border-brand-lavender rounded-xl focus:ring-2 focus:ring-brand-periwinkle focus:border-transparent"
               />
               <input
                 type="tel"
                 placeholder="WhatsApp (ej: 304 123 4567)"
                 value={customerInfo.phone}
                 onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                className="w-full px-4 py-3 border border-brand-lavender rounded-xl focus:ring-2 focus:ring-brand-periwinkle focus:border-transparent"
               />
             </div>
           )}
@@ -214,7 +214,7 @@ export function Cart({ items, onClose, onRemoveItem, onUpdateQuantity, currentUs
           <button
             onClick={handleCheckout}
             disabled={isCheckingOut || (!currentUser && (!customerInfo.name || !customerInfo.email || !customerInfo.phone))}
-            className="w-full bg-gradient-to-r from-pink-400 to-purple-500 text-white py-4 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
+            className="w-full bg-gradient-brand text-white py-4 rounded-xl font-semibold hover:shadow-lg hover:opacity-90 transform hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center space-x-2"
           >
             {isCheckingOut ? (
               <>

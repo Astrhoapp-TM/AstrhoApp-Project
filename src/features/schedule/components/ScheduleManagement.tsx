@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   CheckCircle,
   Calendar, Clock, Users, Plus,
@@ -527,7 +527,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando horarios...</p>
         </div>
       </div>
@@ -612,7 +612,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
             {canManageSchedules && (
               <button
                 onClick={handleCreateSchedule}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Registrar Horario</span>
@@ -650,18 +650,13 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                     <div className="flex-1">
                       {/* Group Name & Status */}
                       <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-purple-500 rounded-xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-brand rounded-xl flex items-center justify-center">
                           <Calendar className="w-5 h-5 text-white" />
                         </div>
                         <div>
                           <h4 className="text-xl font-bold text-gray-800">{group.nombre}</h4>
                           <div className="flex items-center flex-wrap gap-2 mt-0.5">
-                            <span className={`px-3 py-0.5 rounded-full text-xs font-semibold ${group.estado
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
-                              }`}>
-                              {group.estado ? 'Activo' : 'Inactivo'}
-                            </span>
+                            
                             <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
                               🔁 Recurrente — aplica todo el año
                             </span>
@@ -676,7 +671,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                         {groupHorarios.map(h => (
                           <React.Fragment key={h.horarioId}>
                             {extractArray(h).map((d, idx) => (
-                              <div key={`${h.horarioId}-${idx}`} className="flex items-center space-x-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-sm">
+                              <div key={`${h.horarioId}-${idx}`} className="flex items-center space-x-1.5 px-3 py-1.5 bg-gray-50 text-brand-indigo rounded-lg text-sm">
                                 <Calendar className="w-3.5 h-3.5" />
                                 <span className="font-semibold">{DIAS_SHORT[d.diaSemana || ''] || d.diaSemana}</span>
                               </div>
@@ -719,11 +714,8 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                             onChange={() => handleToggleStatus(group)}
                             className="sr-only peer"
                           />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          <span className={`ml-3 text-sm font-medium ${group.estado ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                            {group.estado ? 'Activo' : 'Inactivo'}
-                          </span>
+                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                          
                         </label>
                       )}
 
@@ -753,7 +745,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                       {canManageSchedules && (
                         <button
                           onClick={() => handleDeleteSchedule(group)}
-                          className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                          className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                           title="Eliminar horario"
                         >
                           <Trash2 className="w-5 h-5" />
@@ -773,7 +765,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                 {canManageSchedules && (
                   <button
                     onClick={handleCreateSchedule}
-                    className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+                    className="bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
                   >
                     Crear Primer Horario
                   </button>
@@ -872,11 +864,11 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
       <div className="bg-white p-6 md:p-8 border-b border-gray-100 relative overflow-hidden rounded-t-3xl shadow-sm">
         {/* Subtle Decorations */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full filter blur-[60px] opacity-60 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-10 w-48 h-48 bg-purple-50 rounded-full filter blur-[60px] opacity-50 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-10 w-48 h-48 bg-gray-50 rounded-full filter blur-[60px] opacity-50 pointer-events-none"></div>
         
         <div className="relative z-10">
           <div className="inline-flex items-center space-x-2 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 mb-3 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+            
             <span className="text-[10px] font-bold tracking-widest text-indigo-700 uppercase">Horario Oficial</span>
           </div>
           
@@ -1041,7 +1033,7 @@ function MotivoModal({ onClose, onSave, saving }: MotivoModalProps) {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-2 rounded-xl text-sm font-medium flex items-center space-x-2">
+            <div className="bg-gray-50 border border-red-100 text-brand-pink px-4 py-2 rounded-xl text-sm font-medium flex items-center space-x-2">
               <AlertCircle className="w-4 h-4" />
               <span>{error}</span>
             </div>
@@ -1336,7 +1328,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -1368,7 +1360,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
           <form id="schedule-form" onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
             {/* Validation error */}
             {validationError && (
-              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl flex items-center space-x-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="bg-gray-50 border border-red-100 text-brand-pink px-4 py-3 rounded-2xl flex items-center space-x-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <p className="text-xs font-bold uppercase tracking-wide">{validationError}</p>
               </div>
@@ -1379,7 +1371,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
               <div className="space-y-6">
                 {/* Name Card */}
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                  <div className="flex items-center space-x-2 text-purple-500 mb-4">
+                  <div className="flex items-center space-x-2 text-brand-violet mb-4">
                     <FileText className="w-4 h-4" />
                     <h4 className="font-bold uppercase text-[10px] tracking-widest">Identidad del Horario</h4>
                   </div>
@@ -1390,7 +1382,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                       value={nombre}
                       onChange={(e) => setNombre(e.target.value)}
                       placeholder="Ej: Turno Matutino"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
                       required
                     />
                   </div>
@@ -1399,7 +1391,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                 {/* Days Config Card */}
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2 text-pink-500">
+                    <div className="flex items-center space-x-2 text-brand-pink">
                       <Calendar className="w-4 h-4" />
                       <h4 className="font-bold uppercase text-[10px] tracking-widest">Configuración de Días</h4>
                     </div>
@@ -1407,7 +1399,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                       <button
                         type="button"
                         onClick={applyToAllEnabled}
-                        className="text-[9px] font-black uppercase tracking-widest text-purple-600 hover:text-purple-700 transition-colors flex items-center space-x-1"
+                        className="text-[9px] font-black uppercase tracking-widest text-brand-indigo hover:text-brand-indigo transition-colors flex items-center space-x-1"
                       >
                         <Copy className="w-3 h-3" />
                         <span>Copiar a todos</span>
@@ -1448,13 +1440,13 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                             type="time"
                             value={day.horaInicio}
                             onChange={(e) => updateDayTime(day.dia, 'horaInicio', e.target.value)}
-                            className="px-2 py-1.5 bg-white border border-gray-100 rounded-lg text-xs font-bold focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            className="px-2 py-1.5 bg-white border border-gray-100 rounded-lg text-xs font-bold focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo outline-none"
                           />
                           <input
                             type="time"
                             value={day.horaFin}
                             onChange={(e) => updateDayTime(day.dia, 'horaFin', e.target.value)}
-                            className="px-2 py-1.5 bg-white border border-gray-100 rounded-lg text-xs font-bold focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none"
+                            className="px-2 py-1.5 bg-white border border-gray-100 rounded-lg text-xs font-bold focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo outline-none"
                           />
                         </div>
                       </div>
@@ -1517,7 +1509,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                                 <button
                                   type="button"
                                   onClick={() => handleLocalRemove(a.horarioEmpleadoId)}
-                                  className="text-blue-300 hover:text-red-500 transition-colors"
+                                  className="text-blue-300 hover:text-brand-pink transition-colors"
                                 >
                                   <UserMinus className="w-3 h-3" />
                                 </button>
@@ -1531,7 +1523,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                                   <button
                                     type="button"
                                     onClick={() => handleLocalRemovePendingCreate(p.documentoEmpleado, p.diaSemana)}
-                                    className="text-green-300 hover:text-red-500 transition-colors"
+                                    className="text-green-300 hover:text-brand-pink transition-colors"
                                   >
                                     <UserMinus className="w-3 h-3" />
                                   </button>
@@ -1576,7 +1568,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                                   <div
                                     key={emp.documentoEmpleado}
                                     className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isOverlapping
-                                      ? 'bg-red-50 border-red-100 opacity-60'
+                                      ? 'bg-gray-50 border-red-100 opacity-60'
                                       : 'bg-white border-gray-100 hover:border-blue-200 hover:shadow-sm'
                                       }`}
                                   >
@@ -1667,7 +1659,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
               type="submit"
               form="schedule-form"
               disabled={saving}
-              className="px-8 py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center space-x-2"
+              className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center space-x-2"
             >
               {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>{group ? 'Actualizar' : 'Registrar'}</span>
@@ -1695,7 +1687,7 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -1725,7 +1717,7 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
           <div className="max-w-4xl mx-auto space-y-6">
             {/* General Info Card */}
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <div className="flex items-center space-x-2 text-purple-500 mb-4">
+              <div className="flex items-center space-x-2 text-brand-violet mb-4">
                 <FileText className="w-4 h-4" />
                 <h4 className="font-bold uppercase text-[10px] tracking-widest">Información General</h4>
               </div>
@@ -1737,9 +1729,7 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
                 <div>
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Estado del Grupo:</span>
                   <div className="mt-1">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${group.estado ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {group.estado ? 'Activo' : 'Inactivo'}
-                    </span>
+                    
                   </div>
                 </div>
                 <div>
@@ -1755,7 +1745,7 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
                 <h4 className="font-bold text-gray-700 text-sm flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-pink-400" />
+                  <Clock className="w-4 h-4 text-brand-pink" />
                   <span>Días y Horas de Atención</span>
                 </h4>
               </div>
@@ -1782,14 +1772,12 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
                               </span>
                             </td>
                             <td className="px-6 py-4 text-center">
-                              <span className="inline-flex items-center px-3 py-1 rounded-lg bg-pink-50 text-pink-700 font-bold text-sm">
+                              <span className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-50 text-pink-700 font-bold text-sm">
                                 {d.horaFin ? formatTo12Hour(d.horaFin.substring(0, 5)) : '--:--'}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${h.estado ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>
-                                {h.estado ? 'Activo' : 'Inactivo'}
-                              </span>
+                              
                             </td>
                           </tr>
                         ))}
@@ -1817,7 +1805,7 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
 
                       return (
                         <div key={d.horarioDiaId} className="space-y-3">
-                          <div className="flex items-center space-x-2 text-purple-600 border-b border-purple-50 pb-2">
+                          <div className="flex items-center space-x-2 text-brand-indigo border-b border-purple-50 pb-2">
                             <Calendar className="w-4 h-4" />
                             <h5 className="font-bold text-xs uppercase tracking-widest">
                               {d.diaSemana} ({d.horaInicio ? formatTo12Hour(d.horaInicio.substring(0, 5)) : '--:--'} - {d.horaFin ? formatTo12Hour(d.horaFin.substring(0, 5)) : '--:--'})
@@ -1904,8 +1892,8 @@ function DeleteScheduleModal({ group, horarios, onClose, onConfirm, saving }: De
 
         <div className="p-8">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-              <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+            <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+              <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
             </div>
             <h4 className="text-lg font-bold text-gray-800 mb-2">
               ¿Eliminar horario "{group.nombre}"?
@@ -2065,7 +2053,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           {/* Day selector for assignment */}
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <div className="flex items-center space-x-2 text-purple-500 mb-4">
+            <div className="flex items-center space-x-2 text-brand-violet mb-4">
               <Calendar className="w-4 h-4" />
               <h4 className="font-bold uppercase text-[10px] tracking-widest">Seleccionar Día</h4>
             </div>
@@ -2106,7 +2094,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
 
             {loadingAvailable ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand-violet" />
               </div>
             ) : paginatedAvailable.length > 0 ? (
               <div className="space-y-2 max-h-60 overflow-y-auto pr-2 no-scrollbar">
@@ -2125,9 +2113,9 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
                     <label
                       key={emp.documentoEmpleado}
                       className={`flex items-center space-x-3 p-3 rounded-xl border transition-all cursor-pointer group ${isOverlapping
-                        ? 'opacity-50 cursor-not-allowed bg-red-50 border-red-100'
+                        ? 'opacity-50 cursor-not-allowed bg-gray-50 border-red-100'
                         : selectedEmpleados.includes(emp.documentoEmpleado)
-                          ? 'border-purple-500 bg-purple-50 shadow-sm'
+                          ? 'border-purple-500 bg-gray-50 shadow-sm'
                           : 'border-gray-100 hover:border-purple-200 hover:bg-gray-50'
                         }`}
                     >
@@ -2160,7 +2148,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
                         <div className="text-[11px] font-bold text-gray-700 leading-none">{emp.nombre}</div>
                         <div className="text-[9px] font-medium text-gray-400 mt-1 uppercase tracking-wider">
                           {isOverlapping ? (
-                            <span className="text-red-600 flex items-center">
+                            <span className="text-brand-pink flex items-center">
                               <AlertCircle className="w-3 h-3 mr-1" />
                               Ocupado en este horario
                             </span>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Shield, CheckCircle, X, AlertCircle, ArrowLeft } from 'lucide-react';
 
 interface PasswordResetFormProps {
@@ -61,7 +61,7 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
             Tu contraseña ha sido restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.
           </p>
           
-          <button className="bg-gradient-to-r from-pink-400 to-purple-500 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all w-full mb-4">
+          <button className="bg-gradient-brand text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transition-all w-full mb-4">
             Ir a iniciar sesión
           </button>
           
@@ -77,7 +77,7 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-pink-400 to-purple-500 text-white p-8 text-center">
+        <div className="bg-gradient-brand text-white p-8 text-center">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Lock className="w-8 h-8 text-white" />
           </div>
@@ -89,7 +89,7 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
         <div className="p-8">
           {isSubmitted ? (
             <div className="text-center">
-              <div className="animate-spin w-12 h-12 border-4 border-pink-200 border-t-pink-500 rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin w-12 h-12 border-4 border-brand-periwinkle border-t-pink-500 rounded-full mx-auto mb-4"></div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">Actualizando contraseña...</h3>
               <p className="text-gray-600">Por favor espera un momento</p>
             </div>
@@ -98,7 +98,7 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
               {/* User Info */}
               <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 mb-6 border border-purple-200">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-brand rounded-full flex items-center justify-center">
                     <span className="text-white font-semibold text-sm">{initials}</span>
                   </div>
                   <div>
@@ -119,7 +119,7 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
                       type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent pr-12"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent pr-12"
                       placeholder="Ingresa tu nueva contraseña"
                       required
                     />
@@ -167,7 +167,7 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent pr-12"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent pr-12"
                       placeholder="Confirma tu nueva contraseña"
                       required
                     />
@@ -189,8 +189,8 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
                         </>
                       ) : (
                         <>
-                          <AlertCircle className="w-4 h-4 text-red-500" />
-                          <span className="text-sm text-red-600">Las contraseñas no coinciden</span>
+                          <AlertCircle className="w-4 h-4 text-brand-pink" />
+                          <span className="text-sm text-brand-pink">Las contraseñas no coinciden</span>
                         </>
                       )}
                     </div>
@@ -203,7 +203,7 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
                   disabled={!allRequirementsMet || !passwordsMatch}
                   className={`w-full py-3 px-6 rounded-xl font-semibold transition-all ${
                     allRequirementsMet && passwordsMatch
-                      ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white hover:shadow-lg'
+                      ? 'bg-gradient-brand text-white hover:shadow-lg'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
@@ -234,7 +234,7 @@ export function PasswordResetForm({ userEmail = 'maria.rodriguez@gmail.com' }: P
                 </button>
                 
                 <div className="text-xs text-gray-500">
-                  <p>¿Tienes problemas? <a href="#" className="text-pink-600 hover:underline">Contáctanos</a></p>
+                  <p>¿Tienes problemas? <a href="#" className="text-brand-indigo hover:underline">Contáctanos</a></p>
                 </div>
               </div>
             </>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Shield, Users, Edit, Save, X, Plus, AlertCircle,
   CheckCircle, UserCheck, UserX, Settings, Eye, Trash2, Search,
@@ -276,7 +276,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-red-100 text-red-800';
+      case 'inactive': return 'bg-gray-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -416,7 +416,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
       });
 
       await fetchRoles();
-      showAlert('success', `Estado de "${role.name}" cambiado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
+      showAlert('success', `Estado de "${role.name}" cambiado a $`);
     } catch (error) {
       console.error('Error toggling status:', error);
       showAlert('error', 'Error al cambiar el estado del rol');
@@ -458,7 +458,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando roles...</p>
         </div>
       </div>
@@ -516,7 +516,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
               placeholder="Buscar roles por nombre o descripción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
             />
           </div>
 
@@ -533,7 +533,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
             {hasPermission('module_roles') && (
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Registrar Rol</span>
@@ -594,7 +594,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         {role.id === 'super_admin' || role.isSuperUser ? (
                           // Super admin siempre activo, sin switch
                           <div className="flex items-center space-x-2">
-                            <div className="w-11 h-6 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full relative">
+                            <div className="w-11 h-6 bg-gradient-brand rounded-full relative">
                               <div className="absolute top-[2px] right-[2px] bg-white border-white border rounded-full h-5 w-5"></div>
                             </div>
                             <span className="ml-1 text-sm font-medium text-green-600">
@@ -610,11 +610,8 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                               onChange={() => toggleRoleStatus(role.id)}
                               className="sr-only peer"
                             />
-                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                            <span className={`ml - 3 text - sm font - medium ${role.status === 'active' ? 'text-green-600' : 'text-red-600'
-                              } `}>
-                              {role.status === 'active' ? 'Activo' : 'Inactivo'}
-                            </span>
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                            
                           </label>
                         )}
                       </div>
@@ -642,7 +639,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
                             <button
                               onClick={() => handleDeleteRole(role)}
-                              className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                              className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                               title="Eliminar rol"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -704,7 +701,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header - Fixed at top */}
-            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+            <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
@@ -747,16 +744,16 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
               <div className="max-w-4xl mx-auto space-y-6">
                 {/* Form Alert if needed */}
                 {(newRoleData.name.trim() === '' || newRoleData.description.trim() === '') && showValidationErrorModal && (
-                  <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
-                    <AlertCircle className="w-5 h-5 text-red-500" />
-                    <p className="text-sm text-red-700">Por favor, completa los campos obligatorios.</p>
+                  <div className="bg-gray-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
+                    <AlertCircle className="w-5 h-5 text-brand-pink" />
+                    <p className="text-sm text-brand-pink">Por favor, completa los campos obligatorios.</p>
                   </div>
                 )}
 
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Basic Info Card */}
                   <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
-                    <div className="flex items-center space-x-2 text-pink-500">
+                    <div className="flex items-center space-x-2 text-brand-pink">
                       <Settings className="w-4 h-4" />
                       <h4 className="font-bold uppercase text-[10px] tracking-widest">Información del Rol</h4>
                     </div>
@@ -768,7 +765,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                           type="text"
                           value={newRoleData.name}
                           onChange={(e) => setNewRoleData({ ...newRoleData, name: e.target.value })}
-                          className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700"
+                          className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
                           placeholder="Ej: Supervisor de Salón"
                         />
                       </div>
@@ -778,7 +775,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         <textarea
                           value={newRoleData.description}
                           onChange={(e) => setNewRoleData({ ...newRoleData, description: e.target.value })}
-                          className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 resize-none"
+                          className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 resize-none"
                           rows={4}
                           placeholder="Describe las funciones y responsabilidades..."
                         />
@@ -788,12 +785,12 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
                   {/* Permissions Summary Card */}
                   <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center space-y-4">
-                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-2">
-                      <Lock className="w-8 h-8 text-purple-600" />
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-2">
+                      <Lock className="w-8 h-8 text-brand-indigo" />
                     </div>
                     <div>
                       <h4 className="font-bold text-gray-800 text-lg">Resumen de Accesos</h4>
-                      <p className="text-sm text-gray-500 px-4">Has seleccionado <span className="font-bold text-purple-600">{newRoleData.permissions.length}</span> permisos para este rol.</p>
+                      <p className="text-sm text-gray-500 px-4">Has seleccionado <span className="font-bold text-brand-indigo">{newRoleData.permissions.length}</span> permisos para este rol.</p>
                     </div>
                     <div className="w-full h-px bg-gray-100 my-2"></div>
                     <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
@@ -810,7 +807,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                       <Lock className="w-4 h-4 text-purple-400" />
                       <span>Configuración de Permisos por Módulo</span>
                     </h4>
-                    <span className="text-[10px] font-black bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full uppercase">
+                    <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
                       Selecciona los módulos
                     </span>
                   </div>
@@ -830,8 +827,8 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                             <label
                               key={module}
                               className={`flex items-center space-x-4 p-4 border-2 rounded-2xl cursor-pointer transition-all ${isModuleSelected
-                                ? 'border-pink-400 bg-pink-50/30 shadow-sm ring-1 ring-pink-100'
-                                : 'border-gray-100 hover:border-pink-200 hover:bg-gray-50'
+                                ? 'border-pink-400 bg-gray-50/30 shadow-sm ring-1 ring-pink-100'
+                                : 'border-gray-100 hover:border-brand-periwinkle hover:bg-gray-50'
                                 }`}
                             >
                               <div className="relative flex items-center justify-center">
@@ -854,7 +851,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                                   className="sr-only"
                                 />
                                 <div className={`w-6 h-6 border-2 rounded-lg flex items-center justify-center transition-all ${isModuleSelected
-                                  ? 'bg-gradient-to-r from-pink-400 to-purple-500 border-transparent shadow-sm'
+                                  ? 'bg-gradient-brand border-transparent shadow-sm'
                                   : 'border-gray-200 bg-white'
                                   }`}>
                                   {isModuleSelected && <CheckCircle className="w-3.5 h-3.5 text-white" />}
@@ -862,14 +859,14 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                               </div>
 
                               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isModuleSelected
-                                ? 'bg-gradient-to-r from-pink-400 to-purple-500 shadow-sm'
+                                ? 'bg-gradient-brand shadow-sm'
                                 : 'bg-gray-100'
                                 }`}>
                                 <ModuleIcon className={`w-5 h-5 ${isModuleSelected ? 'text-white' : 'text-gray-500'}`} />
                               </div>
 
                               <div className="flex-1">
-                                <div className={`font-bold text-sm ${isModuleSelected ? 'text-purple-700' : 'text-gray-700'}`}>
+                                <div className={`font-bold text-sm ${isModuleSelected ? 'text-brand-indigo' : 'text-gray-700'}`}>
                                   {moduleNames[module as keyof typeof moduleNames]}
                                 </div>
                                 <div className="text-[10px] text-gray-400 font-medium">
@@ -900,7 +897,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
               <button
                 onClick={handleCreateRole}
                 disabled={loading}
-                className="px-8 py-2.5 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+                className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>{loading ? 'Creando...' : 'Crear Rol'}</span>
@@ -915,7 +912,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             {/* Header - Fixed at top */}
-            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+            <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -946,7 +943,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                 <div className="grid md:grid-cols-3 gap-4">
                   {/* General Info Card */}
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm md:col-span-2">
-                    <div className="flex items-center space-x-2 text-pink-500 mb-3">
+                    <div className="flex items-center space-x-2 text-brand-pink mb-3">
                       <Shield className="w-4 h-4" />
                       <h4 className="font-bold uppercase text-[10px] tracking-widest">Información General</h4>
                     </div>
@@ -970,16 +967,14 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                   <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${
                     viewingRole.status === 'active' 
                     ? 'bg-green-50/50 border-green-100 text-green-600' 
-                    : 'bg-red-50/50 border-red-100 text-red-600'
+                    : 'bg-gray-50/50 border-red-100 text-brand-pink'
                   }`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
-                      viewingRole.status === 'active' ? 'bg-green-100' : 'bg-red-100'
+                      viewingRole.status === 'active' ? 'bg-green-100' : 'bg-gray-100'
                     }`}>
                       {viewingRole.status === 'active' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                     </div>
-                    <span className="font-black uppercase text-[10px] tracking-[0.2em]">
-                      {viewingRole.status === 'active' ? 'Rol Activo' : 'Rol Inactivo'}
-                    </span>
+                    
                   </div>
                 </div>
 
@@ -990,24 +985,24 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                       <Lock className="w-4 h-4 text-purple-400" />
                       <span>Permisos y Accesos Asignados</span>
                     </h4>
-                    <span className="text-[10px] font-black bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full uppercase">
+                    <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
                       {viewingRole.isSuperUser ? 'Acceso Total' : `${viewingRole.permissions.length} permisos`}
                     </span>
                   </div>
                   
                   <div className="p-6">
                     {viewingRole.isSuperUser ? (
-                      <div className="bg-purple-50 border border-purple-100 rounded-2xl p-6 flex flex-col items-center text-center space-y-3">
-                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                          <Shield className="w-6 h-6 text-purple-600" />
+                      <div className="bg-gray-50 border border-purple-100 rounded-2xl p-6 flex flex-col items-center text-center space-y-3">
+                        <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
+                          <Shield className="w-6 h-6 text-brand-indigo" />
                         </div>
                         <div>
                           <h5 className="font-bold text-purple-900">Permisos Totales Protegidos</h5>
-                          <p className="text-sm text-purple-700">Este rol tiene acceso completo a todos los módulos y funciones del sistema por seguridad.</p>
+                          <p className="text-sm text-brand-indigo">Este rol tiene acceso completo a todos los módulos y funciones del sistema por seguridad.</p>
                         </div>
                         <div className="flex flex-wrap justify-center gap-2 mt-2">
                           {mockPermissions.map((permission) => (
-                            <span key={permission.id} className="px-3 py-1 bg-white border border-purple-100 text-[10px] font-bold text-purple-600 rounded-full uppercase tracking-wider">
+                            <span key={permission.id} className="px-3 py-1 bg-white border border-purple-100 text-[10px] font-bold text-brand-indigo rounded-full uppercase tracking-wider">
                               {permission.name}
                             </span>
                           ))}
@@ -1068,7 +1063,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
               {/* Header - Fixed at top */}
-              <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+              <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -1114,15 +1109,15 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                 <div className="max-w-4xl mx-auto space-y-6">
                   {/* Mensaje informativo para Super Admin */}
                   {isSuperAdmin && (
-                    <div className="bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-pink-200 rounded-2xl p-5 animate-in fade-in duration-500">
+                    <div className="bg-gradient-to-r from-pink-50 to-purple-50 border-2 border-brand-periwinkle rounded-2xl p-5 animate-in fade-in duration-500">
                       <div className="flex items-start space-x-4">
                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                          <Shield className="w-6 h-6 text-purple-600" />
+                          <Shield className="w-6 h-6 text-brand-indigo" />
                         </div>
                         <div>
                           <h4 className="font-bold text-gray-800 mb-1">Rol del Sistema Protegido</h4>
                           <p className="text-sm text-gray-700 leading-relaxed">
-                            El rol <span className="font-bold text-purple-600">Super Admin</span> tiene todos los permisos habilitados de forma permanente.
+                            El rol <span className="font-bold text-brand-indigo">Super Admin</span> tiene todos los permisos habilitados de forma permanente.
                             Esta configuración garantiza el acceso total para la administración del sistema y no puede ser modificado.
                           </p>
                         </div>
@@ -1133,7 +1128,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                   <div className="grid md:grid-cols-2 gap-6">
                     {/* Basic Info Card */}
                     <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
-                      <div className="flex items-center space-x-2 text-pink-500">
+                      <div className="flex items-center space-x-2 text-brand-pink">
                         <Settings className="w-4 h-4" />
                         <h4 className="font-bold uppercase text-[10px] tracking-widest">Identidad del Rol</h4>
                       </div>
@@ -1146,7 +1141,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                             value={editingRole.name}
                             onChange={(e) => setEditingRole({ ...editingRole, name: e.target.value })}
                             disabled={isSuperAdmin}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium ${isSuperAdmin ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-gray-50/50 border-gray-200 text-gray-700'
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium ${isSuperAdmin ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-gray-50/50 border-gray-200 text-gray-700'
                               }`}
                           />
                         </div>
@@ -1157,7 +1152,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                             value={editingRole.description}
                             onChange={(e) => setEditingRole({ ...editingRole, description: e.target.value })}
                             disabled={isSuperAdmin}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium resize-none ${isSuperAdmin ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-gray-50/50 border-gray-200 text-gray-700'
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium resize-none ${isSuperAdmin ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-gray-50/50 border-gray-200 text-gray-700'
                               }`}
                             rows={4}
                           />
@@ -1167,17 +1162,17 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
                     {/* Permissions Summary Card */}
                     <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex flex-col justify-center items-center text-center space-y-4">
-                      <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${isSuperAdmin ? 'bg-pink-100' : 'bg-purple-100'}`}>
-                        {isSuperAdmin ? <Shield className="w-8 h-8 text-pink-600" /> : <Lock className="w-8 h-8 text-purple-600" />}
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${isSuperAdmin ? 'bg-gray-50' : 'bg-gray-50'}`}>
+                        {isSuperAdmin ? <Shield className="w-8 h-8 text-brand-indigo" /> : <Lock className="w-8 h-8 text-brand-indigo" />}
                       </div>
                       <div>
                         <h4 className="font-bold text-gray-800 text-lg">Permisos Asignados</h4>
-                        <p className="text-sm text-gray-500 px-4">Este rol cuenta con <span className="font-bold text-purple-600">{editingRole.permissions.length}</span> permisos activos en el sistema.</p>
+                        <p className="text-sm text-gray-500 px-4">Este rol cuenta con <span className="font-bold text-brand-indigo">{editingRole.permissions.length}</span> permisos activos en el sistema.</p>
                       </div>
                       <div className="w-full h-px bg-gray-100 my-2"></div>
                       <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
                         <Shield className="w-3 h-3" />
-                        <span>Estado: {editingRole.status === 'active' ? 'Activo' : 'Inactivo'}</span>
+                        <span>Estado: </span>
                       </div>
                     </div>
                   </div>
@@ -1190,7 +1185,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         <span>Configuración de Accesos</span>
                       </h4>
                       {isSuperAdmin && (
-                        <span className="text-[10px] font-black bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full uppercase">
+                        <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
                           Control Total Habilitado
                         </span>
                       )}
@@ -1213,8 +1208,8 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                                 className={`flex items-center space-x-4 p-4 border-2 rounded-2xl transition-all ${isSuperAdmin
                                   ? 'bg-gray-50 border-gray-100 cursor-not-allowed opacity-80'
                                   : isModuleSelected
-                                    ? 'border-pink-400 bg-pink-50/30 shadow-sm ring-1 ring-pink-100 cursor-pointer'
-                                    : 'border-gray-100 hover:border-pink-200 hover:bg-gray-50 cursor-pointer'
+                                    ? 'border-pink-400 bg-gray-50/30 shadow-sm ring-1 ring-pink-100 cursor-pointer'
+                                    : 'border-gray-100 hover:border-brand-periwinkle hover:bg-gray-50 cursor-pointer'
                                   }`}
                               >
                                 <div className="relative flex items-center justify-center">
@@ -1240,7 +1235,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                                     className="sr-only"
                                   />
                                   <div className={`w-6 h-6 border-2 rounded-lg flex items-center justify-center transition-all ${isModuleSelected
-                                    ? 'bg-gradient-to-r from-pink-400 to-purple-500 border-transparent shadow-sm'
+                                    ? 'bg-gradient-brand border-transparent shadow-sm'
                                     : 'border-gray-200 bg-white'
                                     }`}>
                                     {isModuleSelected && <CheckCircle className="w-3.5 h-3.5 text-white" />}
@@ -1248,14 +1243,14 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                                 </div>
 
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isModuleSelected
-                                  ? 'bg-gradient-to-r from-pink-400 to-purple-500 shadow-sm'
+                                  ? 'bg-gradient-brand shadow-sm'
                                   : 'bg-gray-100'
                                   }`}>
                                   <ModuleIcon className={`w-5 h-5 ${isModuleSelected ? 'text-white' : 'text-gray-500'}`} />
                                 </div>
 
                                 <div className="flex-1">
-                                  <div className={`font-bold text-sm ${isModuleSelected ? 'text-purple-700' : 'text-gray-700'}`}>
+                                  <div className={`font-bold text-sm ${isModuleSelected ? 'text-brand-indigo' : 'text-gray-700'}`}>
                                     {moduleNames[module as keyof typeof moduleNames]}
                                   </div>
                                   <div className="text-[10px] text-gray-400 font-medium">
@@ -1284,7 +1279,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                   <button
                     onClick={handleSaveRole}
                     disabled={loading}
-                    className="px-8 py-2.5 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+                    className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     <span>{loading ? 'Guardando...' : 'Actualizar Rol'}</span>
@@ -1323,8 +1318,8 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
             <div className="p-8">
               <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-                  <AlertCircle className="w-10 h-10 text-red-500 -rotate-3" />
+                <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
+                  <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
                 </div>
                 <h4 className="text-lg font-bold text-gray-800 mb-2">
                   ¿Eliminar rol "{roleToDelete.name}"?
@@ -1398,8 +1393,8 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
             </div>
 
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
-                <AlertCircle className="w-10 h-10 text-red-500" />
+              <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
+                <AlertCircle className="w-10 h-10 text-brand-pink" />
               </div>
               <h4 className="text-lg font-bold text-gray-800 mb-2">
                 No se puede inactivar el Administrador
@@ -1446,8 +1441,8 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
             </div>
 
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
-                <Shield className="w-10 h-10 text-red-500" />
+              <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
+                <Shield className="w-10 h-10 text-brand-pink" />
               </div>
               <h4 className="text-lg font-bold text-gray-800 mb-2">
                 No se puede eliminar roles principales
@@ -1494,8 +1489,8 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
             </div>
 
             <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
-                <AlertCircle className="w-10 h-10 text-red-500" />
+              <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100">
+                <AlertCircle className="w-10 h-10 text-brand-pink" />
               </div>
               <h4 className="text-lg font-bold text-gray-800 mb-2">
                 Falta información obligatoria
@@ -1506,7 +1501,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
               
               <button
                 onClick={() => setShowValidationErrorModal(false)}
-                className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-red-200"
+                className="w-full bg-gray-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-red-200"
               >
                 Entendido
               </button>
@@ -1520,14 +1515,14 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
         <div className="fixed inset-0 bg-white/10 backdrop-blur-[2px] z-[100] flex items-center justify-center">
           <div className="bg-white/80 p-8 rounded-3xl shadow-2xl flex flex-col items-center space-y-4 border border-white/50 animate-in zoom-in-95 duration-200">
             <div className="relative">
-              <Loader2 className="w-14 h-14 text-pink-500 animate-spin" />
+              <Loader2 className="w-14 h-14 text-brand-pink animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Shield className="w-6 h-6 text-purple-600 animate-pulse" />
+                <Shield className="w-6 h-6 text-brand-indigo animate-pulse" />
               </div>
             </div>
             <div className="flex flex-col items-center">
               <p className="text-gray-800 font-bold text-lg">Procesando</p>
-              <p className="text-pink-600 text-sm animate-pulse font-medium">Sincronizando con la API...</p>
+              <p className="text-brand-indigo text-sm animate-pulse font-medium">Sincronizando con la API...</p>
             </div>
           </div>
         </div>

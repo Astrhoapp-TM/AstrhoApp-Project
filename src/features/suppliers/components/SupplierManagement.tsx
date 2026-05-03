@@ -288,7 +288,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800';
       case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'blacklisted': return 'bg-red-100 text-red-800';
+      case 'blacklisted': return 'bg-gray-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -306,7 +306,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-brand-violet animate-spin mx-auto mb-4" />
           <p className="text-gray-600 text-lg">Cargando proveedores...</p>
         </div>
       </div>
@@ -364,7 +364,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
               placeholder="Buscar proveedores por nombre o contacto..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
             />
           </div>
 
@@ -381,7 +381,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
             {hasPermission('manage_suppliers') && (
               <button
                 onClick={handleCreateSupplier}
-                className="w-full md:w-auto bg-gradient-to-r from-pink-400 to-purple-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5" />
                 <span>Registrar Proveedor</span>
@@ -395,7 +395,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
         {isLoading && currentSuppliers.length > 0 && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center">
-            <Loader2 className="w-8 h-8 text-pink-500 animate-spin mb-2" />
+            <Loader2 className="w-8 h-8 text-brand-pink animate-spin mb-2" />
             <span className="text-sm font-medium text-gray-500">Cargando...</span>
           </div>
         )}
@@ -451,11 +451,8 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
                             onChange={() => handleToggleSupplierStatus(supplier.id)}
                             className="sr-only peer"
                           />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          <span className={`ml-3 text-sm font-medium ${supplier.status === 'active' ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                            {supplier.status === 'active' ? 'Activo' : 'Inactivo'}
-                          </span>
+                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                          
                         </label>
                       </div>
                     ) : (
@@ -469,7 +466,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleViewDetail(supplier)}
-                        className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                        className="p-2 bg-brand-lavender text-brand-indigo rounded-lg hover:brightness-105 transition-colors"
                         title="Ver Detalle"
                       >
                         <Eye className="w-4 h-4" />
@@ -487,7 +484,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
 
                           <button
                             onClick={() => handleDeleteSupplier(supplier)}
-                            className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                            className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                             title="Eliminar"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -559,7 +556,7 @@ function SupplierDetailModal({ supplier, onClose }) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -591,7 +588,7 @@ function SupplierDetailModal({ supplier, onClose }) {
               
               {/* Commercial Status Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-purple-500 mb-4">
+                <div className="flex items-center space-x-2 text-brand-violet mb-4">
                   <Package className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Comercial</h4>
                 </div>
@@ -612,12 +609,7 @@ function SupplierDetailModal({ supplier, onClose }) {
                     <div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Estado:</span>
                       <div className="mt-1">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${supplier.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                          }`}>
-                          {supplier.status === 'active' ? 'Activo' : 'Inactivo'}
-                        </span>
+                        
                       </div>
                     </div>
                   </div>
@@ -638,7 +630,7 @@ function SupplierDetailModal({ supplier, onClose }) {
 
               {/* Contact Information Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <div className="flex items-center space-x-2 text-pink-500 mb-4">
+                <div className="flex items-center space-x-2 text-brand-pink mb-4">
                   <Phone className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de Contacto</h4>
                 </div>
@@ -917,7 +909,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
   // Helper para clases de input con error
   const inputClass = (field: string) =>
     `w-full px-4 py-3 border ${errors[field] ? 'border-red-400 ring-2 ring-red-200' : 'border-gray-300'
-    } rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent`;
+    } rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent`;
 
   // Comprobar si el formulario tiene errores activos
   const hasErrors = Object.keys(errors).length > 0;
@@ -926,7 +918,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
-        <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-5 text-white shrink-0 shadow-md z-20">
+        <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -960,16 +952,16 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
           <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
             {/* Form Alert */}
             {hasErrors && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <p className="text-sm text-red-700">Por favor, completa los campos obligatorios y corrige los errores.</p>
+              <div className="bg-gray-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
+                <AlertCircle className="w-5 h-5 text-brand-pink" />
+                <p className="text-sm text-brand-pink">Por favor, completa los campos obligatorios y corrige los errores.</p>
               </div>
             )}
 
             <div className="grid md:grid-cols-2 gap-6">
               {/* Basic Info Card */}
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
-                <div className="flex items-center space-x-2 text-purple-500">
+                <div className="flex items-center space-x-2 text-brand-violet">
                   <Package className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
                 </div>
@@ -983,7 +975,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                         value={formData.supplierType}
                         onChange={handleInputChange}
                         disabled={supplier !== null}
-                        className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 disabled:opacity-50"
+                        className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 disabled:opacity-50"
                       >
                         <option value="juridica">Persona Jurídica</option>
                         <option value="natural">Persona Natural</option>
@@ -996,10 +988,10 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                         name="taxId"
                         value={formData.taxId}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.taxId ? 'border-red-300' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.taxId ? 'border-red-300' : 'border-gray-200'}`}
                         placeholder="Ej: 900.123.456-7"
                       />
-                      {errors.taxId && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.taxId}</p>}
+                      {errors.taxId && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.taxId}</p>}
                     </div>
                   </div>
 
@@ -1012,10 +1004,10 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.name ? 'border-red-300' : 'border-gray-200'}`}
+                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.name ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="Nombre comercial"
                     />
-                    {errors.name && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.name}</p>}
+                    {errors.name && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.name}</p>}
                   </div>
 
                   {formData.supplierType === 'juridica' && (
@@ -1026,10 +1018,10 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                         name="contactPerson"
                         value={formData.contactPerson}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.contactPerson ? 'border-red-300' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.contactPerson ? 'border-red-300' : 'border-gray-200'}`}
                         placeholder="Nombre del representante"
                       />
-                      {errors.contactPerson && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.contactPerson}</p>}
+                      {errors.contactPerson && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.contactPerson}</p>}
                     </div>
                   )}
 
@@ -1039,7 +1031,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       name="status"
                       value={formData.status}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700"
+                      className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
                     >
                       <option value="active">Activo</option>
                       <option value="inactive">Inactivo</option>
@@ -1050,7 +1042,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
 
               {/* Contact Info Card */}
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
-                <div className="flex items-center space-x-2 text-pink-500">
+                <div className="flex items-center space-x-2 text-brand-pink">
                   <Phone className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Datos de Contacto</h4>
                 </div>
@@ -1063,10 +1055,10 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.email ? 'border-red-300' : 'border-gray-200'}`}
+                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.email ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="ejemplo@proveedor.com"
                     />
-                    {errors.email && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.email}</p>}
+                    {errors.email && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.email}</p>}
                   </div>
 
                   <div>
@@ -1076,15 +1068,15 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.phone ? 'border-red-300' : 'border-gray-200'}`}
+                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.phone ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="Número de 10 dígitos"
                     />
-                    {errors.phone && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.phone}</p>}
+                    {errors.phone && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.phone}</p>}
                   </div>
 
                   <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center space-x-3">
                     <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                      <Truck className="w-5 h-5 text-pink-400" />
+                      <Truck className="w-5 h-5 text-brand-pink" />
                     </div>
                     <p className="text-[10px] text-gray-500 font-medium leading-tight">
                       Asegúrate de que los datos de contacto sean correctos para el envío de órdenes de compra.
@@ -1108,7 +1100,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                     name="department"
                     value={formData.department}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700"
+                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
                   >
                     {departments.map(dept => (
                       <option key={dept} value={dept}>{dept}</option>
@@ -1121,7 +1113,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700"
+                    className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
                   >
                     {availableCities.map(city => (
                       <option key={city} value={city}>{city}</option>
@@ -1135,10 +1127,10 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-pink-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.address ? 'border-red-300' : 'border-gray-200'}`}
+                    className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.address ? 'border-red-300' : 'border-gray-200'}`}
                     placeholder="Calle, Carrera, Barrio..."
                   />
-                  {errors.address && <p className="text-[10px] text-red-500 mt-1 ml-1">{errors.address}</p>}
+                  {errors.address && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.address}</p>}
                 </div>
               </div>
             </div>
@@ -1157,7 +1149,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || hasErrors}
-            className="px-8 py-2.5 bg-gradient-to-r from-pink-400 to-purple-500 text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{supplier ? 'Actualizar Proveedor' : 'Registrar Proveedor'}</span>
@@ -1210,13 +1202,13 @@ function DeleteConfirmationModal({ supplier, hasPurchases, isChecking, onClose, 
 
         <div className="p-8">
           <div className="text-center mb-8">
-            <div className={`w-20 h-20 ${isDanger ? 'bg-red-50 border-red-100' : 'bg-orange-50 border-orange-100'} rounded-2xl flex items-center justify-center mx-auto mb-4 border rotate-3`}>
+            <div className={`w-20 h-20 ${isDanger ? 'bg-gray-50 border-red-100' : 'bg-orange-50 border-orange-100'} rounded-2xl flex items-center justify-center mx-auto mb-4 border rotate-3`}>
               {isChecking ? (
-                <Loader2 className={`w-10 h-10 ${isDanger ? 'text-red-500' : 'text-orange-500'} -rotate-3 animate-spin`} />
+                <Loader2 className={`w-10 h-10 ${isDanger ? 'text-brand-pink' : 'text-orange-500'} -rotate-3 animate-spin`} />
               ) : hasPurchases ? (
-                <AlertTriangle className={`w-10 h-10 ${isDanger ? 'text-red-500' : 'text-orange-500'} -rotate-3`} />
+                <AlertTriangle className={`w-10 h-10 ${isDanger ? 'text-brand-pink' : 'text-orange-500'} -rotate-3`} />
               ) : (
-                <AlertCircle className={`w-10 h-10 ${isDanger ? 'text-red-500' : 'text-orange-500'} -rotate-3`} />
+                <AlertCircle className={`w-10 h-10 ${isDanger ? 'text-brand-pink' : 'text-orange-500'} -rotate-3`} />
               )}
             </div>
             

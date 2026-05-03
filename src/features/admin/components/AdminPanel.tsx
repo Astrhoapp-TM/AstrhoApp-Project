@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ADMIN_MENU_ITEMS, getMenuItemsByCategory } from '@/shared/data/adminConstants';
 import {
@@ -85,14 +85,14 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-brand-page">
       <div className="flex">
         {/* Sidebar */}
         <div className={`${isSidebarCollapsed ? 'w-16' : 'w-64'} bg-white shadow-xl border-r border-gray-200 min-h-screen transition-all duration-300`}>
           <div className={`${isSidebarCollapsed ? 'p-3' : 'p-6'} border-b border-gray-100 flex items-center justify-between`}>
             {!isSidebarCollapsed && (
               <div>
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+                <h2 className="text-2xl font-bold text-gradient-brand">
                   Panel Admin
                 </h2>
                 <p className="text-gray-600 text-sm mt-1">AsthroApp</p>
@@ -130,8 +130,8 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
                           <button
                             onClick={() => setActiveTab(item.id)}
                             className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center' : 'space-x-3'} px-4 py-3 rounded-xl text-left transition-all duration-200 ${activeTab === item.id
-                                ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white shadow-lg'
-                                : 'text-gray-900 hover:bg-pink-50 hover:text-pink-600'
+                                ? 'bg-gradient-brand text-white shadow-lg'
+                                : 'text-gray-900 hover:bg-gray-100 hover:text-brand-indigo'
                               }`}
                           >
                             <Icon className={`w-5 h-5 flex-shrink-0 ${activeTab === item.id ? 'text-white stroke-white' : 'text-gray-900 stroke-gray-900'}`} />
@@ -146,7 +146,7 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
                                 <TooltipTrigger asChild>
                                   {button}
                                 </TooltipTrigger>
-                                <TooltipContent side="right" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white border-none">
+                                <TooltipContent side="right" className="bg-gradient-brand text-white border-none">
                                   <p>{item.label}</p>
                                 </TooltipContent>
                               </Tooltip>

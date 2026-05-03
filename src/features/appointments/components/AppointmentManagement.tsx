@@ -160,18 +160,34 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     setLoading(true);
     showSectionLoading("Cargando agendamiento...");
     try {
-      const params = {
-        page: currentPage,
-        pageSize: itemsPerPage,
-        search: searchTerm
+      const fetchAllAppointments = async () => {
+        const pageSize = 200;
+        let page = 1;
+        let totalPagesRemote = 1;
+        const all: AgendaItem[] = [];
+
+        do {
+          const params = { page, pageSize, search: searchTerm };
+          const response = currentUser?.role === 'asistente'
+            ? await agendaService.getMisCitasEmpleado(params)
+            : await agendaService.getAll(params);
+
+          const chunk = Array.isArray(response)
+            ? response
+            : Array.isArray((response as any)?.data)
+              ? (response as any).data
+              : [];
+
+          all.push(...chunk);
+          totalPagesRemote = Array.isArray(response) ? 1 : ((response as any)?.totalPages || 1);
+          page += 1;
+        } while (page <= totalPagesRemote);
+
+        return all;
       };
 
-      const agendaPromise = currentUser?.role === 'asistente'
-        ? agendaService.getMisCitasEmpleado(params)
-        : agendaService.getAll(params);
-
       const results = await Promise.allSettled([
-        agendaPromise,
+        fetchAllAppointments(),
         empleadoAgendaService.getAll(),
         servicioAgendaService.getAll(),
         metodoPagoService.getAll(),
@@ -205,10 +221,12 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
         horaFin: he.horaFin || '',
       }));
 
-      const agendaResponse = results[0].status === 'fulfilled' ? results[0].value : { data: [], totalCount: 0, totalPages: 0 };
-      setAppointments(agendaResponse.data || []);
-      setTotalCount(agendaResponse.totalCount || 0);
-      setTotalPages(agendaResponse.totalPages || 0);
+      const allAppointments = results[0].status === 'fulfilled' && Array.isArray(results[0].value)
+        ? results[0].value
+        : [];
+      setAppointments(allAppointments);
+      setTotalCount(allAppointments.length);
+      setTotalPages(Math.max(1, Math.ceil(allAppointments.length / itemsPerPage)));
 
       setEmpleados(extract(results[1]).filter((e: any) => e.estado));
       setServicios(extract(results[2]).filter((s: any) => s.estado));
@@ -221,7 +239,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       if (rawEstados.length > 0) setEstadosAgenda(rawEstados);
 
       // Trigger auto-cancellation for overdue appointments
-      const currentAppointments = agendaResponse.data || [];
+      const currentAppointments = allAppointments;
       const currentServicios = extract(results[2]).filter((s: any) => s.estado);
       const currentMetodos = extract(results[3]);
       autoCancelOverdue(currentAppointments, currentServicios, currentMetodos);
@@ -238,7 +256,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       setLoading(false);
       hideSectionLoading();
     }
-  }, [currentPage, searchTerm, autoCancelOverdue]);
+  }, [currentUser?.role, itemsPerPage, searchTerm, autoCancelOverdue]);
 
   useEffect(() => {
     loadData();
@@ -294,7 +312,42 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
   };
 
   // ── Ya no filtramos en el cliente, usamos lo que viene de la API ──
-  const paginatedAppointments = appointments;
+  // Orden:
+  // 1) Confirmadas/Pendientes (más próximas primero)
+  // 2) Otros estados intermedios
+  // 3) Completadas/Canceladas
+  // Dentro de cada grupo: futuras (asc) y luego pasadas (desc).
+  const sortedAppointments = [...appointments].sort((a, b) => {
+    const getStatusPriority = (estado: string): number => {
+      const normalized = normalizeEstadoKey(estado);
+      if (normalized === 'confirmado' || normalized === 'confirmed' || normalized === 'pendiente' || normalized === 'pending') {
+        return 0;
+      }
+      if (normalized === 'completado' || normalized === 'completed' || normalized === 'cancelado' || normalized === 'cancelled' || normalized === 'canceled') {
+        return 2;
+      }
+      return 1;
+    };
+
+    const aStatusPriority = getStatusPriority(a.estado);
+    const bStatusPriority = getStatusPriority(b.estado);
+    if (aStatusPriority !== bStatusPriority) return aStatusPriority - bStatusPriority;
+
+    const now = new Date();
+    const aDateTime = toDateTime(a.fechaCita, a.horaInicio);
+    const bDateTime = toDateTime(b.fechaCita, b.horaInicio);
+    const aIsFuture = aDateTime >= now;
+    const bIsFuture = bDateTime >= now;
+
+    if (aIsFuture && bIsFuture) return aDateTime.getTime() - bDateTime.getTime();
+    if (!aIsFuture && !bIsFuture) return bDateTime.getTime() - aDateTime.getTime();
+    return aIsFuture ? -1 : 1;
+  });
+
+  const paginatedAppointments = sortedAppointments.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleCreateAppointment = () => {
     setSelectedAppointment(null);
@@ -566,7 +619,6 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                 <th className="text-left p-4 font-semibold text-gray-600">Servicios</th>
                 <th className="text-left p-4 font-semibold text-gray-600">Profesional</th>
                 <th className="text-left p-4 font-semibold text-gray-600">Estado</th>
-                <th className="text-left p-4 font-semibold text-gray-600">Método Pago</th>
                 <th className="text-left p-4 font-semibold text-gray-600">Acciones</th>
               </tr>
             </thead>
@@ -632,9 +684,6 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                           ))}
                         </select>
                       )}
-                    </td>
-                    <td className="p-4">
-                      <div className="text-gray-700">{apt.metodoPago}</div>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center space-x-2">

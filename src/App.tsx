@@ -16,6 +16,8 @@ import { Toaster } from "@/shared/components/ui/sonner";
 import { userService } from "@/features/users/services/userService";
 import { useLoading } from "@/shared/contexts/LoadingContext";
 
+const AUTH_USER_STORAGE_KEY = "auth_user";
+
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentView, setCurrentView] = useState("home");
@@ -26,6 +28,28 @@ function App() {
   const [selectedServiceForBooking, setSelectedServiceForBooking] = useState(null);
   const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
   const { showLoading, hideLoading } = useLoading();
+
+  // Restaurar sesión al recargar: el token ya se lee en apiClient desde localStorage.
+  useEffect(() => {
+    try {
+      const persistedUser = localStorage.getItem(AUTH_USER_STORAGE_KEY);
+      if (persistedUser) {
+        setCurrentUser(JSON.parse(persistedUser));
+      }
+    } catch (error) {
+      console.warn("No se pudo restaurar la sesión persistida:", error);
+      localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+    }
+  }, []);
+
+  // Persistir usuario autenticado para mantener sesión tras refresh.
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem(AUTH_USER_STORAGE_KEY, JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+    }
+  }, [currentUser]);
 
   // Fetch full user person data when logged in
   useEffect(() => {
@@ -279,6 +303,7 @@ function App() {
 
   const confirmLogout = () => {
     clearAuthToken();
+    localStorage.removeItem(AUTH_USER_STORAGE_KEY);
     setCurrentUser(null);
     setCurrentView("home");
     setIsClientView(false);

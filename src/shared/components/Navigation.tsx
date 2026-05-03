@@ -1,5 +1,5 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
-import { User, Calendar, Home, Sparkles, Settings, Shield, Eye, ArrowLeft, ChevronDown, Edit, LogOut } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { User, Calendar, Home, Sparkles, Settings, Shield, Eye, ArrowLeft, ChevronDown, Edit, LogOut, Menu, X } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
 interface NavigationProps {
@@ -26,13 +26,18 @@ export function Navigation({
   onLogout
 }: NavigationProps) {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdown and mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowUserDropdown(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) && !event.target.closest('.mobile-menu-toggle')) {
+        setIsMenuOpen(false);
       }
     };
 
@@ -41,6 +46,11 @@ export function Navigation({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Close mobile menu on view change
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [currentView]);
 
   // Base menu items available to all users
   const baseMenuItems = [
@@ -101,154 +111,154 @@ export function Navigation({
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-200">
+    <nav 
+      className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100 transition-all duration-300"
+      role="navigation"
+      aria-label="Navegación principal"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-brand rounded-full flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between h-16 sm:h-20">
+          {/* Logo & Brand */}
+          <div 
+            className="flex items-center space-x-3 cursor-pointer group"
+            onClick={() => setCurrentView('home')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setCurrentView('home')}
+            aria-label="Ir al inicio"
+          >
+            <div className="w-10 h-10 bg-gradient-brand rounded-xl flex items-center justify-center shadow-indigo-200 shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <Sparkles className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <span className="text-2xl font-bold text-gradient-brand">
+            <div className="flex flex-col">
+              <span className="text-2xl font-black tracking-tight text-gradient-brand leading-none">
                 AsthroApp
               </span>
               {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'asistente') && (
-                <div className="text-xs text-gray-500">
-                  {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && !isClientView ? 'Panel de Administración' : 
-                   isClientView ? 'Inicio' : 'Sistema de Gestión'}
+                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
+                  {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && !isClientView ? 'Admin Panel' : 
+                   isClientView ? 'Portal Cliente' : 'Gestión'}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Navigation Menu */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Desktop Navigation Menu */}
+          <div className="hidden md:flex items-center space-x-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
+              const isActive = currentView === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => setCurrentView(item.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
-                    currentView === item.id
-                      ? 'bg-gradient-brand text-white shadow-md'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-brand-indigo'
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center space-x-2 group relative focus:outline-none focus:ring-2 focus:ring-brand-indigo/30 ${
+                    isActive
+                      ? 'bg-gradient-brand text-white shadow-md shadow-indigo-100'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-brand-indigo'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-brand-indigo'}`} aria-hidden="true" />
                   <span>{item.label}</span>
+                  {!isActive && (
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-brand-indigo transition-all duration-300 group-hover:w-1/2 rounded-full" />
+                  )}
                 </button>
               );
             })}
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Home/Inicio Toggle for Staff */}
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Home/Inicio Toggle for Staff - Desktop only */}
             {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'asistente') && toggleClientView && (
               <button
                 onClick={toggleClientView}
-                className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center space-x-2 ${
-                  isClientView
-                    ? 'bg-gray-50 text-brand-indigo hover:bg-gray-100'
-                    : 'bg-gray-50 text-brand-indigo hover:bg-gray-100'
-                }`}
+                className="hidden sm:flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-gray-50 text-brand-indigo font-semibold text-sm hover:bg-brand-indigo hover:text-white transition-all duration-300 border border-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-indigo/30"
                 title={isClientView ? 'Volver a Vista Admin' : 'Ir a Inicio (Vista Cliente)'}
+                aria-label={isClientView ? 'Cambiar a vista de administrador' : 'Cambiar a vista de cliente'}
               >
                 {isClientView ? (
                   <>
-                    <ArrowLeft className="w-4 h-4" />
-                    <span className="hidden sm:inline">Volver Admin</span>
+                    <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                    <span>Admin</span>
                   </>
                 ) : (
                   <>
-                    <Home className="w-4 h-4" />
-                    <span className="hidden sm:inline">Inicio</span>
+                    <Home className="w-4 h-4" aria-hidden="true" />
+                    <span>Inicio</span>
                   </>
                 )}
               </button>
             )}
 
             {/* Notification Bell */}
-            {currentUser && <NotificationBell currentUser={currentUser} />}
+            {currentUser && (
+              <div className="p-1">
+                <NotificationBell currentUser={currentUser} />
+              </div>
+            )}
 
-            {/* User Menu */}
+            {/* User Menu - Desktop */}
             {currentUser ? (
-              <div className="relative" ref={dropdownRef}>
-                {/* User Avatar - Clickable */}
+              <div className="relative hidden sm:block" ref={dropdownRef}>
                 <button
                   onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-expanded={showUserDropdown}
+                  aria-haspopup="true"
+                  className="flex items-center space-x-3 p-1.5 pr-3 rounded-2xl hover:bg-gray-50 transition-all duration-300 border border-transparent hover:border-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-indigo/30"
                 >
-                  <div className="w-8 h-8 bg-gradient-brand rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+                  <div className="w-10 h-10 bg-gradient-brand rounded-xl flex items-center justify-center shadow-md">
+                    <User className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
-                  <div className="hidden sm:block text-left">
-                    <div className="text-sm font-medium text-gray-700">
-                      {currentUser.name}
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-gray-800 leading-tight">
+                      {currentUser.name.split(' ')[0]}
                     </div>
-                    <div className={`text-xs px-2 py-0.5 rounded-full ${getRoleBadgeColor(currentUser.role)}`}>
+                    <div className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 ${getRoleBadgeColor(currentUser.role)}`}>
                       {getRoleDisplayName(currentUser.role)}
                     </div>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${showUserDropdown ? 'rotate-180' : ''}`} aria-hidden="true" />
                 </button>
 
                 {/* User Dropdown */}
                 {showUserDropdown && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50">
-                    {/* User Info Header */}
-                    <div className="bg-gradient-brand p-4 text-white">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                          <User className="w-6 h-6" />
+                  <div 
+                    className="absolute right-0 mt-3 w-72 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-5 duration-300"
+                    role="menu"
+                    aria-orientation="vertical"
+                  >
+                    <div className="bg-gradient-brand p-6 text-white relative overflow-hidden">
+                      <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
+                      <div className="relative flex items-center space-x-4">
+                        <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-xl">
+                          <User className="w-7 h-7" aria-hidden="true" />
                         </div>
                         <div>
-                          <div className="font-semibold">{currentUser.name}</div>
-                          <div className="text-xs text-white/80">{currentUser.email}</div>
-                          <div className="text-xs text-white/70 mt-1">
+                          <div className="font-bold text-lg leading-tight">{currentUser.name}</div>
+                          <div className="text-xs text-white/80 font-medium truncate max-w-[160px]">{currentUser.email}</div>
+                          <div className="inline-block px-2 py-0.5 bg-white/20 rounded-lg text-[10px] font-bold uppercase tracking-wider mt-2">
                             {getRoleDisplayName(currentUser.role)}
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* User Info Details */}
-                    <div className="p-4 border-b border-gray-100">
-                      <div className="space-y-2 text-sm">
-                        {currentUser.firstName && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Nombre:</span>
-                            <span className="text-gray-800">{currentUser.firstName} {currentUser.lastName}</span>
-                          </div>
-                        )}
-                        {currentUser.documentId && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Documento:</span>
-                            <span className="text-gray-800">{currentUser.documentId}</span>
-                          </div>
-                        )}
-                        {currentUser.phone && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Teléfono:</span>
-                            <span className="text-gray-800">{currentUser.phone}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="p-2">
+                    <div className="p-4 space-y-1">
                       <button
                         onClick={() => {
                           setShowUserProfile(true);
                           setShowUserDropdown(false);
                         }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-100 rounded-lg transition-colors"
+                        role="menuitem"
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-indigo-50 rounded-2xl transition-all duration-200 group focus:outline-none focus:bg-indigo-50"
                       >
-                        <Eye className="w-4 h-4 text-brand-periwinkle" />
-                        <span className="text-gray-700">Mostrar Perfil</span>
+                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-white transition-colors">
+                          <Eye className="w-4 h-4 text-brand-indigo" aria-hidden="true" />
+                        </div>
+                        <span className="text-sm font-semibold text-gray-700">Mi Perfil</span>
                       </button>
                       
                       <button
@@ -256,10 +266,13 @@ export function Navigation({
                           setShowUserDropdown(false);
                           onLogout();
                         }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors text-brand-pink"
+                        role="menuitem"
+                        className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-rose-50 rounded-2xl transition-all duration-200 group focus:outline-none focus:bg-rose-50"
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span>Cerrar Sesión</span>
+                        <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center group-hover:bg-white transition-colors">
+                          <LogOut className="w-4 h-4 text-rose-500" aria-hidden="true" />
+                        </div>
+                        <span className="text-sm font-semibold text-rose-600">Cerrar Sesión</span>
                       </button>
                     </div>
                   </div>
@@ -268,61 +281,125 @@ export function Navigation({
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="bg-gradient-brand text-white px-4 py-2 rounded-lg hover:shadow-lg hover:opacity-90 transition-all duration-200"
+                className="hidden sm:block bg-gradient-brand text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-xl hover:shadow-indigo-200 hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-indigo/30"
               >
                 Iniciar Sesión
               </button>
             )}
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-expanded={isMenuOpen}
+              aria-label={isMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+              className="md:hidden p-2 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 mobile-menu-toggle transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-indigo/30"
+            >
+              {isMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Menu */}
-        <div className="md:hidden border-t border-gray-200 py-2">
-          <div className="flex flex-wrap gap-2">
+      {/* Mobile Menu Overlay */}
+      <div 
+        className={`md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-xl transition-all duration-300 ease-in-out overflow-hidden ${
+          isMenuOpen ? 'max-h-[80vh] opacity-100 visible' : 'max-h-0 opacity-0 invisible'
+        }`}
+        ref={mobileMenuRef}
+      >
+        <div className="p-4 space-y-4">
+          {/* Mobile Nav Items */}
+          <div className="grid grid-cols-1 gap-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
+              const isActive = currentView === item.id;
               return (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentView(item.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1 ${
-                    currentView === item.id
-                      ? 'bg-gradient-brand text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                  onClick={() => {
+                    setCurrentView(item.id);
+                    setIsMenuOpen(false);
+                  }}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`w-full px-4 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 flex items-center space-x-3 ${
+                    isActive
+                      ? 'bg-gradient-brand text-white shadow-lg'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <Icon className="w-3 h-3" />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400'}`} aria-hidden="true" />
                   <span>{item.label}</span>
                 </button>
               );
             })}
           </div>
-          
-          {/* Mobile User Info */}
-          {currentUser && (
-            <div className="mt-2 pt-2 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <User className="w-4 h-4" />
-                  <span>{currentUser.name}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs ${getRoleBadgeColor(currentUser.role)}`}>
-                    {getRoleDisplayName(currentUser.role)}
-                  </span>
-                </div>
-                
-                {/* Mobile Home Toggle */}
-                {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'asistente') && toggleClientView && (
-                  <button
-                    onClick={toggleClientView}
-                    className="text-xs bg-gray-50 text-brand-indigo px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors flex items-center space-x-1"
-                  >
-                    <Home className="w-3 h-3" />
-                    <span>{isClientView ? 'Admin' : 'Inicio'}</span>
-                  </button>
-                )}
+
+          {/* Mobile Admin/Home Toggle */}
+          {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'asistente') && toggleClientView && (
+            <button
+              onClick={() => {
+                toggleClientView();
+                setIsMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-indigo-50 text-brand-indigo font-bold text-sm hover:bg-indigo-100 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                {isClientView ? <ArrowLeft className="w-5 h-5" aria-hidden="true" /> : <Home className="w-5 h-5" aria-hidden="true" />}
+                <span>{isClientView ? 'Volver a Admin' : 'Ir a Vista Cliente'}</span>
               </div>
-            </div>
+            </button>
           )}
+
+          {/* Mobile User Section */}
+          <div className="pt-4 border-t border-gray-100">
+            {currentUser ? (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3 px-2">
+                  <div className="w-12 h-12 bg-gradient-brand rounded-2xl flex items-center justify-center shadow-md">
+                    <User className="w-6 h-6 text-white" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-gray-800">{currentUser.name}</div>
+                    <div className={`text-[10px] font-bold px-2 py-1 rounded-lg mt-0.5 inline-block ${getRoleBadgeColor(currentUser.role)}`}>
+                      {getRoleDisplayName(currentUser.role)}
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setShowUserProfile(true);
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center justify-center space-x-2 px-4 py-3.5 rounded-2xl bg-gray-50 text-gray-700 font-bold text-xs hover:bg-gray-100 transition-colors"
+                  >
+                    <Eye className="w-4 h-4" aria-hidden="true" />
+                    <span>Perfil</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      onLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center justify-center space-x-2 px-4 py-3.5 rounded-2xl bg-rose-50 text-rose-600 font-bold text-xs hover:bg-rose-100 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" aria-hidden="true" />
+                    <span>Salir</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setShowAuthModal(true);
+                  setIsMenuOpen(false);
+                }}
+                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-bold text-sm shadow-lg shadow-indigo-100"
+              >
+                Iniciar Sesión
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </nav>

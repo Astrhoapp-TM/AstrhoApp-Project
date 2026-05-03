@@ -395,8 +395,10 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
 
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-1">
-                          <Scissors className="w-4 h-4 text-brand-indigo" />
-                          <span className="text-sm text-brand-indigo">{sale.services?.length || 0}</span>
+                          <Scissors className="w-4 h-4 text-brand-pink" />
+                          <span className="text-sm font-bold text-gradient-brand">
+                            {sale.services?.length || 0} items
+                          </span>
                         </div>
                       </td>
 
@@ -754,7 +756,7 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
                           <Scissors className="w-4 h-4 text-gray-400" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-bold text-gray-800">{s.name}</p>
+                          <p className="text-sm font-bold text-gradient-brand">{s.name}</p>
                           <p className="text-xs font-black text-brand-pink">${s.price.toLocaleString()}</p>
                         </div>
                         <button
@@ -1342,7 +1344,7 @@ function ServiceSearchSelect({
           </div>
         ) : !isOpen && selectedService ? (
           <div className="flex items-center gap-2">
-            <span className="text-gray-800 font-bold text-xs">{selectedService.nombre}</span>
+            <span className="font-bold text-sm text-gradient-brand">{selectedService.nombre}</span>
           </div>
         ) : (
           <div className="flex-1 flex items-center">
@@ -1403,7 +1405,7 @@ function ServiceSearchSelect({
                         )}
                       />
                       <div className="flex flex-col">
-                        <span className="font-medium">{svc.nombre}</span>
+                        <span className="font-bold text-gradient-brand">{svc.nombre}</span>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] text-gray-400">{svc.duracion} min</span>
                           <span className="text-[10px] text-gray-400">•</span>
@@ -1592,7 +1594,9 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
                   <tbody className="divide-y divide-gray-50">
                     {sale.services?.map((service, index) => (
                       <tr key={index} className="hover:bg-gray-50/30 transition-colors">
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-700">{service.name || 'Servicio'}</td>
+                        <td className="px-6 py-4 text-sm font-bold text-gradient-brand">
+                          {service.name || 'Servicio'}
+                        </td>
                         <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">
                           ${(service.totalPrice || 0).toLocaleString()}
                         </td>

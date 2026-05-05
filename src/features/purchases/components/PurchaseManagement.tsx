@@ -501,7 +501,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewDetail(purchase)}
-                          className="p-2 bg-brand-lavender text-brand-indigo rounded-lg hover:brightness-105 transition-colors"
+                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                           title="Ver Detalle"
                         >
                           <Eye className="w-4 h-4" />

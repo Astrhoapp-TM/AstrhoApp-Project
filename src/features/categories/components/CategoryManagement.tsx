@@ -419,32 +419,32 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
 
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            setSelectedCategory(category);
-                            setShowDetailModal(true);
-                          }}
-                          className="p-2 action-btn-view rounded-lg transition-colors"
-                          title="Ver Detalle"
-                        >
+                          <button
+                            onClick={() => {
+                              setSelectedCategory(category);
+                              setShowDetailModal(true);
+                            }}
+                            className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            title="Ver Detalle"
+                          >
                           <Eye className="w-4 h-4" />
                         </button>
 
                         {hasPermission('manage_categories') && (
                           <>
-                            <button
-                              onClick={() => handleEditCategory(category)}
-                              className="p-2 action-btn-edit rounded-lg transition-colors"
-                              title="Editar"
-                            >
+                              <button
+                                onClick={() => handleEditCategory(category)}
+                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                title="Editar"
+                              >
                               <Edit className="w-4 h-4" />
                             </button>
 
-                            <button
-                              onClick={() => handleDeleteCategory(category)}
-                              className="p-2 action-btn-delete rounded-lg transition-colors"
-                              title="Eliminar"
-                            >
+                              <button
+                                onClick={() => handleDeleteCategory(category)}
+                                className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
+                                title="Eliminar"
+                              >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </>

@@ -563,7 +563,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
 
                         <button
                           onClick={() => handlePrintDeliveryPDF(delivery)}
-                          className="p-2 bg-gray-50 text-brand-indigo rounded-lg hover:bg-gray-100 transition-colors"
+                          className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                           title="Imprimir PDF"
                         >
                           <FileText className="w-4 h-4" />
@@ -572,7 +572,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                         {hasPermission('manage_deliveries') && delivery.estadoId === 1 && (
                           <button
                             onClick={() => handleCancelDelivery(delivery)}
-                            className="p-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors"
+                            className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                             title="Cancelar entrega"
                           >
                             <X className="w-4 h-4" />

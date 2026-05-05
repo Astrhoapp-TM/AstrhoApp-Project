@@ -427,7 +427,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
                           {hasPermission('manage_sales') && (
                             <>
                               <button
-                                className="p-2 bg-gray-50 text-brand-indigo rounded-lg hover:bg-gray-100 transition-colors"
+                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                                 title="Imprimir recibo"
                                 onClick={() => handlePrintReceipt(sale)}
                               >
@@ -437,7 +437,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
                               {sale.status === 'completed' && (currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
                                 <button
                                   onClick={() => handleCancelSale(sale)}
-                                  className="p-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition-colors"
+                                  className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                                   title="Anular venta"
                                 >
                                   <Ban className="w-4 h-4" />

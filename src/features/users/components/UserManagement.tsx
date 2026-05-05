@@ -566,7 +566,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewUser(user)}
-                          className="p-2 action-btn-view rounded-lg transition-colors"
+                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                           title="Ver detalles"
                         >
                           <Eye className="w-4 h-4" />
@@ -576,7 +576,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                           <>
                             <button
                               onClick={() => handleEditUser(user)}
-                              className="p-2 action-btn-edit rounded-lg transition-colors"
+                              className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                               title="Editar usuario"
                             >
                               <Edit className="w-4 h-4" />
@@ -585,7 +585,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                             {(user.rolNombre || '').toLowerCase() !== 'super admin' && (
                               <button
                                 onClick={() => handleDeleteUser(user)}
-                                className="p-2 action-btn-delete rounded-lg transition-colors"
+                                className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
                                 title="Eliminar usuario"
                               >
                                 <Trash2 className="w-4 h-4" />

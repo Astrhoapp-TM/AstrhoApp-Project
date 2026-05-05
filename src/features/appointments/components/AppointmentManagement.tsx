@@ -689,7 +689,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleViewDetail(apt)}
-                          className="p-2 action-btn-view rounded-lg transition-all shadow-sm"
+                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                           title="Ver detalle"
                         >
                           <Eye className="w-4 h-4" />
@@ -697,7 +697,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         <button
                           onClick={() => handleEditAppointment(apt)}
                           disabled={isLocked}
-                          className={`p-2 rounded-lg transition-colors ${isLocked ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'action-btn-edit'}`}
+                          className={`p-2 rounded-lg transition-colors ${isLocked ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
                           title="Editar cita"
                         >
                           <Edit className="w-4 h-4" />
@@ -705,7 +705,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         <button
                           onClick={() => handleDeleteAppointment(apt)}
                           disabled={estadoLower === 'completado' || estadoLower === 'completed'}
-                          className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'action-btn-delete'}`}
+                          className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-brand-pink hover:bg-red-200'}`}
                           title="Eliminar cita"
                         >
                           <Trash2 className="w-4 h-4" />

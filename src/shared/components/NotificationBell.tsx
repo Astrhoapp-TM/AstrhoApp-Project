@@ -78,7 +78,7 @@ export function NotificationBell({ currentUser, onNavigateFromNotification }: No
 
   const loadNotifications = useCallback(async () => {
     if (!currentUser) return;
-    
+
     try {
       setLoading(true);
       const [suppliesRes, appointments] = await Promise.all([
@@ -210,7 +210,7 @@ export function NotificationBell({ currentUser, onNavigateFromNotification }: No
 
       {/* Notifications Dropdown */}
       {showNotifications && (
-        <div className="absolute right-0 mt-2 w-[28rem] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 max-h-[620px] flex flex-col">
+        <div className="absolute right-0 mt-2 w-[28rem] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-50 max-h-[450px] flex flex-col">
           {/* Header */}
           <div className="bg-gradient-brand p-4 text-white">
             <div className="flex items-center justify-between">
@@ -236,9 +236,8 @@ export function NotificationBell({ currentUser, onNavigateFromNotification }: No
                 <button
                   key={cat}
                   onClick={() => setFilterCategory(cat)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
-                    filterCategory === cat ? 'bg-brand-indigo text-white' : 'bg-white text-gray-600 border border-gray-200'
-                  }`}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterCategory === cat ? 'bg-brand-indigo text-white' : 'bg-white text-gray-600 border border-gray-200'
+                    }`}
                 >
                   {cat === 'all' ? 'Todo' : categoryLabel[cat]}
                 </button>
@@ -253,9 +252,8 @@ export function NotificationBell({ currentUser, onNavigateFromNotification }: No
                 <button
                   key={item.key}
                   onClick={() => setFilterRead(item.key)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
-                    filterRead === item.key ? 'bg-brand-indigo text-white' : 'bg-white text-gray-600 border border-gray-200'
-                  }`}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${filterRead === item.key ? 'bg-brand-indigo text-white' : 'bg-white text-gray-600 border border-gray-200'
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -273,17 +271,16 @@ export function NotificationBell({ currentUser, onNavigateFromNotification }: No
                   const timeLabel = Number.isNaN(createdAt.getTime())
                     ? 'Reciente'
                     : createdAt.toLocaleString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      });
+                      day: '2-digit',
+                      month: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    });
                   return (
-                    <div 
+                    <div
                       key={item.id}
-                      className={`flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-xl transition-colors mb-2 group relative border ${
-                        item.read ? 'border-transparent' : 'border-brand-periwinkle/40 bg-brand-periwinkle/10'
-                      }`}
+                      className={`flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-xl transition-colors mb-2 group relative border ${item.read ? 'border-transparent' : 'border-brand-periwinkle/40 bg-brand-periwinkle/10'
+                        }`}
                       onClick={() => handleNotificationClick(item)}
                     >
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${priorityColor[item.priority]}`}>

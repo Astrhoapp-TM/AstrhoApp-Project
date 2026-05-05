@@ -208,7 +208,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
       const rawHorariosEmpleado: any[] = extract(results[4]);
       const rawHorarios: any[] = extract(results[5]);
-      const rawMotivos: any[]          = extract(results[7]);
+      const rawMotivos: any[] = extract(results[7]);
 
       // HorarioEmpleado now comes with diaSemana, horaInicio, and horaFin from the API
       const enrichedHorariosEmpleado: HorarioEmpleado[] = rawHorariosEmpleado.map((he: any) => ({
@@ -459,11 +459,11 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       const servicioIds = apt.servicios.map((nameOrObj: any) => {
         // Handle if nameOrObj is already an ID (shouldn't happen with AgendaItem, but for safety)
         if (typeof nameOrObj === 'number') return nameOrObj;
-        
+
         // Extract name if it's an object or just use the string
         const name = typeof nameOrObj === 'string' ? nameOrObj : (nameOrObj?.nombre || '');
         const normalizedName = name.trim().toLowerCase();
-        
+
         const svc = servicios.find((s) => s.nombre.trim().toLowerCase() === normalizedName);
         return svc ? svc.servicioId : 0;
       }).filter(id => id > 0);
@@ -476,7 +476,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       // Formatting time to HH:mm:ss
       let hora = apt.horaInicio || '09:00:00';
       if (hora.length === 5) hora = hora + ':00';
-      
+
       // Formatting date to YYYY-MM-DD
       const fecha = apt.fechaCita.split('T')[0];
 
@@ -506,9 +506,9 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
     <div className="p-8">
       {isBookingMode && (
         <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-          <AppointmentBooking 
-            currentUser={currentUser} 
-            isAdminBooking={true} 
+          <AppointmentBooking
+            currentUser={currentUser}
+            isAdminBooking={true}
             onBookingComplete={() => {
               setIsBookingMode(false);
               loadData();
@@ -546,7 +546,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
           </div>
         </div>
       )}
-      
+
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -657,8 +657,8 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                           <Scissors className="w-4 h-4 text-brand-pink" />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-gradient-brand leading-none">
-                            {apt.servicios.length} {apt.servicios.length === 1 ? 'servicio' : 'servicios'}
+                          <span className="font-semibold text-gray-800 leading-none">
+                            {apt.servicios.length}
                           </span>
                         </div>
                       </div>
@@ -675,7 +675,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         <select
                           value={getEstadoId(apt.estado)}
                           onChange={(e) => handleStatusChangeClick(apt, Number(e.target.value))}
-                          className={`px-3 py-1 rounded-full text-sm font-bold border-2 cursor-pointer transition-all duration-200 focus:outline-none ${getStatusColor(apt.estado)}`}
+                          className={`px-3 py-1 rounded-full text-sm font-semibold border-2 cursor-pointer transition-all duration-200 focus:outline-none ${getStatusColor(apt.estado)}`}
                         >
                           {estadosAgenda.map((est) => (
                             <option key={est.estadoId} value={est.estadoId}>
@@ -918,18 +918,18 @@ function AppointmentModal({
   };
 
   // Determine the default employee document based on user role and data
-   const getDefaultEmployeeDoc = () => {
-     // If editing, use existing employee
-     if (appointment?.documentoEmpleado) return appointment.documentoEmpleado;
-     
-     // If assistant, always default to current user
-     if (currentUser?.role === 'asistente' && currentUser?.documentId) {
-       return currentUser.documentId;
-     }
-     
-     // Default from props if provided
-     return initialEmployee !== 'all' ? initialEmployee : '';
-   };
+  const getDefaultEmployeeDoc = () => {
+    // If editing, use existing employee
+    if (appointment?.documentoEmpleado) return appointment.documentoEmpleado;
+
+    // If assistant, always default to current user
+    if (currentUser?.role === 'asistente' && currentUser?.documentId) {
+      return currentUser.documentId;
+    }
+
+    // Default from props if provided
+    return initialEmployee !== 'all' ? initialEmployee : '';
+  };
 
   const [formData, setFormData] = useState({
     documentoCliente: appointment?.documentoCliente || '',
@@ -1592,8 +1592,8 @@ interface DetailModalProps {
 
 function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClose }: DetailModalProps) {
   // Safe extraction of services array
-  const servicesArray = Array.isArray(servicios) 
-    ? servicios 
+  const servicesArray = Array.isArray(servicios)
+    ? servicios
     : (servicios as any)?.data || (servicios as any)?.$values || [];
 
   // Find full service objects for the selected names
@@ -1690,13 +1690,13 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
 
               {/* Status Card */}
               <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${getStatusColor(appointment.estado).includes('bg-green')
-                  ? 'bg-green-50/50 border-green-100 text-green-600'
-                  : getStatusColor(appointment.estado).includes('bg-red')
-                    ? 'bg-gray-50/50 border-red-100 text-brand-pink'
-                    : 'bg-blue-50/50 border-blue-100 text-blue-600'
+                ? 'bg-green-50/50 border-green-100 text-green-600'
+                : getStatusColor(appointment.estado).includes('bg-red')
+                  ? 'bg-gray-50/50 border-red-100 text-brand-pink'
+                  : 'bg-blue-50/50 border-blue-100 text-blue-600'
                 }`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${getStatusColor(appointment.estado).includes('bg-green') ? 'bg-green-100' :
-                    getStatusColor(appointment.estado).includes('bg-red') ? 'bg-gray-100' : 'bg-blue-100'
+                  getStatusColor(appointment.estado).includes('bg-red') ? 'bg-gray-100' : 'bg-blue-100'
                   }`}>
                   <CheckCircle className="w-5 h-5" />
                 </div>
@@ -1857,10 +1857,10 @@ function DeleteAppointmentModal({ appointment, serviciosMap, onClose, onConfirm 
               ¿Eliminar cita de "{appointment.cliente}"?
             </h4>
             <p className="text-sm text-gray-500 leading-relaxed mb-6">
-              Estás a punto de eliminar permanentemente esta cita. 
+              Estás a punto de eliminar permanentemente esta cita.
               Esta acción liberará el espacio en la agenda del profesional.
             </p>
-            
+
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4 text-left">
               <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
                 <Calendar className="w-6 h-6 text-brand-pink" />

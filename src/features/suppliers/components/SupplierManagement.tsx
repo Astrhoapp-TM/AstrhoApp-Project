@@ -974,8 +974,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                         name="supplierType"
                         value={formData.supplierType}
                         onChange={handleInputChange}
-                        disabled={supplier !== null}
-                        className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 disabled:opacity-50"
+                        className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
                       >
                         <option value="juridica">Persona Jurídica</option>
                         <option value="natural">Persona Natural</option>

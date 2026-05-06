@@ -397,7 +397,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
                     </td>
 
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-600 max-w-md">{category.description}</div>
+                      <div className="text-sm text-gray-600 max-w-[250px] truncate" title={category.description}>{category.description}</div>
                     </td>
 
                     <td className="px-6 py-4">
@@ -430,7 +430,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
                           <Eye className="w-4 h-4" />
                         </button>
 
-                        {hasPermission('manage_categories') && (
+                        {hasPermission('manage_categories') && category.status === 'active' && (
                           <>
                               <button
                                 onClick={() => handleEditCategory(category)}

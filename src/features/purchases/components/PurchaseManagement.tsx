@@ -1071,6 +1071,12 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
     return new Date().toISOString().split('T')[0];
   };
 
+  const getMinDate = () => {
+    const min = new Date();
+    min.setDate(min.getDate() - 15);
+    return min.toISOString().split('T')[0];
+  };
+
   const [formData, setFormData] = useState({
     proveedorId: '',
     iva: '19',
@@ -1089,12 +1095,29 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
       [name]: value
     });
 
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: ''
-      });
+    const newErrors = { ...errors };
+
+    // Real-time date range validation
+    if (name === 'orderDate') {
+      const selected = new Date(value + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 15);
+      minDate.setHours(0, 0, 0, 0);
+
+      if (selected > today) {
+        newErrors.orderDate = 'La fecha no puede ser posterior a hoy';
+      } else if (selected < minDate) {
+        newErrors.orderDate = 'La fecha no puede ser mayor a 15 días en el pasado';
+      } else {
+        delete newErrors.orderDate;
+      }
+    } else if (newErrors[name]) {
+      delete newErrors[name];
     }
+
+    setErrors(newErrors);
   };
 
   const addProduct = () => {
@@ -1154,6 +1177,22 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
 
     if (!formData.iva || parseFloat(formData.iva) < 0) {
       newErrors.iva = 'Ingresa un valor de IVA válido';
+    }
+
+    // Date range validation (max 15 days back)
+    if (formData.orderDate) {
+      const selected = new Date(formData.orderDate + 'T00:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() - 15);
+      minDate.setHours(0, 0, 0, 0);
+
+      if (selected > today) {
+        newErrors.orderDate = 'La fecha no puede ser posterior a hoy';
+      } else if (selected < minDate) {
+        newErrors.orderDate = 'La fecha no puede ser mayor a 15 días en el pasado';
+      }
     }
 
     if (formData.items.length === 0) {
@@ -1294,11 +1333,16 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                         type="date"
                         name="orderDate"
                         value={formData.orderDate}
+                        min={getMinDate()}
                         max={getCurrentDate()}
                         onChange={handleInputChange}
-                        className="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
+                        className={cn(
+                          "w-full pl-10 pr-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700",
+                          errors.orderDate ? 'border-red-300' : 'border-gray-200'
+                        )}
                       />
                     </div>
+                    {errors.orderDate && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.orderDate}</p>}
                   </div>
 
                   <div>

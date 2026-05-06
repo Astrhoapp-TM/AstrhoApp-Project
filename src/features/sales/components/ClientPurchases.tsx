@@ -147,7 +147,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
         {/* Sales Grid */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800">Historial de Facturación</h3>
+            <h3 className="text-xl font-bold text-gray-800">Historial consecutivo</h3>
           </div>
 
           <div className="p-6">

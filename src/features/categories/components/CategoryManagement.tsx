@@ -666,25 +666,6 @@ function CategoryEditModal({ category, onClose, onSave }) {
                   </div>
                 </div>
 
-                {category && (
-                  <div className="pt-2">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Estado de la Categoría</label>
-                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.status === 'active'}
-                          onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'active' : 'inactive' })}
-                          className="sr-only peer"
-                        />
-                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                        <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-brand-pink'}`}>
-                          {formData.status === 'active' ? 'ACTIVO' : 'INACTIVO'}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>

@@ -1095,26 +1095,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                     {fieldErrors.email && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.email}</p>}
                   </div>
 
-                  {user && (
-                    <div className="pt-2">
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Estado del Acceso</label>
-                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <label className={`relative inline-flex items-center ${isEditingSuperAdmin ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}>
-                          <input
-                            type="checkbox"
-                            checked={formData.estado === true}
-                            onChange={(e) => !isEditingSuperAdmin && setFormData({ ...formData, estado: e.target.checked })}
-                            className="sr-only peer"
-                            disabled={isEditingSuperAdmin}
-                          />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          <span className={`ml-3 text-sm font-bold ${formData.estado ? 'text-green-600' : 'text-brand-pink'}`}>
-                            {formData.estado ? 'ACTIVO' : 'INACTIVO'}
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  )}
+
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { X, Save, AlertCircle, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
 import { type Supply } from '@/shared/data/management';
 import { SUPPLY_TYPES, SUPPLY_STATUSES } from '../../data/supplyConstants';
@@ -212,7 +212,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                     {errors.sku && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.sku}</p>}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo</label>
                       <select
@@ -223,19 +223,6 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       >
                         {Object.entries(SUPPLY_TYPES).map(([key, type]) => (
                           <option key={key} value={key}>{type.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Estado</label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
-                      >
-                        {Object.entries(SUPPLY_STATUSES).map(([key, status]) => (
-                          <option key={key} value={key}>{status.label}</option>
                         ))}
                       </select>
                     </div>

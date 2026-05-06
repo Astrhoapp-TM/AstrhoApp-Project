@@ -13,14 +13,14 @@ import { cn } from '@/shared/components/ui/utils';
 
 const mapApiToFrontend = (rawApiData: any) => {
   if (!rawApiData) return null;
-  
+
   // Unwrap if the data is nested (common in single-item API responses like getById)
   // Check for .data or .result, ignoring paginated or array wrappers
-  const apiData = (rawApiData.data && typeof rawApiData.data === 'object' && !Array.isArray(rawApiData.data)) 
-    ? rawApiData.data 
+  const apiData = (rawApiData.data && typeof rawApiData.data === 'object' && !Array.isArray(rawApiData.data))
+    ? rawApiData.data
     : (rawApiData.result && typeof rawApiData.result === 'object' && !Array.isArray(rawApiData.result))
-    ? rawApiData.result
-    : rawApiData;
+      ? rawApiData.result
+      : rawApiData;
 
   return {
     id: apiData.proveedorId || apiData.ProveedorId || Math.floor(Math.random() * 10000),
@@ -452,7 +452,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
                             className="sr-only peer"
                           />
                           <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          
+
                         </label>
                       </div>
                     ) : (
@@ -582,17 +582,17 @@ function SupplierDetailModal({ supplier, onClose }) {
             .no-scrollbar::-webkit-scrollbar { display: none; }
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           `}</style>
-          
+
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
-              
+
               {/* Commercial Status Card */}
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-4">
                   <Package className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Comercial</h4>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -609,18 +609,18 @@ function SupplierDetailModal({ supplier, onClose }) {
                     <div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Estado:</span>
                       <div className="mt-1">
-                        
+
                       </div>
                     </div>
                   </div>
-                  
+
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">
                       {supplier.supplierType === 'juridica' ? 'NIT:' : 'Cédula:'}
                     </span>
                     <p className="font-mono text-gray-800 font-semibold">{supplier.taxId}</p>
                   </div>
-                  
+
                   <div>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Persona de Contacto / Rep. Legal:</span>
                     <p className="text-gray-800 font-semibold">{supplier.supplierType === 'juridica' ? supplier.contactPerson : supplier.name}</p>
@@ -634,7 +634,7 @@ function SupplierDetailModal({ supplier, onClose }) {
                   <Phone className="w-4 h-4" />
                   <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de Contacto</h4>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
@@ -643,7 +643,7 @@ function SupplierDetailModal({ supplier, onClose }) {
                       <span className="text-gray-800 font-medium">{supplier.phone}</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <Mail className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <div>
@@ -651,7 +651,7 @@ function SupplierDetailModal({ supplier, onClose }) {
                       <span className="text-gray-800 font-medium break-all">{supplier.email}</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                     <div>
@@ -662,7 +662,7 @@ function SupplierDetailModal({ supplier, onClose }) {
                   </div>
                 </div>
               </div>
-              
+
             </div>
           </div>
         </div>
@@ -1024,19 +1024,6 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       {errors.contactPerson && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.contactPerson}</p>}
                     </div>
                   )}
-
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Estado</label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
-                    >
-                      <option value="active">Activo</option>
-                      <option value="inactive">Inactivo</option>
-                    </select>
-                  </div>
                 </div>
               </div>
 
@@ -1072,15 +1059,6 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       placeholder="Número de 10 dígitos"
                     />
                     {errors.phone && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.phone}</p>}
-                  </div>
-
-                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
-                      <Truck className="w-5 h-5 text-brand-pink" />
-                    </div>
-                    <p className="text-[10px] text-gray-500 font-medium leading-tight">
-                      Asegúrate de que los datos de contacto sean correctos para el envío de órdenes de compra.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -1167,7 +1145,7 @@ function DeleteConfirmationModal({ supplier, hasPurchases, isChecking, onClose, 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-        
+
         {/* Standardized Header */}
         <div className={`bg-gradient-to-r ${isDanger ? 'from-red-500 to-pink-600' : 'from-orange-500 to-amber-600'} p-5 text-white shrink-0 shadow-md`}>
           <div className="flex items-center justify-between">
@@ -1211,11 +1189,11 @@ function DeleteConfirmationModal({ supplier, hasPurchases, isChecking, onClose, 
                 <AlertCircle className={`w-10 h-10 ${isDanger ? 'text-brand-pink' : 'text-orange-500'} -rotate-3`} />
               )}
             </div>
-            
+
             <h4 className="text-lg font-bold text-gray-800 mb-2">
               {isChecking ? 'Verificando compras asociadas' : hasPurchases ? 'Proveedor en uso' : `¿Eliminar a ${supplier.name}?`}
             </h4>
-            
+
             <p className="text-sm text-gray-500 leading-relaxed mb-6">
               {isChecking ? (
                 'Por favor espera un momento mientras validamos el historial del proveedor.'
@@ -1243,31 +1221,31 @@ function DeleteConfirmationModal({ supplier, hasPurchases, isChecking, onClose, 
           </div>
 
           <div className="flex space-x-3">
-             {hasPurchases || isChecking ? (
-               <button
-                 onClick={onClose}
-                 disabled={isChecking}
-                 className="w-full bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-black hover:bg-gray-200 transition-all text-[10px] uppercase tracking-widest shadow-sm disabled:opacity-50"
-               >
-                 Entendido
-               </button>
-             ) : (
-               <>
-                 <button
-                   onClick={onClose}
-                   className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
-                 >
-                   Cancelar
-                 </button>
-                 <button
-                   onClick={onConfirm}
-                   className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
-                 >
-                   <Trash2 className="w-3.5 h-3.5" />
-                   <span>Eliminar</span>
-                 </button>
-               </>
-             )}
+            {hasPurchases || isChecking ? (
+              <button
+                onClick={onClose}
+                disabled={isChecking}
+                className="w-full bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-black hover:bg-gray-200 transition-all text-[10px] uppercase tracking-widest shadow-sm disabled:opacity-50"
+              >
+                Entendido
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={onClose}
+                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Eliminar</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

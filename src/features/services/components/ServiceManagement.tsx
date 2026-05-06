@@ -497,25 +497,25 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
             </div>
 
             <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            <button
-              onClick={fetchServices}
-              disabled={isLoading}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
-              title="Recargar datos"
-            >
-              <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
-            </button>
-
-            {hasPermission('manage_services') && (
               <button
-                onClick={handleCreateService}
-                className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                onClick={fetchServices}
+                disabled={isLoading}
+                className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
+                title="Recargar datos"
               >
-                <Plus className="w-5 h-5" />
-                <span>Registrar Servicio</span>
+                <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin")} />
               </button>
-            )}
-          </div>
+
+              {hasPermission('manage_services') && (
+                <button
+                  onClick={handleCreateService}
+                  className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Registrar Servicio</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -570,7 +570,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
                             disabled={!hasPermission('manage_services')}
                           />
                           <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          
+
                         </label>
                       </div>
                     </td>
@@ -717,14 +717,14 @@ function ServiceDetailModal({ service, onClose }) {
             .no-scrollbar::-webkit-scrollbar { display: none; }
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           `}</style>
-          
+
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Centered Large Image */}
             <div className="flex justify-center">
               <div className="bg-white rounded-3xl p-2 border border-gray-100 shadow-lg overflow-hidden w-full max-w-2xl h-64 md:h-80 transition-transform hover:scale-[1.02] duration-300">
-                <img 
-                  src={service.image} 
-                  alt={service.name} 
+                <img
+                  src={service.image}
+                  alt={service.name}
                   className="w-full h-full object-cover rounded-2xl"
                   onError={handleImageError}
                 />
@@ -743,7 +743,7 @@ function ServiceDetailModal({ service, onClose }) {
                   {service.name}
                 </p>
                 <div className="mt-auto">
-                  
+
                 </div>
               </div>
 
@@ -781,13 +781,13 @@ function ServiceDetailModal({ service, onClose }) {
 
             {/* Resumen Card */}
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
-                <div className="flex items-center space-x-3 mb-3">
-                  <Star className="w-5 h-5 text-brand-pink" />
-                  <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Resumen del Servicio</h4>
-                </div>
-                <p className="text-sm text-gray-600 italic leading-relaxed">
-                  Este servicio forma parte del catálogo oficial de AsthroApp. Los precios y duraciones son aproximados y pueden variar según la complejidad.
-                </p>
+              <div className="flex items-center space-x-3 mb-3">
+                <Star className="w-5 h-5 text-brand-pink" />
+                <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Resumen del Servicio</h4>
+              </div>
+              <p className="text-sm text-gray-600 italic leading-relaxed">
+                Este servicio forma parte del catálogo oficial de AsthroApp. Los precios y duraciones son aproximados y pueden variar según la complejidad.
+              </p>
             </div>
           </div>
         </div>
@@ -943,9 +943,8 @@ function ServiceEditModal({ service, onClose, onSave }) {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
-                          errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                        }`}
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                          }`}
                         placeholder="Ej: Corte y Peinado"
                       />
                     </div>
@@ -961,9 +960,8 @@ function ServiceEditModal({ service, onClose, onSave }) {
                           name="duration"
                           value={formData.duration}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
-                            errors.duration ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                          }`}
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.duration ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                            }`}
                         />
                       </div>
                     </div>
@@ -976,9 +974,8 @@ function ServiceEditModal({ service, onClose, onSave }) {
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
-                            errors.price ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                          }`}
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.price ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                            }`}
                         />
                       </div>
                     </div>
@@ -993,33 +990,14 @@ function ServiceEditModal({ service, onClose, onSave }) {
                         value={formData.description}
                         onChange={handleInputChange}
                         rows={3}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
-                          errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                        }`}
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                          }`}
                         placeholder="Describa el servicio..."
                       />
                     </div>
                   </div>
 
-                  {service && (
-                    <div className="pt-2">
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Estado del Servicio</label>
-                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.status === 'active'}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'active' : 'inactive' })}
-                            className="sr-only peer"
-                          />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-brand-pink'}`}>
-                            {formData.status === 'active' ? 'ACTIVO' : 'INACTIVO'}
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  )}
+                  {/* removed status block */}
                 </div>
               </div>
 
@@ -1076,18 +1054,6 @@ function ServiceEditModal({ service, onClose, onSave }) {
                       </label>
                     </div>
                   )}
-
-                  <div className="mt-6 p-4 bg-gray-50 rounded-2xl border border-purple-100">
-                    <div className="flex items-start space-x-3">
-                      <Star className="w-5 h-5 text-brand-violet mt-0.5" />
-                      <div>
-                        <p className="text-xs font-bold text-brand-indigo uppercase tracking-widest mb-1">Consejo Asthro</p>
-                        <p className="text-[11px] text-brand-indigo leading-relaxed italic">
-                          Una buena imagen ayuda a tus clientes a visualizar el resultado del servicio.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1154,10 +1120,10 @@ function DeleteConfirmationModal({ service, onClose, onConfirm }) {
               ¿Eliminar servicio "{service.name}"?
             </h4>
             <p className="text-sm text-gray-500 leading-relaxed mb-6">
-              Estás a punto de eliminar este servicio de forma permanente. 
+              Estás a punto de eliminar este servicio de forma permanente.
               Esta acción afectará los registros históricos y la disponibilidad del servicio.
             </p>
-            
+
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4">
               <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
                 <Scissors className="w-6 h-6 text-brand-pink" />

@@ -390,100 +390,100 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
         </div>
       </div>
 
-          {/* Table */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-800">Lista de Insumos</h3>
-              <p className="text-gray-600">
-                {totalCount} insumo{totalCount !== 1 ? 's' : ''} encontrado{totalCount !== 1 ? 's' : ''}
-              </p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gradient-to-r from-pink-50 to-purple-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-800">Nombre</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-800">SKU</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-800">Categoría</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-800">Stock</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-800">Estado</th>
-                    <th className="px-6 py-4 text-left font-semibold text-gray-800">Acciones</th>
-                  </tr>
-                </thead>
+      {/* Table */}
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
+          <h3 className="text-xl font-bold text-gray-800">Lista de Insumos</h3>
+          <p className="text-gray-600">
+            {totalCount} insumo{totalCount !== 1 ? 's' : ''} encontrado{totalCount !== 1 ? 's' : ''}
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gradient-to-r from-pink-50 to-purple-50">
+              <tr>
+                <th className="px-6 py-4 text-left font-semibold text-gray-800">Nombre</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-800">SKU</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-800">Categoría</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-800">Stock</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-800">Estado</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-800">Acciones</th>
+              </tr>
+            </thead>
 
-                <tbody className="divide-y divide-gray-100">
-                  {paginatedProducts.map(product => {
-                    return (
-                      <tr key={product.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-semibold text-gray-800">{product.name}</td>
-                        <td className="px-6 py-4 text-gray-700">{product.sku}</td>
-                        <td className="px-6 py-4 text-gray-700">{product.category}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-1 rounded-md text-sm font-bold ${product.quantity <= 0 ? 'bg-gray-100 text-brand-pink' : 'bg-blue-100 text-blue-700'
-                            }`}>
-                            {product.quantity} uds
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center space-x-3">
-                            <label className="relative inline-flex items-center cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={product.status === 'active'}
-                                onChange={() => handleToggleStatus(product)}
-                                className="sr-only peer"
-                                disabled={!hasPermission('manage_products')}
-                              />
-                              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                              
-                            </label>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2">
+            <tbody className="divide-y divide-gray-100">
+              {paginatedProducts.map(product => {
+                return (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 font-semibold text-gray-800">{product.name}</td>
+                    <td className="px-6 py-4 text-gray-700">{product.sku}</td>
+                    <td className="px-6 py-4 text-gray-700">{product.category}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-md text-sm font-bold ${product.quantity <= 0 ? 'bg-gray-100 text-brand-pink' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                        {product.quantity} uds
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={product.status === 'active'}
+                            onChange={() => handleToggleStatus(product)}
+                            className="sr-only peer"
+                            disabled={!hasPermission('manage_products')}
+                          />
+                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+
+                        </label>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleViewDetail(product)}
+                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+
+                        {hasPermission('manage_products') && (
+                          <>
                             <button
-                              onClick={() => handleViewDetail(product)}
-                              className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200"
+                              onClick={() => handleEditProduct(product)}
+                              className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
                             >
-                              <Eye className="w-4 h-4" />
+                              <Edit className="w-4 h-4" />
                             </button>
+                            <button
+                              onClick={() => handleDeleteProduct(product)}
+                              className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
-                            {hasPermission('manage_products') && (
-                              <>
-                                <button
-                                  onClick={() => handleEditProduct(product)}
-                                  className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteProduct(product)}
-                                  className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-              <SimplePagination
-                totalPages={totalPages}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-                totalRecords={totalCount}
-                recordsPerPage={itemsPerPage}
-              />
-            </div>
-          </div>
+        {/* Pagination */}
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+          <SimplePagination
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            totalRecords={totalCount}
+            recordsPerPage={itemsPerPage}
+          />
+        </div>
+      </div>
 
       {/* Modales */}
       {showProductModal && (
@@ -824,9 +824,8 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
-                          errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                        }`}
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                          }`}
                         placeholder="Ej: Champú Profesional"
                       />
                     </div>
@@ -842,9 +841,8 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                           name="sku"
                           value={formData.sku}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
-                            errors.sku ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                          }`}
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.sku ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                            }`}
                           placeholder="INV-001"
                         />
                       </div>
@@ -869,23 +867,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                   <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Estado y Descripción</h4>
                 </div>
                 <div className="p-6 space-y-4">
-                  <div className="pt-2">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Estado del Insumo</label>
-                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.status === 'active'}
-                          onChange={() => setFormData({ ...formData, status: formData.status === 'active' ? 'inactive' : 'active' })}
-                          className="sr-only peer"
-                        />
-                        <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                        <span className={`ml-3 text-sm font-bold ${formData.status === 'active' ? 'text-green-600' : 'text-brand-pink'}`}>
-                          {formData.status === 'active' ? 'ACTIVO' : 'INACTIVO'}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
+                  {/* removed status block */}
 
                   <div>
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción (Opcional)</label>
@@ -903,17 +885,6 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Summary Card */}
-            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
-                <div className="flex items-center space-x-3 mb-3">
-                  <Star className="w-5 h-5 text-brand-pink" />
-                  <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Aviso Asthro</h4>
-                </div>
-                <p className="text-sm text-gray-600 italic leading-relaxed">
-                  El stock de los insumos se gestiona automáticamente a través del módulo de **Compras** y **Consumos**. No es necesario asignar stock manualmente al registrar.
-                </p>
             </div>
           </div>
         </form>
@@ -1015,17 +986,15 @@ function ProductDetailModal({ product, onClose }: any) {
               </div>
 
               {/* Status Card */}
-              <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${
-                product.status === 'active' 
-                ? 'bg-green-50/50 border-green-100 text-green-600' 
-                : 'bg-gray-50/50 border-red-100 text-brand-pink'
-              }`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
-                  product.status === 'active' ? 'bg-green-100' : 'bg-gray-100'
+              <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${product.status === 'active'
+                  ? 'bg-green-50/50 border-green-100 text-green-600'
+                  : 'bg-gray-50/50 border-red-100 text-brand-pink'
                 }`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${product.status === 'active' ? 'bg-green-100' : 'bg-gray-100'
+                  }`}>
                   <CheckCircle className="w-5 h-5" />
                 </div>
-                
+
               </div>
             </div>
 
@@ -1097,10 +1066,10 @@ function DeleteConfirmModal({ productName, onConfirm, onCancel }: any) {
               ¿Eliminar insumo "{productName}"?
             </h4>
             <p className="text-sm text-gray-500 leading-relaxed mb-6">
-              Estás a punto de eliminar este insumo de forma permanente. 
+              Estás a punto de eliminar este insumo de forma permanente.
               Esta acción afectará los registros históricos y el inventario actual.
             </p>
-            
+
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4">
               <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
                 <Package className="w-6 h-6 text-brand-pink" />

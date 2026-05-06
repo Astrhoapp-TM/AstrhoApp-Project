@@ -720,14 +720,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <button
-                    onClick={handleCreateRole}
-                    disabled={loading}
-                    className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition-all font-bold text-xs uppercase tracking-widest backdrop-blur-sm shadow-sm"
-                  >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    <span>{loading ? 'Guardando...' : 'Guardar'}</span>
-                  </button>
+
                   <button
                     onClick={() => {
                       setShowCreateModal(false);
@@ -1086,16 +1079,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    {!isSuperAdmin && (
-                      <button
-                        onClick={handleSaveRole}
-                        disabled={loading}
-                        className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition-all font-bold text-xs uppercase tracking-widest backdrop-blur-sm shadow-sm"
-                      >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        <span>{loading ? 'Guardando...' : 'Guardar'}</span>
-                      </button>
-                    )}
+
                     <button
                       onClick={() => setEditingRole(null)}
                       className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/30 hover:scale-110 active:scale-95 transition-all shadow-sm"

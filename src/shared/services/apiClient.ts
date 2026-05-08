@@ -1,4 +1,4 @@
-const BASE_URL = 'http://www.astrhoapp.somee.com';
+const BASE_URL = 'https://astrhoapp.somee.com';
 
 // ── JWT Token Management ──
 let _token: string | null = localStorage.getItem('auth_token');

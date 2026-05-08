@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Scissors, Droplets, Sparkles, Heart, Clock, Search,
   Eye, ChevronLeft, ChevronRight, Filter, Calendar, X,
@@ -14,7 +14,7 @@ interface ServicesProps {
   onBookAppointment: (selectedService?: any) => void;
 }
 
-const API_ORIGIN = 'http://www.astrhoapp.somee.com';
+const API_ORIGIN = 'https://astrhoapp.somee.com';
 const DEFAULT_SERVICE_IMAGE = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop';
 
 // Helper for image retry logic

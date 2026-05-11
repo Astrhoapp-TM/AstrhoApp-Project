@@ -11,7 +11,7 @@ import { cn } from '@/shared/components/ui/utils';
 import { useLoading } from '@/shared/contexts/LoadingContext';
 import { SectionLoader } from '@/shared/components/GlobalLoader';
 
-const API_ORIGIN = 'http://www.astrhoapp.somee.com';
+const API_ORIGIN = 'https://astrhoapp.somee.com';
 const DEFAULT_SERVICE_IMAGE = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop';
 
 // Helper for image retry logic

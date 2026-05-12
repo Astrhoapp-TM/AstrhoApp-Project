@@ -22,7 +22,7 @@ interface PersonManagementProps {
 }
 
 export function PersonManagement({ hasPermission, initialType = 'client' }: PersonManagementProps) {
-    const [personType, setPersonType] = useState<'client' | 'employee'>(initialType);
+    const personType = initialType;
     const [persons, setPersons] = useState<Person[]>([]);
     const [roles, setRoles] = useState<RolListDto[]>([]);
     const [loading, setLoading] = useState(false);
@@ -91,7 +91,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
     // Reset page when search changes
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, personType]);
+    }, [searchTerm]);
 
     // Ya no filtramos en el cliente, usamos lo que viene de la API
     const paginatedPersons = persons;
@@ -356,35 +356,11 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-800">Gestión de Personas</h2>
+                    <h2 className="text-3xl font-bold text-gray-800">{personType === 'client' ? 'Gestión de Clientes' : 'Gestión de Empleados'}</h2>
                     <p className="text-gray-600">
-                        Administra la información de clientes y empleados
+                        {personType === 'client' ? 'Administra la información de clientes' : 'Administra la información de empleados'}
                     </p>
                 </div>
-            </div>
-
-            {/* Role Switcher Tabs */}
-            <div className="flex space-x-4 mb-8">
-                <button
-                    onClick={() => setPersonType('client')}
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center space-x-2 ${personType === 'client'
-                        ? 'bg-gradient-brand text-white shadow-lg'
-                        : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-brand-indigo shadow-sm border border-gray-100'
-                        }`}
-                >
-                    <Users className={`w-5 h-5 ${personType === 'client' ? 'text-white' : 'text-gray-400'}`} />
-                    <span>Clientes</span>
-                </button>
-                <button
-                    onClick={() => setPersonType('employee')}
-                    className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center space-x-2 ${personType === 'employee'
-                        ? 'bg-gradient-brand text-white shadow-lg'
-                        : 'bg-white text-gray-600 hover:bg-gray-100 hover:text-brand-indigo shadow-sm border border-gray-100'
-                        }`}
-                >
-                    <Briefcase className={`w-5 h-5 ${personType === 'employee' ? 'text-white' : 'text-gray-400'}`} />
-                    <span>Empleados</span>
-                </button>
             </div>
 
             {/* Search and Register */}

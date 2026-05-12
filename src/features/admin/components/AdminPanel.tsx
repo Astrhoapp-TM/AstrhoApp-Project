@@ -72,8 +72,10 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
         return <UserManagement hasPermission={hasPermission} />;
       case 'roles':
         return <RoleManagement hasPermission={hasPermission} />;
-      case 'persons':
-        return <PersonManagement hasPermission={hasPermission} />;
+      case 'clients':
+        return <PersonManagement hasPermission={hasPermission} initialType="client" />;
+      case 'employees':
+        return <PersonManagement hasPermission={hasPermission} initialType="employee" />;
       case 'appointments':
         return <AppointmentManagement hasPermission={hasPermission} currentUser={currentUser} />;
       case 'schedules':

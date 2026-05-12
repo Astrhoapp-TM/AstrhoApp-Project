@@ -70,9 +70,16 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
     category: 'VENTAS'
   },
   {
-    id: 'persons',
-    label: 'Personas',
+    id: 'clients',
+    label: 'Clientes',
     icon: UserCheck,
+    permission: 'module_clients',
+    category: 'VENTAS'
+  },
+  {
+    id: 'employees',
+    label: 'Empleados',
+    icon: Users,
     permission: 'module_clients',
     category: 'VENTAS'
   },

@@ -1043,9 +1043,7 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
                       <div className="flex flex-col">
                         <span className="font-medium">{supply.nombre}</span>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-gray-400">Stock: {supply.stockActual} {supply.unidadMedida}</span>
-                          <span className="text-[10px] text-gray-400">•</span>
-                          <span className="text-[10px] text-brand-pink font-bold">${(supply.precioPromedio || 0).toLocaleString()}</span>
+                          <span className="text-[10px] text-gray-400">Stock: {supply.stock ?? 0}</span>
                         </div>
                       </div>
                     </div>

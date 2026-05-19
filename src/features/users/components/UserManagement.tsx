@@ -871,8 +871,24 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       case 'documentId': {
         if (isCreate && !value.trim()) return 'El número de documento es obligatorio';
         const effectiveDocType = docType || formData.documentType;
-        if (isCreate && effectiveDocType === 'cedula' && value.trim() && !/^\d+$/.test(value))
-          return 'El número de documento solo debe contener números, sin letras ni caracteres especiales';
+        if (value.trim()) {
+          const len = value.trim().length;
+          if (effectiveDocType === 'pasaporte') {
+            // Passport allows alphanumeric characters
+            if (!/^[a-zA-Z0-9]+$/.test(value.trim()))
+              return 'El pasaporte solo debe contener letras y números, sin caracteres especiales';
+            if (len < 6 || len > 15) return 'El pasaporte debe tener entre 6 y 15 caracteres';
+          } else {
+            // CC and CE are numeric-only
+            if (!/^\d+$/.test(value.trim()))
+              return 'El número de documento solo debe contener números, sin letras ni caracteres especiales';
+            if (effectiveDocType === 'cedula') {
+              if (len < 6 || len > 10) return 'La cédula debe tener entre 6 y 10 dígitos';
+            } else if (effectiveDocType === 'cedula_extranjeria') {
+              if (len < 6 || len > 10) return 'La cédula de extranjería debe tener entre 6 y 10 dígitos';
+            }
+          }
+        }
         return '';
       }
       case 'phone':
@@ -986,14 +1002,33 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       sanitized = value.replace(/[^0-9]/g, '').slice(0, 10);
     }
 
+    // Sanitize documentId based on doc type
+    if (name === 'documentId') {
+      if (formData.documentType === 'pasaporte') {
+        // Passport: allow letters and numbers, strip special chars
+        sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15);
+      } else {
+        // CC / CE: numeric only
+        sanitized = value.replace(/[^0-9]/g, '').slice(0, 10);
+      }
+    }
+
     // Real-time synchronous validation
     const error = validateField(name, sanitized, name === 'documentType' ? sanitized : undefined);
     setFieldErrors(prev => ({ ...prev, [name]: error }));
 
-    // When document type changes, re-validate the document number with the new type
+    // When document type changes, truncate documentId to new max and re-validate
     if (name === 'documentType') {
-      const docError = validateField('documentId', formData.documentId, sanitized);
+      const newMaxLen = sanitized === 'pasaporte' ? 15 : 10;
+      const trimmedDocId = formData.documentId.slice(0, newMaxLen);
+      const docError = validateField('documentId', trimmedDocId, sanitized);
       setFieldErrors(prev => ({ ...prev, documentId: docError }));
+      setFormData(prev => ({
+        ...prev,
+        documentType: sanitized,
+        documentId: trimmedDocId,
+      }));
+      return;
     }
 
     setFormData({
@@ -1151,13 +1186,16 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                         <input
                           type="text"
                           name="documentId"
+                          inputMode={formData.documentType === 'pasaporte' ? 'text' : 'numeric'}
+                          pattern={formData.documentType === 'pasaporte' ? '[a-zA-Z0-9]*' : '[0-9]*'}
+                          maxLength={formData.documentType === 'pasaporte' ? 15 : 10}
                           value={formData.documentId}
                           onChange={handleInputChange}
                           onBlur={handleBlur}
                           className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             fieldErrors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           } ${!!user ? 'opacity-60 cursor-not-allowed' : ''}`}
-                          placeholder="1234567890"
+                          placeholder={formData.documentType === 'pasaporte' ? 'AB1234567' : '1234567890'}
                           disabled={!!user}
                         />
                       </div>

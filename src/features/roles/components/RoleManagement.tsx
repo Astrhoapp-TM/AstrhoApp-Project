@@ -582,7 +582,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         </div>
                         <div>
                           <div className="font-semibold text-gray-800">{role.name}</div>
-                          <div className="text-sm text-gray-600">{role.description}</div>
+                          <div className="text-sm text-gray-600 truncate" style={{ maxWidth: '150px' }}>{(role.description || '').length > 20 ? (role.description || '').substring(0, 20) + '...' : (role.description || '')}</div>
                         </div>
                       </div>
                     </td>
@@ -610,11 +610,12 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                           </div>
                         ) : (
                           // Otros roles con switch
-                          <label className="relative inline-flex items-center cursor-pointer">
+                          <label className={cn("relative inline-flex items-center", role.status === 'inactive' && 'opacity-50 cursor-not-allowed')}>
                             <input
                               type="checkbox"
                               checked={role.status === 'active'}
                               onChange={() => toggleRoleStatus(role.id)}
+                              disabled={role.status === 'inactive'}
                               className="sr-only peer"
                             />
                             <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
@@ -638,7 +639,13 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                           <>
                             <button
                               onClick={() => handleEditRole(role)}
-                              className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                              disabled={role.status === 'inactive'}
+                              className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                role.status === 'inactive'
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-green-100 text-green-700 hover:bg-green-200"
+                              )}
                               title="Editar rol"
                             >
                               <Edit className="w-4 h-4" />
@@ -646,7 +653,13 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
 
                             <button
                               onClick={() => handleDeleteRole(role)}
-                              className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
+                              disabled={role.status === 'inactive'}
+                              className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                role.status === 'inactive'
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                              )}
                               title="Eliminar rol"
                             >
                               <Trash2 className="w-4 h-4" />

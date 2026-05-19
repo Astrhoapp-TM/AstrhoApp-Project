@@ -528,27 +528,6 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                       )}
                     </td>
 
-                    <td className="px-6 py-4">
-                      {/* Select de cambio de estado */}
-                      <div className="relative">
-                        {hasPermission('manage_deliveries') &&
-                          (delivery.estadoId === 1) ? (
-                          <select
-                            value={delivery.estado}
-                            onChange={(e) => updateDeliveryStatus(delivery.id, e.target.value)}
-                            className={`px-4 py-1.5 rounded-full text-xs font-bold border-2 cursor-pointer transition-all duration-200 focus:outline-none ${getStatusColor(delivery.estado)}`}
-                          >
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="Completado">Completado</option>
-                          </select>
-                        ) : (
-                          <span className={`px-4 py-1.5 rounded-full text-xs font-bold border-2 inline-block ${getStatusColor(delivery.estado)}`}>
-                            {getStatusLabel(delivery.estado)}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <button
@@ -559,8 +538,6 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                           <Eye className="w-4 h-4" />
                         </button>
 
-
-
                         <button
                           onClick={() => handlePrintDeliveryPDF(delivery)}
                           className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
@@ -568,16 +545,6 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                         >
                           <FileText className="w-4 h-4" />
                         </button>
-
-                        {hasPermission('manage_deliveries') && delivery.estadoId === 1 && (
-                          <button
-                            onClick={() => handleCancelDelivery(delivery)}
-                            className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                            title="Cancelar entrega"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -1493,17 +1460,20 @@ function DeliveryItemsPreview({ deliveryId, getSupplyInfo }: { deliveryId: numbe
   if (loading) return <div className="text-xs text-purple-400 animate-pulse font-medium">Cargando insumos...</div>;
   if (!items || items.length === 0) return <div className="text-sm text-gray-400 italic">No hay insumos o no se detectaron</div>;
 
+  const visibleItems = items.slice(0, 2);
+  const hasMore = items.length > 2;
+
   return (
     <div className="space-y-1.5">
-      {items.map((item, idx) => {
+      {visibleItems.map((item, idx) => {
         const prod = getSupplyInfo(item.insumoId);
         return (
           <div key={idx} className="text-sm font-medium text-gray-700 flex items-center space-x-2">
-            
             <span>{prod?.nombre || 'Insumo #' + item.insumoId}: <strong className="text-brand-indigo ml-1">{item.cantidad}</strong></span>
           </div>
         );
       })}
+      {hasMore && <div className="text-sm font-medium text-gray-500">...</div>}
     </div>
   );
 }

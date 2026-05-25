@@ -743,6 +743,16 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6">
+          <div className="flex justify-end mb-4">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
+          </div>
           <ProgressHeader currentStep={1} isAdminBooking={isAdminBooking} />
 
           <div className="text-center mb-8">
@@ -792,6 +802,16 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6">
+          <div className="flex justify-end mb-4">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
+          </div>
           <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="text-center mb-8">
@@ -1092,6 +1112,16 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-end mb-4">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
+          </div>
           <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="text-center mb-8">
@@ -1273,6 +1303,16 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-end mb-4">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white/80 rounded-full flex items-center justify-center hover:bg-white transition-all shadow-md"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            )}
+          </div>
           <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/50 p-6 rounded-3xl border border-white shadow-sm backdrop-blur-sm">

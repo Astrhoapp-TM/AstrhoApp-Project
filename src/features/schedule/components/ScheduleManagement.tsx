@@ -807,6 +807,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
         <ScheduleModal
           group={selectedGroup}
           horarios={selectedGroup ? getHorariosForGroup(selectedGroup) : []}
+          allGroups={groups}
           empleados={empleados}
           existingAssignments={selectedGroup ? getAssignmentsForGroup(selectedGroup) : []}
           onClose={() => setShowScheduleModal(false)}
@@ -1131,6 +1132,7 @@ function MotivoModal({ onClose, onSave, saving }: MotivoModalProps) {
 interface ScheduleModalProps {
   group: ScheduleGroup | null;
   horarios: Horario[];
+  allGroups: ScheduleGroup[];
   empleados: Empleado[];
   existingAssignments: HorarioEmpleado[];
   onClose: () => void;
@@ -1139,7 +1141,7 @@ interface ScheduleModalProps {
   checkOverlap: (doc: string, dia: string, inicio: string, fin: string, excludeScheduleId?: number) => boolean;
 }
 
-function ScheduleModal({ group, horarios, empleados, existingAssignments, onClose, onSave, saving, checkOverlap }: ScheduleModalProps) {
+function ScheduleModal({ group, horarios, allGroups, empleados, existingAssignments, onClose, onSave, saving, checkOverlap }: ScheduleModalProps) {
   const [nombre, setNombre] = useState(group?.nombre || '');
 
   // Build initial days state
@@ -1269,6 +1271,17 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
 
     if (!nombre.trim()) {
       setValidationError('El nombre del horario es obligatorio');
+      return;
+    }
+
+    // Check for duplicate names (excluding current group if editing)
+    const isDuplicateName = allGroups.some(g => 
+      g.nombre.toLowerCase().trim() === nombre.trim().toLowerCase() && 
+      (!group || g.id !== group.id)
+    );
+
+    if (isDuplicateName) {
+      setValidationError(`Ya existe un horario con el nombre "${nombre.trim()}". Por favor, usa un nombre diferente.`);
       return;
     }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff, IdCard, Phone, ArrowLeft, CheckCircle, Loader2, Send, Save, AlertCircle } from 'lucide-react';
 import { authService } from '../services/authService';
 import { setAuthToken } from '@/shared/services/apiClient';
@@ -8,6 +8,14 @@ interface AuthModalProps {
   onClose: () => void;
   onLogin: (user: any) => void;
   onPasswordRecoveryDemo?: (email: string) => void;
+}
+
+interface ValidationErrors {
+  documentId?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
 }
 
 export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModalProps) {
@@ -30,6 +38,8 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   const [passwordError, setPasswordError] = useState('');
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const { showLoading, hideLoading } = useLoading();
 
   // Tokens for the password recovery flow
@@ -47,6 +57,65 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     password: '',
     confirmPassword: ''
   });
+
+  // Validation functions
+  const validateDocumentId = (value: string) => {
+    const trimmed = value.trim();
+    if (trimmed.length < 5) return 'El documento debe tener al menos 5 caracteres';
+    if (trimmed.length > 11) return 'El documento no puede tener más de 11 caracteres';
+    return '';
+  };
+
+  const validateName = (value: string, fieldName: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return `${fieldName} es requerido`;
+    if (value !== trimmed) return `${fieldName} no debe tener espacios al inicio ni al final`;
+    if (/\s{2,}/.test(value)) return `${fieldName} no debe tener más de un espacio entre palabras`;
+    return '';
+  };
+
+  const validatePhone = (value: string) => {
+    const numbersOnly = value.replace(/\D/g, '');
+    if (numbersOnly.length !== 10) return 'El teléfono debe tener exactamente 10 dígitos';
+    if (/\D/.test(value)) return 'El teléfono solo debe contener números';
+    return '';
+  };
+
+  const checkEmailDuplicate = useCallback(async (email: string) => {
+    if (!email || !email.includes('@')) return;
+    
+    setCheckingEmail(true);
+    try {
+      const result = await authService.checkDuplicates(email);
+      if (result.emailExists) {
+        setValidationErrors(prev => ({ ...prev, email: 'Este correo electrónico ya está registrado' }));
+      } else {
+        setValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.email;
+          return newErrors;
+        });
+      }
+    } catch (err) {
+      // Si falla la validación, el servidor lo hará al enviar el formulario
+      console.error('Error checking email:', err);
+    } finally {
+      setCheckingEmail(false);
+    }
+  }, []);
+
+  // Debounce for email check
+  useEffect(() => {
+    if (isLogin) return;
+    
+    const timer = setTimeout(() => {
+      if (formData.email && validationErrors.email !== 'Este correo electrónico ya está registrado') {
+        checkEmailDuplicate(formData.email);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [formData.email, isLogin, checkEmailDuplicate, validationErrors.email]);
 
   // ── LOGIN ──
   const handleLogin = async (e: React.FormEvent) => {
@@ -129,6 +198,13 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     e.preventDefault();
     setApiError('');
 
+    // Validate all fields
+    const errors: ValidationErrors = {};
+    errors.documentId = validateDocumentId(formData.documentId);
+    errors.firstName = validateName(formData.firstName, 'Nombres');
+    errors.lastName = validateName(formData.lastName, 'Apellidos');
+    errors.phone = validatePhone(formData.phone);
+
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setApiError('Las contraseñas no coinciden');
@@ -136,6 +212,19 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     }
     if (formData.password.length < 6) {
       setApiError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    // Filter out empty errors
+    const filteredErrors: ValidationErrors = {};
+    Object.entries(errors).forEach(([key, value]) => {
+      if (value) filteredErrors[key as keyof ValidationErrors] = value;
+    });
+
+    // Check if there are any validation errors
+    if (Object.keys(filteredErrors).length > 0 || validationErrors.email) {
+      setValidationErrors({ ...filteredErrors, email: validationErrors.email });
+      setApiError('Por favor corrige los errores en el formulario');
       return;
     }
 
@@ -188,12 +277,54 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
-    setApiError(''); // Clear error on input change
+    setApiError('');
+
+    // Real-time validation for registration fields
+    if (!isLogin) {
+      let error = '';
+      
+      switch (name) {
+        case 'documentId':
+          error = validateDocumentId(value);
+          break;
+        case 'firstName':
+          error = validateName(value, 'Nombres');
+          break;
+        case 'lastName':
+          error = validateName(value, 'Apellidos');
+          break;
+        case 'phone':
+          error = validatePhone(value);
+          break;
+        case 'email':
+          // Email validation is debounced, just clear any existing error temporarily
+          if (validationErrors.email && validationErrors.email !== 'Este correo electrónico ya está registrado') {
+            setValidationErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors.email;
+              return newErrors;
+            });
+          }
+          break;
+      }
+
+      if (error) {
+        setValidationErrors(prev => ({ ...prev, [name]: error }));
+      } else if (name !== 'email') {
+        setValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
+    }
   };
+
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -632,9 +763,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                             value={formData.documentId}
                             onChange={handleInputChange}
                             required
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
+                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 transition-all text-sm font-medium ${validationErrors.documentId ? 'border-red-400 focus:ring-red-200 focus:border-red-500' : 'border-gray-100 focus:ring-brand-periwinkle/30 focus:border-brand-indigo'}`}
                             placeholder="Ej: 1020304050"
                           />
+                          {validationErrors.documentId && (
+                            <p className="text-[10px] text-brand-pink font-bold mt-1 uppercase">{validationErrors.documentId}</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -654,9 +788,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           value={formData.firstName}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 transition-all text-sm font-medium ${validationErrors.firstName ? 'border-red-400 focus:ring-red-200 focus:border-red-500' : 'border-gray-100 focus:ring-brand-periwinkle/30 focus:border-brand-indigo'}`}
                           placeholder="Tus nombres"
                         />
+                        {validationErrors.firstName && (
+                          <p className="text-[10px] text-brand-pink font-bold mt-1 uppercase">{validationErrors.firstName}</p>
+                        )}
                       </div>
                       <div>
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Apellidos *</label>
@@ -666,9 +803,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           value={formData.lastName}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 transition-all text-sm font-medium ${validationErrors.lastName ? 'border-red-400 focus:ring-red-200 focus:border-red-500' : 'border-gray-100 focus:ring-brand-periwinkle/30 focus:border-brand-indigo'}`}
                           placeholder="Tus apellidos"
                         />
+                        {validationErrors.lastName && (
+                          <p className="text-[10px] text-brand-pink font-bold mt-1 uppercase">{validationErrors.lastName}</p>
+                        )}
                       </div>
                       <div className="col-span-2">
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Teléfono *</label>
@@ -678,9 +818,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           value={formData.phone}
                           onChange={handleInputChange}
                           required
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
-                          placeholder="+57 300 123 4567"
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 transition-all text-sm font-medium ${validationErrors.phone ? 'border-red-400 focus:ring-red-200 focus:border-red-500' : 'border-gray-100 focus:ring-brand-periwinkle/30 focus:border-brand-indigo'}`}
+                          placeholder="3001234567"
                         />
+                        {validationErrors.phone && (
+                          <p className="text-[10px] text-brand-pink font-bold mt-1 uppercase">{validationErrors.phone}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -693,15 +836,25 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                     <div className="space-y-4">
                       <div>
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Correo Electrónico *</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
-                          placeholder="tu@email.com"
-                        />
+                        <div className="relative">
+                          <input
+                            type="email"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            required
+                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 transition-all text-sm font-medium pr-12 ${validationErrors.email ? 'border-red-400 focus:ring-red-200 focus:border-red-500' : 'border-gray-100 focus:ring-brand-periwinkle/30 focus:border-brand-indigo'}`}
+                            placeholder="tu@email.com"
+                          />
+                          {checkingEmail && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <Loader2 className="w-4 h-4 text-brand-indigo animate-spin" />
+                            </div>
+                          )}
+                        </div>
+                        {validationErrors.email && (
+                          <p className="text-[10px] text-brand-pink font-bold mt-1 uppercase">{validationErrors.email}</p>
+                        )}
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -822,6 +975,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                     onClick={() => {
                       setIsLogin(!isLogin);
                       setApiError('');
+                      setValidationErrors({});
                       setFormData({
                         documentType: 'cedula',
                         firstName: '',

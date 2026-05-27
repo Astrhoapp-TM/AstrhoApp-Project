@@ -65,6 +65,24 @@ export const userService = {
     },
 
     delete: async (id: number): Promise<void> => {
+        // First get the associated person (client or employee)
+        const personInfo = await userService.getPersonForUser({ usuarioId: id });
+        
+        if (personInfo) {
+            try {
+                if (personInfo.type === 'client') {
+                    // Delete client first
+                    await apiClient.delete(`/api/Clientes/${personInfo.documentId}`);
+                } else if (personInfo.type === 'employee') {
+                    // Delete employee first
+                    await apiClient.delete(`/api/Empleados/${personInfo.documentId}`);
+                }
+            } catch (error) {
+                console.error('Error deleting associated client/employee:', error);
+            }
+        }
+        
+        // Then delete the user
         return apiClient.delete<void>(`/api/Usuarios/${id}`);
     },
 

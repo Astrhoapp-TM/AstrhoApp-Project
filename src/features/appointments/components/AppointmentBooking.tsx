@@ -11,7 +11,7 @@ import { userService } from '@/features/users/services/userService';
 import { personService } from '@/features/persons/services/personService';
 import { horarioEmpleadoService, type HorarioEmpleado } from '@/features/schedule/services/scheduleService';
 import { motivoService, type Motivo } from '@/shared/services/motivoService';
-import { useServicios, useEmpleados } from '../hooks/useBookingData';
+import { useServicios, useEmpleados, useClientes } from '../hooks/useBookingData';
 
 const defaultTimeSlots = [
   '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -154,6 +154,19 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     totalPages: totalProfessionalPages,
     error: professionalError
   } = useEmpleados(6);
+
+  const { 
+    data: clients, 
+    loading: isLoadingClients, 
+    page: clientPage, 
+    setPage: setClientPage, 
+    search: clientSearchTerm, 
+    setSearch: setClientSearchTerm,
+    totalPages: totalClientPages,
+    error: clientError
+  } = useClientes(6);
+
+  const [selectedClient, setSelectedClient] = useState<any>(null);
 
   const [existingAppointments, setExistingAppointments] = useState<AgendaItem[]>([]);
   const [metodosPago, setMetodosPago] = useState<any[]>([]);
@@ -742,44 +755,191 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   if (step === 0 && isAdminBooking) {
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
-        <div className="max-w-[1024px] mx-auto px-4 sm:px-6">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
           <ProgressHeader currentStep={1} isAdminBooking={isAdminBooking} />
 
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
-              Selecciona el <span className="text-transparent bg-clip-text bg-gradient-brand">Cliente</span>
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">
+              Selecciona el Cliente
             </h2>
-            <p className="text-base text-gray-600 font-medium">
-              Busca y selecciona al cliente para quien vas a registrar la cita
+            <p className="text-xl text-gray-600">
+              Elige al cliente para quien vas a registrar la cita
             </p>
           </div>
 
-          <div className="bg-white rounded-[2rem] shadow-2xl shadow-pink-100/10 border border-gray-100 p-8 sm:p-12 max-w-2xl mx-auto">
-            <div className="mb-8 bg-gray-50/50 p-6 rounded-3xl border border-gray-100 shadow-inner">
-              <ClientSearchSelect 
-                selectedDocument={clientDocument} 
-                onSelect={(client: any) => setClientDocument(client?.documentoCliente || '')} 
-              />
-            </div>
+          <div className="bg-white rounded-3xl shadow-xl p-8">
+            {isLoadingClients ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-12 h-12 text-brand-pink animate-spin mb-4" />
+                <p className="text-gray-600 font-medium">Buscando clientes disponibles...</p>
+              </div>
+            ) : (
+              <>
+                {/* Search Bar for Clients */}
+                <div className="mb-8 relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o teléfono..."
+                    value={clientSearchTerm}
+                    onChange={(e) => setClientSearchTerm(e.target.value)}
+                    className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-periwinkle focus:bg-white transition-all text-lg"
+                  />
+                  {clientSearchTerm && (
+                    <button 
+                      onClick={() => setClientSearchTerm('')}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-pink"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
 
-            <div className="flex flex-row items-center justify-between gap-4 mt-8">
+                {clients.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                      {clients.map((client) => (
+                        <div
+                          key={client.id}
+                          onClick={() => {
+                            setSelectedClient(client);
+                            setClientDocument(client.id);
+                            setStep(1);
+                          }}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md flex items-center space-x-4 group ${
+                            selectedClient?.id === client.id
+                              ? 'border-pink-500 bg-gray-50 shadow-md scale-[1.02]'
+                              : 'border-gray-100 hover:border-brand-periwinkle bg-white'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-gray-800 text-base mb-0.5 truncate group-hover:text-brand-indigo transition-colors">
+                              {client.name}
+                            </h4>
+                            <p className="text-gray-500 text-xs font-medium truncate">
+                              {client.phone}
+                            </p>
+                          </div>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                            selectedClient?.id === client.id 
+                              ? 'bg-pink-500 text-white rotate-0' 
+                              : 'bg-gray-50 text-gray-400 -rotate-45 group-hover:rotate-0 group-hover:bg-gray-100 group-hover:text-brand-pink'
+                          }`}>
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pagination for Clients */}
+                    {totalClientPages > 1 && (
+                      <div className="flex items-center justify-center space-x-4 mb-8">
+                        <button
+                          onClick={() => {
+                            setClientPage(p => Math.max(1, p - 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          disabled={clientPage === 1}
+                          className={`p-2 rounded-xl transition-all ${
+                            clientPage === 1 
+                              ? 'text-gray-300 cursor-not-allowed' 
+                              : 'text-brand-pink hover:bg-gray-100'
+                          }`}
+                        >
+                          <ChevronLeft className="w-8 h-8" />
+                        </button>
+                        
+                        <div className="flex items-center space-x-2">
+                          {[...Array(totalClientPages)].map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                setClientPage(i + 1);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                                clientPage === i + 1
+                                  ? 'bg-pink-500 text-white shadow-md'
+                                  : 'text-gray-500 hover:bg-gray-100'
+                              }`}
+                            >
+                              {i + 1}
+                            </button>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setClientPage(p => Math.min(totalClientPages, p + 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          disabled={clientPage === totalClientPages}
+                          className={`p-2 rounded-xl transition-all ${
+                            clientPage === totalClientPages 
+                              ? 'text-gray-300 cursor-not-allowed' 
+                              : 'text-brand-pink hover:bg-gray-100'
+                          }`}
+                        >
+                          <ChevronRight className="w-8 h-8" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      {clientError ? (
+                        <ShieldCheck className="w-10 h-10 text-brand-pink" />
+                      ) : (
+                        <Search className="w-10 h-10 text-gray-400" />
+                      )}
+                    </div>
+                    {clientError ? (
+                      <>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Error de Permisos</h3>
+                        <p className="text-gray-600 max-w-md mx-auto">No tienes permisos para ver la lista de clientes.</p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">No se encontraron clientes</h3>
+                        <p className="text-gray-600">Prueba con otro nombre o teléfono.</p>
+                        <button 
+                          onClick={() => setClientSearchTerm('')}
+                          className="mt-6 text-brand-indigo font-bold hover:underline"
+                        >
+                          Ver todos los clientes
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="flex justify-between items-center">
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="flex-1 border-2 border-gray-200 text-gray-500 py-3.5 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 font-semibold"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-5 h-5" />
                   <span>Cancelar</span>
                 </button>
               )}
-              <button
-                onClick={() => setStep(1)}
-                disabled={!clientDocument}
-                className="flex-1 bg-gradient-brand text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
-              >
-                <span>Continuar a Servicios</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
           </div>
         </div>
@@ -792,6 +952,18 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
           <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="text-center mb-8">
@@ -1092,6 +1264,18 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
           <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="text-center mb-8">
@@ -1273,6 +1457,18 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
           <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/50 p-6 rounded-3xl border border-white shadow-sm backdrop-blur-sm">
@@ -1577,6 +1773,18 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return (
       <section className="py-20 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
           <div className="bg-white rounded-3xl shadow-xl p-8 text-center animate-in zoom-in duration-500">
             <div className="w-24 h-24 bg-gradient-to-r from-green-400 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-8 rotate-3 shadow-lg">
               <CheckCircle className="w-14 h-14 text-white -rotate-3" />

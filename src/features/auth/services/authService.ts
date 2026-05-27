@@ -35,6 +35,7 @@ export interface RegisterData {
 export interface TempUserData {
     rolId?: number;
     email: string;
+    password?: string;
 }
 
 export interface UsuarioListItem {
@@ -73,12 +74,12 @@ export const authService = {
     },
 
     async createTempUser(data: TempUserData): Promise<any> {
-        const tempPassword = Math.random().toString(36).slice(-10);
+        const passwordToUse = data.password || Math.random().toString(36).slice(-10);
         const response = await apiClient.post('/api/auth/create-temp-user', {
             rolId: data.rolId || 2,
             email: data.email.trim().toLowerCase(),
-            contrasena: tempPassword,
-            confirmarContrasena: tempPassword,
+            contrasena: passwordToUse,
+            confirmarContrasena: passwordToUse,
         });
         return response;
     },
@@ -124,6 +125,29 @@ export const authService = {
             userResponse = await apiClient.post('/api/Usuarios', userPayload);
         } catch (error: any) {
             console.error('Error creating user:', error);
+            console.error('Error details:', {
+                message: error.message,
+                body: error.body,
+                status: error.status
+            });
+            // Check if it's a duplicate email error in various possible formats
+            const errorMsg = (
+                error.message || 
+                error.body || 
+                (typeof error.body === 'string' ? error.body : '') ||
+                ''
+            ).toLowerCase();
+            
+            if (
+                errorMsg.includes('duplicado') || 
+                errorMsg.includes('duplicate') || 
+                errorMsg.includes('ya existe') ||
+                errorMsg.includes('email') ||
+                errorMsg.includes('correo')
+            ) {
+                throw new Error('El correo electrónico ya está registrado.');
+            }
+            
             const errorMessage = error.message || 'Error al crear el usuario.';
             throw new Error(errorMessage);
         }

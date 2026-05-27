@@ -294,6 +294,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
       const tempUserResponse = await authService.createTempUser({
         email: userData.email.trim().toLowerCase(),
         rolId: userData.rolId,
+        password: userData.password,
       });
 
       // Get the created usuarioId
@@ -818,6 +819,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     phone: '',
     direccion: '',
     estado: user?.estado !== undefined ? user.estado : true,
+    password: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -879,14 +881,10 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
               return 'El pasaporte solo debe contener letras y números, sin caracteres especiales';
             if (len < 6 || len > 15) return 'El pasaporte debe tener entre 6 y 15 caracteres';
           } else {
-            // CC and CE are numeric-only
+            // CC and CE are numeric-only (7-11 digits)
             if (!/^\d+$/.test(value.trim()))
               return 'El número de documento solo debe contener números, sin letras ni caracteres especiales';
-            if (effectiveDocType === 'cedula') {
-              if (len < 6 || len > 10) return 'La cédula debe tener entre 6 y 10 dígitos';
-            } else if (effectiveDocType === 'cedula_extranjeria') {
-              if (len < 6 || len > 10) return 'La cédula de extranjería debe tener entre 6 y 10 dígitos';
-            }
+            if (len < 7 || len > 11) return 'El número de documento debe tener entre 7 y 11 dígitos';
           }
         }
         return '';
@@ -899,6 +897,11 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       case 'direccion':
         if (isCreate && !value.trim()) return 'La dirección es obligatoria';
         return '';
+      case 'password':
+        if (isCreate && !value) return 'La contraseña es obligatoria';
+        if (isCreate && value.length < 6) return 'La contraseña debe tener entre 6 y 15 caracteres';
+        if (isCreate && value.length > 15) return 'La contraseña debe tener entre 6 y 15 caracteres';
+        return '';
       default:
         return '';
     }
@@ -907,9 +910,18 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
   // ── Blur handler: sync validation on all fields + async uniqueness checks ──
   const handleBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    let finalValue = value;
+
+    // Sanitize nombre on blur
+    if (name === 'nombre') {
+      finalValue = value
+        .trim()
+        .replace(/\s+/g, ' ');
+      setFormData(prev => ({ ...prev, [name]: finalValue }));
+    }
 
     // Always run sync validation on blur (shows "required" errors when leaving empty fields)
-    const syncError = validateField(name, value);
+    const syncError = validateField(name, finalValue);
     if (syncError) {
       setFieldErrors(prev => ({ ...prev, [name]: syncError }));
       return;
@@ -947,7 +959,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
     // Run all sync validations
     const fieldsToValidate = !user
-      ? ['nombre', 'email', 'documentId', 'phone', 'direccion']
+      ? ['nombre', 'email', 'documentId', 'phone', 'direccion', 'password']
       : ['email'];
 
     for (const field of fieldsToValidate) {
@@ -993,6 +1005,67 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    const isPassport = name === 'documentId' && formData.documentType === 'pasaporte';
+    
+    // Allow: backspace, delete, tab, escape, enter
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter'].includes(e.key)) {
+      return;
+    }
+
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+X (we'll handle paste separately)
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+
+    // Allow: home, end, left, right
+    if (['Home', 'End', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      return;
+    }
+
+    // For phone and non-passport documentId: only allow numbers
+    if (name === 'phone' || (name === 'documentId' && !isPassport)) {
+      if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+
+    // For passport documentId: allow letters and numbers
+    if (name === 'documentId' && isPassport) {
+      if (!/^[a-zA-Z0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    const isPassport = name === 'documentId' && formData.documentType === 'pasaporte';
+    
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    let sanitizedText = pastedText;
+
+    if (name === 'phone' || (name === 'documentId' && !isPassport)) {
+      sanitizedText = pastedText.replace(/[^0-9]/g, '');
+    }
+
+    if (name === 'documentId' && isPassport) {
+      sanitizedText = pastedText.replace(/[^a-zA-Z0-9]/g, '');
+    }
+
+    // Real-time synchronous validation
+    const error = validateField(name, sanitizedText);
+    setFieldErrors(prev => ({ ...prev, [name]: error }));
+
+    // Update form data with sanitized text
+    setFormData(prev => ({
+      ...prev,
+      [name]: sanitizedText,
+    }));
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let sanitized = value;
@@ -1008,18 +1081,23 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
         // Passport: allow letters and numbers, strip special chars
         sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15);
       } else {
-        // CC / CE: numeric only
-        sanitized = value.replace(/[^0-9]/g, '').slice(0, 10);
+        // CC / CE: numeric only, 7-11 digits
+        sanitized = value.replace(/[^0-9]/g, '').slice(0, 11);
       }
     }
 
-    // Real-time synchronous validation
+    // Sanitize password (limit to 15 chars)
+    if (name === 'password') {
+      sanitized = value.slice(0, 15);
+    }
+
+    // Real-time synchronous validation (without sanitizing nombre yet)
     const error = validateField(name, sanitized, name === 'documentType' ? sanitized : undefined);
     setFieldErrors(prev => ({ ...prev, [name]: error }));
 
     // When document type changes, truncate documentId to new max and re-validate
     if (name === 'documentType') {
-      const newMaxLen = sanitized === 'pasaporte' ? 15 : 10;
+      const newMaxLen = sanitized === 'pasaporte' ? 15 : 11;
       const trimmedDocId = formData.documentId.slice(0, newMaxLen);
       const docError = validateField('documentId', trimmedDocId, sanitized);
       setFieldErrors(prev => ({ ...prev, documentId: docError }));
@@ -1130,6 +1208,28 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                     {fieldErrors.email && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.email}</p>}
                   </div>
 
+                  {!user && (
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Contraseña *</label>
+                      <div className="relative">
+                        <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                          type="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
+                            fieldErrors.password ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                          }`}
+                          placeholder="Contraseña"
+                          maxLength={15}
+                        />
+                      </div>
+                      {fieldErrors.password && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.password}</p>}
+                    </div>
+                  )}
+
 
                 </div>
               </div>
@@ -1187,11 +1287,15 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                           type="text"
                           name="documentId"
                           inputMode={formData.documentType === 'pasaporte' ? 'text' : 'numeric'}
+                          autoComplete="off"
+                          spellCheck="false"
                           pattern={formData.documentType === 'pasaporte' ? '[a-zA-Z0-9]*' : '[0-9]*'}
-                          maxLength={formData.documentType === 'pasaporte' ? 15 : 10}
+                          maxLength={formData.documentType === 'pasaporte' ? 15 : 11}
                           value={formData.documentId}
                           onChange={handleInputChange}
                           onBlur={handleBlur}
+                          onKeyDown={handleKeyDown}
+                          onPaste={handlePaste}
                           className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             fieldErrors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           } ${!!user ? 'opacity-60 cursor-not-allowed' : ''}`}
@@ -1212,13 +1316,20 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                         <input
                           type="tel"
                           name="phone"
+                          inputMode="tel"
+                          autoComplete="off"
+                          spellCheck="false"
+                          pattern="[0-9]{10}"
+                          maxLength={10}
                           value={formData.phone}
                           onChange={handleInputChange}
                           onBlur={handleBlur}
+                          onKeyDown={handleKeyDown}
+                          onPaste={handlePaste}
                           className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             fieldErrors.phone ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
-                          placeholder="300 123 4567"
+                          placeholder="3001234567"
                         />
                       </div>
                       {fieldErrors.phone && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.phone}</p>}
@@ -1277,8 +1388,17 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
             disabled={isSaving}
             className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
-            {isSaving ? <CheckCircle className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span>{user ? 'Actualizar' : 'Registrar'}</span>
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>{user ? 'Actualizando...' : 'Registrando usuario...'}</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>{user ? 'Actualizar' : 'Registrar'}</span>
+              </>
+            )}
           </button>
         </div>
       </div>

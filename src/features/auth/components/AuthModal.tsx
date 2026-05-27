@@ -48,6 +48,152 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     confirmPassword: ''
   });
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [validatingFields, setValidatingFields] = useState<Record<string, boolean>>({});
+
+  // Blur handler: sync validation + async uniqueness checks
+  const handleBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let finalValue = value;
+
+    // Sanitize first name and last name on blur
+    if (name === 'firstName' || name === 'lastName') {
+      finalValue = value.trim().replace(/\s+/g, ' ');
+      setFormData(prev => ({ ...prev, [name]: finalValue }));
+    }
+    
+    const syncError = validateField(name, finalValue);
+    if (syncError) {
+      setFieldErrors(prev => ({ ...prev, [name]: syncError }));
+      return;
+    }
+
+    // Async check: duplicate email only for self-registration
+    if (name === 'email' && value.trim() && !isLogin) {
+      setValidatingFields(prev => ({ ...prev, email: true }));
+      try {
+        // Wait, authService.checkDuplicates requires auth, but for self-registration we can't use that,
+        // so we'll rely on backend error for now, but let's at least show validation before submit!
+        // For now we'll just skip the async check here and let the backend handle it on submit!
+      } catch { }
+      setValidatingFields(prev => ({ ...prev, email: false }));
+    }
+  };
+
+  // Validation functions
+  const validateField = (name: string, value: string, docType?: string): string => {
+    switch (name) {
+      case 'firstName':
+      case 'lastName':
+        if (!value.trim()) return `El ${name === 'firstName' ? 'nombre' : 'apellido'} es obligatorio`;
+        if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(value))
+          return `El ${name === 'firstName' ? 'nombre' : 'apellido'} solo debe contener letras`;
+        return '';
+      case 'email':
+        if (!value.trim()) return 'El correo electrónico es obligatorio';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'El formato del correo no es válido';
+        return '';
+      case 'documentId': {
+        if (!value.trim()) return 'El número de documento es obligatorio';
+        const effectiveDocType = docType || formData.documentType;
+        if (value.trim()) {
+          const len = value.trim().length;
+          if (effectiveDocType === 'pasaporte') {
+            // Passport allows alphanumeric characters
+            if (!/^[a-zA-Z0-9]+$/.test(value.trim()))
+              return 'El pasaporte solo debe contener letras y números, sin caracteres especiales';
+            if (len < 6 || len > 15) return 'El pasaporte debe tener entre 6 y 15 caracteres';
+          } else {
+            // CC and CE are numeric-only
+            if (!/^\d+$/.test(value.trim()))
+              return 'El número de documento solo debe contener números, sin letras ni caracteres especiales';
+            if (len < 7 || len > 11) return 'El número de documento debe tener entre 7 y 11 dígitos';
+          }
+        }
+        return '';
+      }
+      case 'phone':
+        if (!value.trim()) return 'El teléfono es obligatorio';
+        if (value.trim() && !/^\d{10}$/.test(value))
+          return 'El teléfono debe tener exactamente 10 dígitos numéricos';
+        return '';
+      case 'password':
+        if (!value) return 'La contraseña es obligatoria';
+        if (value.length < 6) return 'La contraseña debe tener entre 6 y 15 caracteres';
+        if (value.length > 15) return 'La contraseña debe tener entre 6 y 15 caracteres';
+        return '';
+      case 'confirmPassword':
+        if (!value) return 'Confirmar la contraseña es obligatorio';
+        if (value !== formData.password) return 'Las contraseñas no coinciden';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Key down handler for numeric fields
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    const isPassport = name === 'documentId' && formData.documentType === 'pasaporte';
+
+    // Allow: backspace, delete, tab, escape, enter
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter'].includes(e.key)) {
+      return;
+    }
+
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+X
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+
+    // Allow: home, end, left, right
+    if (['Home', 'End', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      return;
+    }
+
+    // For phone and non-passport documentId: only allow numbers
+    if (name === 'phone' || (name === 'documentId' && !isPassport)) {
+      if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+
+    // For passport documentId: allow letters and numbers
+    if (name === 'documentId' && isPassport) {
+      if (!/^[a-zA-Z0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  // Paste handler for sanitization
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    const isPassport = name === 'documentId' && formData.documentType === 'pasaporte';
+
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    let sanitizedText = pastedText;
+
+    if (name === 'phone' || (name === 'documentId' && !isPassport)) {
+      sanitizedText = pastedText.replace(/[^0-9]/g, '');
+    }
+
+    if (name === 'documentId' && isPassport) {
+      sanitizedText = pastedText.replace(/[^a-zA-Z0-9]/g, '');
+    }
+
+    // Real-time validation
+    const error = validateField(name, sanitizedText);
+    setFieldErrors(prev => ({ ...prev, [name]: error }));
+
+    // Update form data
+    setFormData(prev => ({
+      ...prev,
+      [name]: sanitizedText
+    }));
+  };
+
   // ── LOGIN ──
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,19 +275,16 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     e.preventDefault();
     setApiError('');
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setApiError('Las contraseñas no coinciden');
-      return;
-    }
-    if (formData.password.length < 6) {
-      setApiError('La contraseña debe tener al menos 6 caracteres');
-      return;
+    // Validate all fields
+    const fieldsToValidate = ['firstName', 'lastName', 'documentId', 'email', 'phone', 'password', 'confirmPassword'];
+    const errors: Record<string, string> = {};
+    for (const field of fieldsToValidate) {
+      const err = validateField(field, formData[field as keyof typeof formData]);
+      if (err) errors[field] = err;
     }
 
-    const nombreUsuario = `${formData.firstName} ${formData.lastName}`.trim();
-    if (!nombreUsuario) {
-      setApiError('Ingresa tu nombre completo');
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -171,8 +314,15 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       }, 2000);
     } catch (err: any) {
       console.error('Register error:', err);
-      // El mensaje de error ya viene formateado del authService
-      setApiError(err.message || 'Error al crear la cuenta. Intenta nuevamente.');
+      const errorMessage = err.message || 'Error al crear la cuenta. Intenta nuevamente.';
+      
+      if (errorMessage.toLowerCase().includes('correo') || errorMessage.toLowerCase().includes('email')) {
+        // It's an email-specific error
+        setFieldErrors(prev => ({ ...prev, email: errorMessage }));
+        setApiError(''); // Clear general error if it's field-specific
+      } else {
+        setApiError(errorMessage);
+      }
     } finally {
       setLoading(false);
       hideLoading();
@@ -188,17 +338,60 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let sanitized = value;
+
+    // Sanitize phone: only numbers, max 10 digits
+    if (name === 'phone') {
+      sanitized = value.replace(/[^0-9]/g, '').slice(0, 10);
+    }
+
+    // Sanitize documentId
+    if (name === 'documentId') {
+      if (formData.documentType === 'pasaporte') {
+        sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15);
+      } else {
+        sanitized = value.replace(/[^0-9]/g, '').slice(0, 11);
+      }
+    }
+
+    // Sanitize password: max 15 characters
+    if (name === 'password' || name === 'confirmPassword') {
+      sanitized = value.slice(0, 15);
+    }
+
+    // Real-time validation
+    const error = validateField(name, sanitized);
+    setFieldErrors(prev => ({ ...prev, [name]: error }));
+
+    // Update form data
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: sanitized
     });
+
     setApiError(''); // Clear error on input change
   };
+
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    // When document type changes, truncate documentId to new max and re-validate
+    if (name === 'documentType') {
+      const newMaxLen = value === 'pasaporte' ? 15 : 11;
+      const trimmedDocId = formData.documentId.slice(0, newMaxLen);
+      const docError = validateField('documentId', trimmedDocId, value);
+      setFieldErrors(prev => ({ ...prev, documentId: docError }));
+      setFormData(prev => ({
+        ...prev,
+        documentType: value,
+        documentId: trimmedDocId
+      }));
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
     setApiError('');
   };
 
@@ -631,10 +824,14 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                             name="documentId"
                             value={formData.documentId}
                             onChange={handleInputChange}
+                            onBlur={handleBlur}
+                            onKeyDown={handleKeyDown}
+                            onPaste={handlePaste}
                             required
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
+                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium ${fieldErrors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
                             placeholder="Ej: 1020304050"
                           />
+                          {fieldErrors.documentId && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.documentId}</p>}
                         </div>
                       </div>
                     </div>
@@ -653,10 +850,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           name="firstName"
                           value={formData.firstName}
                           onChange={handleInputChange}
+                          onBlur={handleBlur}
                           required
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium ${fieldErrors.firstName ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
                           placeholder="Tus nombres"
                         />
+                        {fieldErrors.firstName && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.firstName}</p>}
                       </div>
                       <div>
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Apellidos *</label>
@@ -665,22 +864,29 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           name="lastName"
                           value={formData.lastName}
                           onChange={handleInputChange}
+                          onBlur={handleBlur}
                           required
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium ${fieldErrors.lastName ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
                           placeholder="Tus apellidos"
                         />
+                        {fieldErrors.lastName && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.lastName}</p>}
                       </div>
                       <div className="col-span-2">
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Teléfono *</label>
                         <input
                           type="tel"
                           name="phone"
+                          inputMode="tel"
                           value={formData.phone}
                           onChange={handleInputChange}
+                          onKeyDown={handleKeyDown}
+                          onPaste={handlePaste}
+                          maxLength={10}
                           required
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
-                          placeholder="+57 300 123 4567"
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium ${fieldErrors.phone ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
+                          placeholder="3001234567"
                         />
+                        {fieldErrors.phone && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.phone}</p>}
                       </div>
                     </div>
                   </div>
@@ -698,10 +904,13 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
+                          onBlur={handleBlur}
                           required
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium ${fieldErrors.email ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
                           placeholder="tu@email.com"
                         />
+                        {validatingFields.email && <p className="text-[9px] text-blue-500 mt-1 animate-pulse">Verificando...</p>}
+                        {fieldErrors.email && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.email}</p>}
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -711,10 +920,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                             name="password"
                             value={formData.password}
                             onChange={handleInputChange}
+                            maxLength={15}
                             required
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium ${fieldErrors.password ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
                             placeholder="••••••••"
                           />
+                          {fieldErrors.password && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.password}</p>}
                         </div>
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Confirmar *</label>
@@ -723,10 +934,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                             name="confirmPassword"
                             value={formData.confirmPassword}
                             onChange={handleInputChange}
+                            maxLength={15}
                             required
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium ${fieldErrors.confirmPassword ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
                             placeholder="••••••••"
                           />
+                          {fieldErrors.confirmPassword && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.confirmPassword}</p>}
                         </div>
                       </div>
                       <button

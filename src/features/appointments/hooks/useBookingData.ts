@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { serviceService } from '@/features/services/services/serviceService';
 import { empleadoAgendaService } from '../services/agendaService';
-import { Scissors } from 'lucide-react';
+import { personService } from '@/features/persons/services/personService';
+import { Scissors, User } from 'lucide-react';
 
 export function useServicios(pageSize: number = 6) {
   const [data, setData] = useState<any[]>([]);
@@ -197,6 +198,110 @@ export function useEmpleados(pageSize: number = 6) {
       controller.abort();
     };
   }, [page, search, fetchEmpleados]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  return {
+    data,
+    loading,
+    page,
+    setPage,
+    search,
+    setSearch,
+    totalPages,
+    totalCount,
+    error
+  };
+}
+
+export function useClientes(pageSize: number = 6) {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchClientes = useCallback(async (currentPage: number, searchTerm: string, abortSignal?: AbortSignal) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await personService.getPersons('client', {
+        page: currentPage,
+        pageSize,
+        search: searchTerm
+      });
+
+      let clientsArray = [];
+      if (Array.isArray(response)) {
+        clientsArray = response;
+        setTotalPages(1);
+        setTotalCount(response.length);
+      } else if (response && response.data) {
+        clientsArray = response.data;
+        setTotalPages(response.totalPages || 1);
+        setTotalCount(response.totalCount || response.data.length);
+      }
+
+      let activeClients = clientsArray
+        .filter((c: any) => {
+          const est = c.status !== undefined ? c.status : c.Estado;
+          return est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
+        })
+        .map((c: any, index: number) => ({
+          id: c.documentId,
+          name: c.name,
+          phone: c.phone,
+          role: 'Cliente',
+          color: ['bg-rose-500', 'bg-violet-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'][index % 5],
+          avatar: (c.name || 'C').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+        }));
+
+      // Apply client-side search and pagination if it's a raw array response
+      if (Array.isArray(response)) {
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          activeClients = activeClients.filter((c: any) => 
+            c.name.toLowerCase().includes(term) || 
+            c.phone.toLowerCase().includes(term)
+          );
+        }
+        
+        const totalFiltered = activeClients.length;
+        setTotalPages(Math.ceil(totalFiltered / pageSize) || 1);
+        setTotalCount(totalFiltered);
+        
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        activeClients = activeClients.slice(start, end);
+      }
+
+      setData(activeClients);
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error fetching clients:', error);
+        setError(error.message || 'Error fetching clients');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [pageSize]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      fetchClientes(page, search, controller.signal);
+    }, 300);
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [page, search, fetchClientes]);
 
   // Reset page when search changes
   useEffect(() => {

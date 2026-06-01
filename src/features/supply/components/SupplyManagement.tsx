@@ -154,7 +154,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
       showSectionLoading("Guardando insumo...");
       if (selectedSupply) {
         await supplyService.updateSupply(selectedSupply.insumoId, {
-          sku: supplyData.sku || supplyData.name,
+          sku: supplyData.sku || '',
           nombre: supplyData.nombre || supplyData.name,
           descripcion: supplyData.descripcion || supplyData.description || '',
           categoriaId: supplyData.categoriaId || selectedSupply.categoriaId,

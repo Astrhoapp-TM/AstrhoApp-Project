@@ -137,6 +137,47 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
     description: '',
     permissions: []
   });
+  const [newRoleErrors, setNewRoleErrors] = useState({
+    name: '',
+    description: ''
+  });
+
+  // Handle Key Down for restrictions
+  const handleRoleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // Permitir teclas de control
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      return;
+    }
+    // Permitir Ctrl+A, Ctrl+C, etc.
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+    // Restringir a caracteres válidos
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\d\-]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  // Validate new role field
+  const validateNewRoleField = (name: string, value: string) => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'El nombre del rol es requerido';
+        return '';
+      case 'description':
+        if (!value.trim()) return 'La descripción es requerida';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Handle blur for new role
+  const handleNewRoleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    const error = validateNewRoleField(name, value);
+    setNewRoleErrors(prev => ({ ...prev, [name]: error }));
+  };
 
   // Módulos permitidos para gestionar roles
   const ALLOWED_MODULES = [
@@ -297,8 +338,11 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
   };
 
   const handleCreateRole = async () => {
-    if (newRoleData.name.trim() === '' || newRoleData.description.trim() === '') {
-      setShowValidationErrorModal(true);
+    // Validate all fields
+    const nameErr = validateNewRoleField('name', newRoleData.name);
+    const descErr = validateNewRoleField('description', newRoleData.description);
+    if (nameErr || descErr) {
+      setNewRoleErrors({ name: nameErr, description: descErr });
       return;
     }
 
@@ -377,6 +421,14 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
   };
 
   const handleSaveRole = async () => {
+    // Validate fields first
+    const nameErr = editingRole.name.trim() ? '' : 'El nombre del rol es requerido';
+    const descErr = editingRole.description.trim() ? '' : 'La descripción es requerida';
+    if (nameErr || descErr) {
+      // We need to set the errors, but since editRoleErrors is inside the modal, we'll just check here
+      return;
+    }
+
     try {
       showSectionLoading("Guardando cambios...");
       setLoading(true);
@@ -776,21 +828,43 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         <input
                           type="text"
                           value={newRoleData.name}
-                          onChange={(e) => setNewRoleData({ ...newRoleData, name: e.target.value })}
-                          className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700"
+                          onChange={(e) => {
+                            const value = e.target.value.slice(0, 100);
+                            setNewRoleData({ ...newRoleData, name: value });
+                            const error = validateNewRoleField('name', value);
+                            setNewRoleErrors(prev => ({ ...prev, name: error }));
+                          }}
+                          onBlur={handleNewRoleBlur}
+                          onKeyDown={handleRoleKeyDown}
+                          className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${newRoleErrors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'}`}
                           placeholder="Ej: Supervisor de Salón"
+                          maxLength={100}
                         />
+                        {newRoleErrors.name && (
+                          <p className="text-[10px] text-brand-pink mt-1 ml-1">{newRoleErrors.name}</p>
+                        )}
                       </div>
 
                       <div>
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción *</label>
                         <textarea
                           value={newRoleData.description}
-                          onChange={(e) => setNewRoleData({ ...newRoleData, description: e.target.value })}
-                          className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 resize-none"
+                          onChange={(e) => {
+                            const value = e.target.value.slice(0, 100);
+                            setNewRoleData({ ...newRoleData, description: value });
+                            const error = validateNewRoleField('description', value);
+                            setNewRoleErrors(prev => ({ ...prev, description: error }));
+                          }}
+                          onBlur={handleNewRoleBlur}
+                          onKeyDown={handleRoleKeyDown}
+                          className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 resize-none ${newRoleErrors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'}`}
                           rows={4}
                           placeholder="Describe las funciones y responsabilidades..."
+                          maxLength={100}
                         />
+                        {newRoleErrors.description && (
+                          <p className="text-[10px] text-brand-pink mt-1 ml-1">{newRoleErrors.description}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1071,6 +1145,33 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
           editingRole.permissions = allPermissions;
         }
 
+        // Estado para errores en edición
+        const [editRoleErrors, setEditRoleErrors] = React.useState({
+          name: '',
+          description: ''
+        });
+
+        // Validar campo de edición
+        const validateEditRoleField = (name: string, value: string) => {
+          switch (name) {
+            case 'name':
+              if (!value.trim()) return 'El nombre del rol es requerido';
+              return '';
+            case 'description':
+              if (!value.trim()) return 'La descripción es requerida';
+              return '';
+            default:
+              return '';
+          }
+        };
+
+        // Handle blur para edición
+        const handleEditRoleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+          const { name, value } = e.target;
+          const error = validateEditRoleField(name, value);
+          setEditRoleErrors(prev => ({ ...prev, [name]: error }));
+        };
+
         return (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
@@ -1141,24 +1242,48 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Rol</label>
                           <input
                             type="text"
+                            name="name"
                             value={editingRole.name}
-                            onChange={(e) => setEditingRole({ ...editingRole, name: e.target.value })}
+                            onChange={(e) => {
+                              const value = e.target.value.slice(0, 100);
+                              setEditingRole({ ...editingRole, name: value });
+                              const error = validateEditRoleField('name', value);
+                              setEditRoleErrors(prev => ({ ...prev, name: error }));
+                            }}
+                            onBlur={handleEditRoleBlur}
+                            onKeyDown={handleRoleKeyDown}
                             disabled={isSuperAdmin}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium ${isSuperAdmin ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-gray-50/50 border-gray-200 text-gray-700'
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium ${isSuperAdmin ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : editRoleErrors.name ? 'bg-gray-50/50 border-red-300 ring-1 ring-red-100 text-gray-700' : 'bg-gray-50/50 border-gray-200 text-gray-700'
                               }`}
+                            maxLength={100}
                           />
+                          {!isSuperAdmin && editRoleErrors.name && (
+                            <p className="text-[10px] text-brand-pink mt-1 ml-1">{editRoleErrors.name}</p>
+                          )}
                         </div>
 
                         <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción</label>
                           <textarea
+                            name="description"
                             value={editingRole.description}
-                            onChange={(e) => setEditingRole({ ...editingRole, description: e.target.value })}
+                            onChange={(e) => {
+                              const value = e.target.value.slice(0, 100);
+                              setEditingRole({ ...editingRole, description: value });
+                              const error = validateEditRoleField('description', value);
+                              setEditRoleErrors(prev => ({ ...prev, description: error }));
+                            }}
+                            onBlur={handleEditRoleBlur}
+                            onKeyDown={handleRoleKeyDown}
                             disabled={isSuperAdmin}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium resize-none ${isSuperAdmin ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-gray-50/50 border-gray-200 text-gray-700'
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium resize-none ${isSuperAdmin ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : editRoleErrors.description ? 'bg-gray-50/50 border-red-300 ring-1 ring-red-100 text-gray-700' : 'bg-gray-50/50 border-gray-200 text-gray-700'
                               }`}
                             rows={4}
+                            maxLength={100}
                           />
+                          {!isSuperAdmin && editRoleErrors.description && (
+                            <p className="text-[10px] text-brand-pink mt-1 ml-1">{editRoleErrors.description}</p>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -1,7 +1,166 @@
-import React, { useState } from 'react';
-import { X, Save, AlertCircle, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Save, AlertCircle, Plus, Trash2, Upload, Image as ImageIcon, FolderTree, Loader2, ChevronsUpDown, Search, CheckCircle } from 'lucide-react';
 import { type Supply } from '@/shared/data/management';
 import { SUPPLY_TYPES, SUPPLY_STATUSES } from '../../data/supplyConstants';
+import { supplyCategoryService } from '@/features/categories/services/supplyCategoryService';
+import { cn } from '@/shared/components/ui/utils';
+
+function unwrapValues(obj: any): any {
+  if (obj == null) return obj;
+  if (Array.isArray(obj)) return obj.map(unwrapValues);
+  if (typeof obj === 'object') {
+    if (Array.isArray(obj.$values)) {
+      return obj.$values.map(unwrapValues);
+    }
+    const result: any = {};
+    for (const key of Object.keys(obj)) {
+      if (key === '$id' || key === '$ref') continue;
+      result[key] = unwrapValues(obj[key]);
+    }
+    return result;
+  }
+  return obj;
+}
+
+function CategorySearchSelect({ onSelect, selectedId, error, disabled, initialData = [] }: any) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchSelected = async () => {
+      if (selectedId && !selectedCategory) {
+        try {
+          const category = await supplyCategoryService.getCategoryById(parseInt(selectedId));
+          setSelectedCategory(unwrapValues(category));
+        } catch (e) {
+          console.warn('Error fetching selected category:', e);
+        }
+      } else if (!selectedId) {
+        setSelectedCategory(null);
+      }
+    };
+    fetchSelected();
+  }, [selectedId, selectedCategory]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const res = await supplyCategoryService.getCategories({ search: searchTerm, pageSize: 100 });
+        const data = Array.isArray(res) ? res : (res?.data || []);
+        setSearchResults(unwrapValues(data));
+      } catch (err) {
+        console.error('Error searching categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchCategories, searchTerm ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setSearchTerm('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className={`relative ${isOpen ? 'z-50' : ''}`} ref={dropdownRef}>
+      <div
+        className={cn(
+          "w-full px-4 py-3 min-h-[48px] border rounded-xl flex items-center justify-between cursor-pointer bg-white transition-all",
+          error ? 'border-red-300' : 'border-gray-200',
+          isOpen && 'ring-2 ring-blue-100 border-blue-300',
+          disabled && 'bg-gray-100 cursor-not-allowed opacity-100'
+        )}
+        onClick={() => !disabled && setIsOpen(true)}
+      >
+        {!isOpen && !selectedCategory ? (
+          <div className="flex items-center gap-2">
+            <FolderTree className="w-4 h-4 text-gray-500" />
+            <span className="text-gray-500 text-sm">Seleccionar categoría...</span>
+          </div>
+        ) : !isOpen && selectedCategory ? (
+          <div className="flex items-center gap-2">
+            <FolderTree className="w-4 h-4 text-gray-500" />
+            <span className="text-gray-800 font-medium text-sm">{selectedCategory.nombre}</span>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center">
+            {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-gray-500" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
+            <input
+              type="text"
+              className="w-full bg-transparent text-sm focus:outline-none"
+              placeholder="Escribe para buscar..."
+              value={searchTerm}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              autoFocus
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            />
+          </div>
+        )}
+        <ChevronsUpDown className={cn(
+          "w-4 h-4 text-gray-500 transition-transform",
+          isOpen && 'rotate-180'
+        )} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden z-[100] animate-in fade-in zoom-in-95 duration-200">
+          <div className="max-h-60 overflow-y-auto py-1">
+            {loading && searchResults.length === 0 ? (
+              <div className="p-4 text-sm text-gray-500 text-center">Buscando...</div>
+            ) : searchResults.length === 0 ? (
+              <div className="p-4 text-sm text-gray-500 text-center">
+                {searchTerm ? 'No se encontraron categorías' : 'No hay categorías registradas'}
+              </div>
+            ) : (
+              searchResults.map((cat: any) => (
+                <div
+                  key={cat.categoriaId}
+                  className={cn(
+                    "px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm flex justify-between items-center transition-colors",
+                    String(cat.categoriaId) === String(selectedId) ? 'bg-gray-50 text-pink-700 font-semibold' : 'text-gray-800'
+                  )}
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    onSelect(cat);
+                    setSelectedCategory(cat);
+                    setIsOpen(false);
+                    setSearchTerm('');
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <CheckCircle
+                      className={cn(
+                        "h-4 w-4 text-brand-pink",
+                        String(cat.categoriaId) === String(selectedId) ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div>
+                      <span className="font-medium">{cat.nombre}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface SupplyEditModalProps {
   supply: Supply | null;
@@ -11,13 +170,28 @@ interface SupplyEditModalProps {
 }
 
 export function SupplyEditModal({ supply, onClose, onSave, suppliers }: SupplyEditModalProps) {
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await supplyCategoryService.getCategories({ pageSize: 100 });
+        const data = Array.isArray(res) ? res : (res?.data || []);
+        setCategories(unwrapValues(data));
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   // Si es modo edición, usamos el formulario simple
   if (supply) {
-    return <SingleSupplyForm supply={supply} onClose={onClose} onSave={onSave} suppliers={suppliers} />;
+    return <SingleSupplyForm supply={supply} onClose={onClose} onSave={onSave} suppliers={suppliers} categories={categories} />;
   }
 
   // Si es modo creación, usamos el formulario múltiple
-  return <MultipleSupplyForm onClose={onClose} onSave={onSave} suppliers={suppliers} />;
+  return <MultipleSupplyForm onClose={onClose} onSave={onSave} suppliers={suppliers} categories={categories} />;
 }
 
 // Formulario para editar un solo insumo (modo edición)
@@ -27,6 +201,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
     description: supply?.description || '',
     sku: supply?.sku || '',
     type: supply?.type || 'consumable',
+    categoriaId: supply?.categoriaId || '',
     quantity: supply?.quantity || 0,
     unit: supply?.unit || 'unidades',
     expirationDate: supply?.expirationDate || '',
@@ -43,6 +218,65 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
   const [imagePreview, setImagePreview] = useState<string>(supply?.imageUrl || '');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // Validación por campo
+  const validateField = (name: string, value: any): string => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'El nombre es requerido';
+        return '';
+      case 'description':
+        if (!value.trim()) return 'La descripción es requerida';
+        return '';
+      case 'quantity':
+        if (value < 0) return 'La cantidad no puede ser negativa';
+        return '';
+      case 'unitCost':
+        if (value < 0) return 'El precio no puede ser negativo';
+        return '';
+      case 'minStock':
+        if (value < 0) return 'El stock mínimo no puede ser negativo';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Handle blur para validación
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const error = validateField(name, ['quantity', 'unitCost', 'minStock', 'maxStock'].includes(name) ? parseFloat(value) || 0 : value);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    }
+  };
+
+  // Handle key down para restricciones
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    
+    // Permitir teclas de control
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      return;
+    }
+    
+    // Permitir Ctrl+A, Ctrl+C, etc.
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+    
+    // Restricciones por campo
+    if (['name', 'description', 'notes', 'unit'].includes(name)) {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\d\-]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+    if (['quantity', 'unitCost', 'minStock', 'maxStock'].includes(name)) {
+      if (!/^[\d.]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -62,7 +296,6 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
     const newErrors: any = {};
     if (!formData.name.trim()) newErrors.name = 'El nombre es requerido';
     if (!formData.description.trim()) newErrors.description = 'La descripción es requerida';
-    if (!formData.sku.trim()) newErrors.sku = 'El SKU es requerido';
 
     if (formData.quantity < 0) newErrors.quantity = 'La cantidad no puede ser negativa';
     if (formData.unitCost < 0) newErrors.unitCost = 'El precio no puede ser negativo';
@@ -88,17 +321,34 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    // Apply max length restrictions
+    if (['name', 'description', 'notes', 'unit'].includes(name)) {
+      processedValue = value.slice(0, 100);
+    } else if (name === 'sku') {
+      processedValue = value.slice(0, 15);
+    }
+
+    const finalValue = ['quantity', 'unitCost', 'minStock', 'maxStock'].includes(name)
+      ? parseFloat(processedValue) || 0
+      : processedValue;
+
     setFormData({
       ...formData,
-      [name]: ['quantity', 'unitCost', 'minStock', 'maxStock'].includes(name)
-        ? parseFloat(value) || 0
-        : value
+      [name]: finalValue
     });
 
-    if (errors[name]) {
-      const newErrors = { ...errors };
-      delete newErrors[name];
-      setErrors(newErrors);
+    // Validación en tiempo real
+    const error = validateField(name, finalValue);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    } else if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
   };
 
@@ -193,24 +443,28 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
                       className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.name ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="Nombre comercial"
+                      maxLength={100}
                     />
                     {errors.name && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.name}</p>}
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código *</label>
-                    <input
-                      type="text"
-                      name="sku"
-                      value={formData.sku}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.sku ? 'border-red-300' : 'border-gray-200'}`}
-                      placeholder="Identificador único"
-                    />
-                    {errors.sku && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.sku}</p>}
-                  </div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código</label>
+                            <input
+                              type="text"
+                              name="sku"
+                              value={formData.sku}
+                              onChange={handleInputChange}
+                              onBlur={handleBlur}
+                              className="w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 border-gray-200"
+                              placeholder="Identificador único (opcional)"
+                              maxLength={15}
+                            />
+                          </div>
 
                   <div className="grid grid-cols-1 gap-4">
                     <div>
@@ -219,12 +473,21 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                         name="type"
                         value={formData.type}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
                       >
                         {Object.entries(SUPPLY_TYPES).map(([key, type]) => (
                           <option key={key} value={key}>{type.label}</option>
                         ))}
                       </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
+                      <CategorySearchSelect
+                        selectedId={formData.categoriaId}
+                        initialData={categories}
+                        onSelect={(cat: any) => setFormData({ ...formData, categoriaId: cat.categoriaId })}
+                      />
                     </div>
                   </div>
                 </div>
@@ -247,8 +510,11 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       name="unit"
                       value={formData.unit}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
                       className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
                       placeholder="ej: litros, unid."
+                      maxLength={100}
                     />
                   </div>
                   <div>
@@ -258,9 +524,12 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       name="unitCost"
                       value={formData.unitCost}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
                       className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
                       placeholder="0.00"
                     />
+                    {errors.unitCost && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.unitCost}</p>}
                   </div>
                 </div>
 
@@ -272,9 +541,12 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       name="minStock"
                       value={formData.minStock}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
                       className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
                       placeholder="0"
                     />
+                    {errors.minStock && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.minStock}</p>}
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Stock Máximo</label>
@@ -283,6 +555,8 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       name="maxStock"
                       value={formData.maxStock}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
                       className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
                       placeholder="0"
                     />
@@ -297,6 +571,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       name="expirationDate"
                       value={formData.expirationDate}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
                       className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
                     />
                   </div>
@@ -306,6 +581,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       name="supplierId"
                       value={formData.supplierId}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
                       className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
                     >
                       <option value="">Seleccionar...</option>
@@ -324,9 +600,12 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    onKeyDown={handleKeyDown}
                     className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 resize-none ${errors.description ? 'border-red-300' : 'border-gray-200'}`}
                     rows={4}
                     placeholder="Describe el uso y características..."
+                    maxLength={100}
                   />
                   {errors.description && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.description}</p>}
                 </div>
@@ -336,9 +615,12 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                     name="notes"
                     value={formData.notes}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
+                    onKeyDown={handleKeyDown}
                     className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 resize-none"
                     rows={4}
                     placeholder="Observaciones internas..."
+                    maxLength={100}
                   />
                 </div>
               </div>
@@ -370,13 +652,14 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
 }
 
 // Formulario para agregar múltiples insumos (modo creación)
-function MultipleSupplyForm({ onClose, onSave, suppliers }) {
+function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
   const [supplies, setSupplies] = useState([
     {
       name: '',
       description: '',
       sku: '',
       type: 'consumable',
+      categoriaId: '',
       supplierId: '',
       unit: 'unidades',
       expirationDate: '',
@@ -398,6 +681,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
       description: '',
       sku: '',
       type: 'consumable',
+      categoriaId: '',
       supplierId: '',
       unit: 'unidades',
       expirationDate: '',
@@ -421,12 +705,21 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
   };
 
   const updateSupply = (index, field, value) => {
+    let processedValue = value;
+    
+    // Apply max length restrictions
+    if (['name', 'description', 'unit', 'notes'].includes(field)) {
+      processedValue = value.slice(0, 100);
+    } else if (field === 'sku') {
+      processedValue = value.slice(0, 15);
+    }
+    
     const newSupplies = [...supplies];
     newSupplies[index] = {
       ...newSupplies[index],
       [field]: ['quantity', 'unitCost', 'minStock', 'maxStock'].includes(field)
-        ? parseFloat(value) || 0
-        : value
+        ? parseFloat(processedValue) || 0
+        : processedValue
     };
     setSupplies(newSupplies);
   };
@@ -450,8 +743,8 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
     // Validar que todos los insumos tengan datos básicos
     for (let i = 0; i < supplies.length; i++) {
       const supply = supplies[i];
-      if (!supply.name.trim() || !supply.description.trim() || !supply.sku.trim()) {
-        toast.error(`El insumo ${i + 1} debe tener nombre, descripción y SKU`);
+      if (!supply.name.trim() || !supply.description.trim()) {
+        toast.error(`El insumo ${i + 1} debe tener nombre y descripción`);
         return;
       }
     }
@@ -570,22 +863,23 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
                               className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 text-sm"
                               placeholder="Nombre comercial"
                               required
+                              maxLength={100}
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código *</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código</label>
                             <input
                               type="text"
                               value={supply.sku}
                               onChange={(e) => updateSupply(index, 'sku', e.target.value)}
                               className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 text-sm"
-                              placeholder="Identificador"
-                              required
+                              placeholder="Identificador (opcional)"
+                              maxLength={15}
                             />
                           </div>
                         </div>
 
-                        <div className="grid md:grid-cols-3 gap-4">
+                        <div className="grid md:grid-cols-4 gap-4">
                           <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo</label>
                             <select
@@ -597,6 +891,14 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
                                 <option key={key} value={key}>{type.label}</option>
                               ))}
                             </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
+                            <CategorySearchSelect
+                              selectedId={supply.categoriaId}
+                              initialData={[]}
+                              onSelect={(cat: any) => updateSupply(index, 'categoriaId', cat.categoriaId)}
+                            />
                           </div>
                           <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Proveedor</label>
@@ -632,6 +934,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers }) {
                             className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 text-sm resize-none"
                             placeholder="Breve descripción del insumo..."
                             required
+                            maxLength={100}
                           />
                         </div>
                       </div>

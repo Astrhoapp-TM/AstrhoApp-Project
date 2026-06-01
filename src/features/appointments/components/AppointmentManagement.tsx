@@ -47,6 +47,35 @@ function toDateTime(fechaCita: string, horaInicio: string): Date {
   return new Date(`${fecha}T${hora}`);
 }
 
+function timeStrToMinutes(time: string): number {
+  if (!time) return 0;
+  const parts = time.split(':');
+  return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+}
+
+/**
+ * Formats a Date object to "YYYY-MM-DD" in local time.
+ */
+const formatDateToYYYYMMDD = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Convierte una hora de 24h (HH:mm) a 12h (h:mm AM/PM).
+ */
+const formatTo12Hour = (timeStr: string): string => {
+  if (!timeStr) return '';
+  const [hourStr, minuteStr] = timeStr.split(':');
+  let hour = parseInt(hourStr, 10);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12;
+  hour = hour ? hour : 12; // La hora '0' debe ser '12'
+  return `${hour}:${minuteStr} ${ampm}`;
+};
+
 function getAppointmentDurationMinutesFromServices(
   servicios: string[],
   serviciosMap: Map<string, number>,
@@ -840,35 +869,6 @@ interface AppointmentModalProps {
   onClose: () => void;
   onSave: (data: any, isEdit: boolean, agendaId?: number) => Promise<void>;
 }
-
-function timeStrToMinutes(time: string): number {
-  if (!time) return 0;
-  const parts = time.split(':');
-  return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-}
-
-/**
- * Formats a Date object to "YYYY-MM-DD" in local time.
- */
-const formatDateToYYYYMMDD = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-/**
- * Convierte una hora de 24h (HH:mm) a 12h (h:mm AM/PM).
- */
-const formatTo12Hour = (timeStr: string): string => {
-  if (!timeStr) return '';
-  const [hourStr, minuteStr] = timeStr.split(':');
-  let hour = parseInt(hourStr, 10);
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  hour = hour % 12;
-  hour = hour ? hour : 12; // La hora '0' debe ser '12'
-  return `${hour}:${minuteStr} ${ampm}`;
-};
 
 function AppointmentModal({
   appointment,

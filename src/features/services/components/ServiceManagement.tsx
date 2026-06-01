@@ -823,6 +823,88 @@ function ServiceEditModal({ service, onClose, onSave }) {
   const [imagePreview, setImagePreview] = useState(service?.image || null);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Función de validación por campo
+  const validateField = (name: string, value: any): string => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'El nombre es requerido';
+        return '';
+      case 'description':
+        if (!value.trim()) return 'La descripción es requerida';
+        return '';
+      case 'duration':
+        if (value <= 0) return 'La duración debe ser mayor a 0';
+        return '';
+      case 'price':
+        if (value <= 0) return 'El precio debe ser mayor a 0';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Handle Blur para validar al perder el foco
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    const error = validateField(name, ['duration', 'price'].includes(name) ? parseFloat(value) || 0 : value);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    }
+  };
+
+  // Handle Key Down para restricciones de entrada
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    
+    // Permitir teclas de control
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      return;
+    }
+    
+    // Permitir Ctrl+A, Ctrl+C, etc.
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+    
+    // Para duration y price solo números y punto decimal
+    if (['duration', 'price'].includes(name)) {
+      if (!/^[0-9.]$/.test(e.key)) {
+        e.preventDefault();
+      }
+      // No permitir más de un punto decimal
+      if (e.key === '.' && e.currentTarget.value.includes('.')) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  // Handle Paste para sanitizar
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    
+    if (['duration', 'price'].includes(name)) {
+      e.preventDefault();
+      const pastedText = e.clipboardData.getData('text');
+      // Solo permitir números y punto decimal
+      const sanitized = pastedText.replace(/[^0-9.]/g, '');
+      // No permitir más de un punto decimal
+      const dotIndex = sanitized.indexOf('.');
+      let finalValue = sanitized;
+      if (dotIndex !== -1) {
+        finalValue = sanitized.substring(0, dotIndex + 1) + sanitized.substring(dotIndex + 1).replace(/\./g, '');
+      }
+      const currentValue = e.currentTarget.value;
+      const newValue = currentValue + finalValue;
+      
+      // Validar en tiempo real
+      const error = validateField(name, parseFloat(newValue) || 0);
+      setErrors(prev => ({ ...prev, [name]: error }));
+      
+      // Actualizar formData
+      handleInputChange({ target: { name, value: newValue } });
+    }
+  };
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -851,11 +933,15 @@ function ServiceEditModal({ service, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'El nombre es requerido';
-    if (!formData.description.trim()) newErrors.description = 'La descripción es requerida';
-    if (formData.duration <= 0) newErrors.duration = 'La duración debe ser mayor a 0';
-    if (formData.price <= 0) newErrors.price = 'El precio debe ser mayor a 0';
+    const newErrors: Record<string, string> = {};
+    const nameErr = validateField('name', formData.name);
+    if (nameErr) newErrors.name = nameErr;
+    const descErr = validateField('description', formData.description);
+    if (descErr) newErrors.description = descErr;
+    const durationErr = validateField('duration', formData.duration);
+    if (durationErr) newErrors.duration = durationErr;
+    const priceErr = validateField('price', formData.price);
+    if (priceErr) newErrors.price = priceErr;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -872,13 +958,26 @@ function ServiceEditModal({ service, onClose, onSave }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    // Limitar caracteres
+    if (['name', 'description'].includes(name)) {
+      processedValue = value.slice(0, 100);
+    } else if (['duration', 'price'].includes(name)) {
+      processedValue = parseFloat(value) || 0;
+    }
+    
     setFormData({
       ...formData,
-      [name]: ['duration', 'price'].includes(name) ? parseFloat(value) || 0 : value
+      [name]: processedValue
     });
 
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+    // Validación en tiempo real
+    const error = validateField(name, processedValue);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    } else if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -943,10 +1042,14 @@ function ServiceEditModal({ service, onClose, onSave }) {
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                         placeholder="Ej: Corte y Peinado"
                       />
+                      {errors.name && (
+                        <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.name}</p>
+                      )}
                     </div>
                   </div>
 
@@ -960,9 +1063,15 @@ function ServiceEditModal({ service, onClose, onSave }) {
                           name="duration"
                           value={formData.duration}
                           onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          onKeyDown={handleKeyDown}
+                          onPaste={handlePaste}
                           className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.duration ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                             }`}
                         />
+                        {errors.duration && (
+                          <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.duration}</p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -974,9 +1083,15 @@ function ServiceEditModal({ service, onClose, onSave }) {
                           name="price"
                           value={formData.price}
                           onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          onKeyDown={handleKeyDown}
+                          onPaste={handlePaste}
                           className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.price ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                             }`}
                         />
+                        {errors.price && (
+                          <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.price}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -989,11 +1104,15 @@ function ServiceEditModal({ service, onClose, onSave }) {
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
                         rows={3}
                         className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                         placeholder="Describa el servicio..."
                       />
+                      {errors.description && (
+                        <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.description}</p>
+                      )}
                     </div>
                   </div>
 

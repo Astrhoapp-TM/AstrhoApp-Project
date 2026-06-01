@@ -82,6 +82,40 @@ function normalizeResponse(data: any): any {
 }
 
 export const apiClient = {
+    async getAllPages<T = any>(endpoint: string, params?: Record<string, string | number | boolean | undefined>): Promise<T[]> {
+        const allItems: T[] = [];
+        let currentPage = 1;
+        let totalPages = 1;
+        const pageSize = 100; // Use a large page size to minimize requests
+
+        do {
+            const response = await this.get<any>(endpoint, {
+                ...params,
+                page: currentPage,
+                pageSize: pageSize
+            });
+
+            const items = Array.isArray(response) ? response : (response.data || []);
+            allItems.push(...items);
+
+            // Update totalPages (check both English and Spanish field names)
+            if (response.totalPages !== undefined) {
+                totalPages = response.totalPages;
+            } else if (response.totalPaginas !== undefined) {
+                totalPages = response.totalPaginas;
+            } else {
+                // If no totalPages, stop if we got less than pageSize items
+                if (items.length < pageSize) {
+                    break;
+                }
+            }
+
+            currentPage++;
+        } while (currentPage <= totalPages);
+
+        return allItems;
+    },
+
     async get<T = any>(endpoint: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
         try {
             let url = `${BASE_URL}${endpoint}`;
@@ -306,5 +340,5 @@ export const apiClient = {
             console.error(`API PATCH error on ${endpoint}:`, error);
             throw error;
         }
-    }
+    },
 };

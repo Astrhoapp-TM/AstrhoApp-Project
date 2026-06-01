@@ -881,10 +881,10 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
               return 'El pasaporte solo debe contener letras y números, sin caracteres especiales';
             if (len < 6 || len > 15) return 'El pasaporte debe tener entre 6 y 15 caracteres';
           } else {
-            // CC and CE are numeric-only (7-11 digits)
+            // CC and CE are numeric-only (7-15 digits)
             if (!/^\d+$/.test(value.trim()))
               return 'El número de documento solo debe contener números, sin letras ni caracteres especiales';
-            if (len < 7 || len > 11) return 'El número de documento debe tener entre 7 y 11 dígitos';
+            if (len < 7 || len > 15) return 'El número de documento debe tener entre 7 y 15 dígitos';
           }
         }
         return '';
@@ -1081,8 +1081,8 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
         // Passport: allow letters and numbers, strip special chars
         sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15);
       } else {
-        // CC / CE: numeric only, 7-11 digits
-        sanitized = value.replace(/[^0-9]/g, '').slice(0, 11);
+        // CC / CE: numeric only, 7-15 digits
+        sanitized = value.replace(/[^0-9]/g, '').slice(0, 15);
       }
     }
 
@@ -1091,13 +1091,18 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       sanitized = value.slice(0, 15);
     }
 
+    // Limit text fields to 100 chars
+    if (['nombre', 'email', 'direccion'].includes(name)) {
+      sanitized = value.slice(0, 100);
+    }
+
     // Real-time synchronous validation (without sanitizing nombre yet)
     const error = validateField(name, sanitized, name === 'documentType' ? sanitized : undefined);
     setFieldErrors(prev => ({ ...prev, [name]: error }));
 
     // When document type changes, truncate documentId to new max and re-validate
     if (name === 'documentType') {
-      const newMaxLen = sanitized === 'pasaporte' ? 15 : 11;
+      const newMaxLen = 15;
       const trimmedDocId = formData.documentId.slice(0, newMaxLen);
       const docError = validateField('documentId', trimmedDocId, sanitized);
       setFieldErrors(prev => ({ ...prev, documentId: docError }));
@@ -1202,6 +1207,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                           fieldErrors.email ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                         placeholder="correo@ejemplo.com"
+                        maxLength={100}
                       />
                     </div>
                     {validatingFields.email && <p className="text-[9px] text-blue-500 mt-1 animate-pulse">Verificando...</p>}
@@ -1255,6 +1261,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                           fieldErrors.nombre ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                         placeholder="Nombre y Apellidos"
+                        maxLength={100}
                       />
                     </div>
                     {fieldErrors.nombre && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.nombre}</p>}
@@ -1348,6 +1355,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                             fieldErrors.direccion ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                           placeholder="Ej: Calle 10 #20-30"
+                          maxLength={100}
                         />
                       </div>
                       {fieldErrors.direccion && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.direccion}</p>}

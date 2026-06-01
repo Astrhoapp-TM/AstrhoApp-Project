@@ -784,13 +784,59 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
         r.nombre.toLowerCase() !== 'super administrador'
     );
 
+    // Función de validación por campo, similar a AuthModal
+    const validateField = (name: string, value: string, docType?: string): string => {
+        switch (name) {
+            case 'name':
+                if (!value.trim()) return 'El nombre es obligatorio';
+                if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(value))
+                    return 'El nombre solo debe contener letras';
+                return '';
+            case 'email':
+                if (!editingPerson && !value.trim()) return 'El correo electrónico es obligatorio';
+                if (value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) 
+                    return 'El formato del correo no es válido';
+                return '';
+            case 'documentId': {
+                if (!value.trim()) return 'El número de documento es obligatorio';
+                const effectiveDocType = docType || formData.documentType;
+                if (value.trim()) {
+                    const len = value.trim().length;
+                    if (effectiveDocType === 'NIT') {
+                        // NIT permite números y guion
+                        if (!/^\d+(-\d)?$/.test(value.trim()))
+                            return 'El NIT debe contener solo números y un guion opcional';
+                        if (len < 9 || len > 11) return 'El NIT debe tener entre 9 y 11 caracteres';
+                    } else {
+                        // TI, CC, CE solo números
+                        if (!/^\d+$/.test(value.trim()))
+                            return 'El número de documento solo debe contener números';
+                        if (len < 7 || len > 15) return 'El número de documento debe tener entre 7 y 15 dígitos';
+                    }
+                }
+                return '';
+            }
+            case 'phone':
+                if (!value.trim()) return 'El teléfono es obligatorio';
+                if (value.trim() && !/^\d{10}$/.test(value))
+                    return 'El teléfono debe tener exactamente 10 dígitos numéricos';
+                return '';
+            default:
+                return '';
+        }
+    };
+
+    // Validación completa del formulario
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.name.trim()) newErrors.name = 'Nombre requerido';
-        if (!formData.documentId.trim()) newErrors.documentId = 'Documento requerido';
-        if (!formData.phone.trim()) newErrors.phone = 'Teléfono requerido';
-        if (!editingPerson && !formData.email.trim()) newErrors.email = 'Correo requerido';
+        const fieldsToValidate = ['name', 'documentId', 'phone'];
+        if (!editingPerson) fieldsToValidate.push('email');
+
+        for (const field of fieldsToValidate) {
+            const err = validateField(field, formData[field as keyof typeof formData], formData.documentType);
+            if (err) newErrors[field] = err;
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -808,10 +854,101 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
         }
     };
 
+    // Handle Blur - valida cuando el usuario sale del campo
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        const error = validateField(name, value, formData.documentType);
+        if (error) {
+            setErrors(prev => ({ ...prev, [name]: error }));
+        }
+    };
+
+    // Handle Key Down - para campos numéricos solo permite números
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const { name } = e.currentTarget;
+        
+        // Permite teclas de control
+        if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+            return;
+        }
+        
+        // Permite Ctrl+A, Ctrl+C, etc.
+        if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+            return;
+        }
+        
+        // Para teléfono y documento (excepto NIT) solo números
+        if (name === 'phone' || (name === 'documentId' && formData.documentType !== 'NIT')) {
+            if (!/^[0-9]$/.test(e.key)) {
+                e.preventDefault();
+            }
+        }
+        
+        // Para NIT: números y un solo guion
+        if (name === 'documentId' && formData.documentType === 'NIT') {
+            const currentValue = e.currentTarget.value;
+            if (!/^[0-9-]$/.test(e.key)) {
+                e.preventDefault();
+            }
+            if (e.key === '-' && currentValue.includes('-')) {
+                e.preventDefault(); // No permite más de un guion
+            }
+        }
+    };
+
+    // Handle Paste - sanitiza el texto pegado
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const { name } = e.currentTarget;
+        e.preventDefault();
+        const pastedText = e.clipboardData.getData('text');
+        let sanitizedText = pastedText;
+        
+        if (name === 'phone' || (name === 'documentId' && formData.documentType !== 'NIT')) {
+            sanitizedText = pastedText.replace(/[^0-9]/g, '');
+        }
+        
+        if (name === 'documentId' && formData.documentType === 'NIT') {
+            sanitizedText = pastedText.replace(/[^0-9-]/g, '');
+            // Solo permite un guion
+            const firstDashIndex = sanitizedText.indexOf('-');
+            if (firstDashIndex !== -1) {
+                sanitizedText = sanitizedText.slice(0, firstDashIndex + 1) + sanitizedText.slice(firstDashIndex + 1).replace(/-/g, '');
+            }
+        }
+        
+        // Validación en tiempo real
+        const error = validateField(name, sanitizedText, formData.documentType);
+        setErrors(prev => ({ ...prev, [name]: error }));
+        
+        // Actualiza form data
+        handleChange(name, sanitizedText);
+    };
+
     const handleChange = (field: string, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: '' }));
+        let processedValue = value;
+        
+        if (['name', 'address', 'email'].includes(field)) {
+            processedValue = value.slice(0, 100);
+        } else if (['phone'].includes(field)) {
+            processedValue = value.slice(0, 10);
+        } else if (['documentId'].includes(field)) {
+            if (formData.documentType === 'NIT') {
+                processedValue = value.slice(0, 11); // NIT hasta 11 caracteres
+            } else {
+                processedValue = value.slice(0, 15);
+            }
+        }
+        
+        setFormData(prev => ({ ...prev, [field]: processedValue }));
+        
+        // Validación en tiempo real mientras el usuario escribe
+        if (['name', 'email', 'documentId', 'phone'].includes(field)) {
+            const error = validateField(field, processedValue, formData.documentType);
+            if (error) {
+                setErrors(prev => ({ ...prev, [field]: error }));
+            } else if (errors[field]) {
+                setErrors(prev => ({ ...prev, [field]: '' }));
+            }
         }
     };
 
@@ -874,7 +1011,17 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                 <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <select
                                                     value={formData.documentType}
-                                                    onChange={(e) => handleChange('documentType', e.target.value)}
+                                                    onChange={(e) => {
+                                                        const newDocType = e.target.value;
+                                                        // Cuando cambia el tipo de documento, revalidamos
+                                                        handleChange('documentType', newDocType);
+                                                        const error = validateField('documentId', formData.documentId, newDocType);
+                                                        if (error) {
+                                                            setErrors(prev => ({ ...prev, documentId: error }));
+                                                        } else if (errors.documentId) {
+                                                            setErrors(prev => ({ ...prev, documentId: '' }));
+                                                        }
+                                                    }}
                                                     className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none appearance-none"
                                                     disabled={!!editingPerson}
                                                 >
@@ -891,14 +1038,20 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                 <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input
                                                     type="text"
+                                                    name="documentId"
                                                     value={formData.documentId}
                                                     onChange={(e) => handleChange('documentId', e.target.value)}
+                                                    onBlur={handleBlur}
+                                                    onKeyDown={handleKeyDown}
+                                                    onPaste={handlePaste}
                                                     className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                         }`}
-                                                    placeholder="1234567890"
+                                                    placeholder={formData.documentType === 'NIT' ? '901234567-1' : '1234567890'}
+                                                    maxLength={formData.documentType === 'NIT' ? 11 : 10}
                                                     disabled={!!editingPerson}
                                                 />
                                             </div>
+                                            {errors.documentId && <p className="text-[9px] text-brand-pink mt-1">{errors.documentId}</p>}
                                         </div>
                                     </div>
 
@@ -908,13 +1061,17 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
                                                 type="text"
+                                                name="name"
                                                 value={formData.name}
                                                 onChange={(e) => handleChange('name', e.target.value)}
+                                                onBlur={handleBlur}
                                                 className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                     }`}
                                                 placeholder="Nombres y Apellidos"
+                                                maxLength={100}
                                             />
                                         </div>
+                                        {errors.name && <p className="text-[9px] text-brand-pink mt-1">{errors.name}</p>}
                                     </div>
 
                                     {personType === 'employee' && !editingPerson && (
@@ -952,13 +1109,19 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
                                                 type="tel"
+                                                name="phone"
                                                 value={formData.phone}
                                                 onChange={(e) => handleChange('phone', e.target.value)}
+                                                onBlur={handleBlur}
+                                                onKeyDown={handleKeyDown}
+                                                onPaste={handlePaste}
                                                 className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.phone ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                     }`}
-                                                placeholder="300 123 4567"
+                                                placeholder="3001234567"
+                                                maxLength={10}
                                             />
                                         </div>
+                                        {errors.phone && <p className="text-[9px] text-brand-pink mt-1">{errors.phone}</p>}
                                     </div>
 
                                     <div>
@@ -971,6 +1134,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                 onChange={(e) => handleChange('address', e.target.value)}
                                                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
                                                 placeholder="Calle 10 #20-30"
+                                                maxLength={100}
                                             />
                                         </div>
                                     </div>
@@ -982,13 +1146,17 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input
                                                     type="email"
+                                                    name="email"
                                                     value={formData.email}
                                                     onChange={(e) => handleChange('email', e.target.value)}
+                                                    onBlur={handleBlur}
                                                     className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.email ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                         }`}
                                                     placeholder="correo@ejemplo.com"
+                                                    maxLength={100}
                                                 />
                                             </div>
+                                            {errors.email && <p className="text-[9px] text-brand-pink mt-1">{errors.email}</p>}
                                         </div>
                                     )}
                                 </div>

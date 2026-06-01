@@ -95,30 +95,45 @@ export const userService = {
         type: 'client' | 'employee' 
     } | null> => {
         try {
-            if (!user) return null;
+            console.log('🔍 [getPersonForUser] Starting with user:', user);
+            if (!user) {
+                console.log('❌ [getPersonForUser] No user provided');
+                return null;
+            }
 
             // Normalize role name
             const roleName = (user.rol?.nombre || user.rolNombre || user.role || '').toLowerCase().trim();
+            console.log('🔍 [getPersonForUser] Extracted roleName:', roleName);
             
             // ROLE LOGIC:
             // 'cliente', 'customer' -> Clients table
             // 'administrador', 'asistente', 'super admin', 'admin', etc. -> Employees table
             const isClient = roleName === 'cliente' || roleName === 'customer';
+            console.log('🔍 [getPersonForUser] isClient:', isClient);
             
             const userId = user.usuarioId || user.id;
-            if (!userId) return null;
+            console.log('🔍 [getPersonForUser] userId:', userId);
+            if (!userId) {
+                console.log('❌ [getPersonForUser] No userId found');
+                return null;
+            }
 
             const targetId = Number(userId);
+            console.log('🔍 [getPersonForUser] targetId:', targetId);
 
             // 1. Try to find the document ID from the user object if present
             const documentId = user.documentoCliente || user.documentoEmpleado || user.documento || user.documentoIdentidad || user.documentId;
+            console.log('🔍 [getPersonForUser] documentId from user:', documentId);
 
             if (documentId) {
                 try {
                     const endpoint = isClient ? `/api/Clientes/${documentId}` : `/api/Empleados/${documentId}`;
+                    console.log('🔍 [getPersonForUser] Trying direct fetch to:', endpoint);
                     const data = await apiClient.get<any>(endpoint);
+                    console.log('🔍 [getPersonForUser] Direct fetch response:', data);
                     
                     if (data && (data.documentoCliente || data.documentoEmpleado || data.nombre)) {
+                        console.log('✅ [getPersonForUser] Direct fetch successful, returning data');
                         return {
                             documentId: isClient ? (data.documentoCliente || documentId) : (data.documentoEmpleado || documentId),
                             documentType: data.tipoDocumento || 'CC',
@@ -129,74 +144,97 @@ export const userService = {
                         };
                     }
                 } catch (e) {
-                    console.warn(`Direct fetch failed for ${documentId}`, e);
+                    console.warn(`⚠️ [getPersonForUser] Direct fetch failed for ${documentId}`, e);
                 }
             }
 
-            // 2. Exhaustive Fallback: Search by usuarioId in the corresponding list
+            // 2. Exhaustive Fallback: Search by usuarioId in the corresponding table
             // Search in the table that SHOULD contain the user
             if (isClient) {
+                console.log('🔍 [getPersonForUser] Searching in /api/Clientes by usuarioId');
                 // Search in /Clientes
-                const clientsRes = await apiClient.get<any>('/api/Clientes', { pageSize: 1000 }).catch(() => ({ data: [] }));
-                const clients = Array.isArray(clientsRes) ? clientsRes : (clientsRes?.data || []);
+                const clients = await apiClient.getAllPages<any>('/api/Clientes').catch((err) => {
+                    console.error('❌ [getPersonForUser] Error fetching /api/Clientes:', err);
+                    return [];
+                });
+                console.log('🔍 [getPersonForUser] All clients:', clients);
                 const client = clients.find((c: any) => Number(c.usuarioId) === targetId);
+                console.log('🔍 [getPersonForUser] Found client:', client);
                 
-                if (client) return {
-                    documentId: client.documentoCliente,
-                    documentType: client.tipoDocumento || 'CC',
-                    name: client.nombre || 'Cliente',
-                    phone: client.telefono || '',
-                    address: client.dirección || client.direccion || '',
+                if (client) {
+                    console.log('✅ [getPersonForUser] Found client, returning data');
+                    return {
+                        documentId: client.documentoCliente,
+                        documentType: client.tipoDocumento || 'CC',
+                        name: client.nombre || 'Cliente',
+                        phone: client.telefono || '',
+                        address: client.dirección || client.direccion || '',
+                        type: 'client'
+                    };
+                }
+            } else {
+                console.log('🔍 [getPersonForUser] Searching in /api/Empleados by usuarioId');
+                // Search in /Empleados (for Admin, Assistant, Super Admin, etc.)
+                const employees = await apiClient.getAllPages<any>('/api/Empleados').catch((err) => {
+                    console.error('❌ [getPersonForUser] Error fetching /api/Empleados:', err);
+                    return [];
+                });
+                console.log('🔍 [getPersonForUser] All employees:', employees);
+                const employee = employees.find((e: any) => Number(e.usuarioId) === targetId);
+                console.log('🔍 [getPersonForUser] Found employee:', employee);
+                
+                if (employee) {
+                    console.log('✅ [getPersonForUser] Found employee, returning data');
+                    return {
+                        documentId: employee.documentoEmpleado,
+                        documentType: employee.tipoDocumento || 'CC',
+                        name: employee.nombre || 'Empleado',
+                        phone: employee.telefono || '',
+                        address: employee.dirección || employee.direccion || '',
+                        type: 'employee'
+                    };
+                }
+            }
+
+            // 3. Final Fallback: Cross-search in BOTH tables just in case
+            console.log('🔍 [getPersonForUser] Final fallback: searching both tables');
+            const [allClients, allEmployees] = await Promise.all([
+                apiClient.getAllPages<any>('/api/Clientes').catch(() => []),
+                apiClient.getAllPages<any>('/api/Empleados').catch(() => [])
+            ]);
+
+            const foundClient = allClients.find((x: any) => Number(x.usuarioId) === targetId);
+            console.log('🔍 [getPersonForUser] Cross-search found client:', foundClient);
+            if (foundClient) {
+                console.log('✅ [getPersonForUser] Cross-search found client, returning data');
+                return {
+                    documentId: foundClient.documentoCliente,
+                    documentType: foundClient.tipoDocumento || 'CC',
+                    name: foundClient.nombre || 'Cliente',
+                    phone: foundClient.telefono || '',
+                    address: foundClient.dirección || foundClient.direccion || '',
                     type: 'client'
                 };
-            } else {
-                // Search in /Empleados (for Admin, Assistant, Super Admin, etc.)
-                const employeesRes = await apiClient.get<any>('/api/Empleados', { pageSize: 1000 }).catch(() => ({ data: [] }));
-                const employees = Array.isArray(employeesRes) ? employeesRes : (employeesRes?.data || []);
-                const employee = employees.find((e: any) => Number(e.usuarioId) === targetId);
-                
-                if (employee) return {
-                    documentId: employee.documentoEmpleado,
-                    documentType: employee.tipoDocumento || 'CC',
-                    name: employee.nombre || 'Empleado',
-                    phone: employee.telefono || '',
-                    address: employee.dirección || employee.direccion || '',
+            }
+
+            const foundEmployee = allEmployees.find((x: any) => Number(x.usuarioId) === targetId);
+            console.log('🔍 [getPersonForUser] Cross-search found employee:', foundEmployee);
+            if (foundEmployee) {
+                console.log('✅ [getPersonForUser] Cross-search found employee, returning data');
+                return {
+                    documentId: foundEmployee.documentoEmpleado,
+                    documentType: foundEmployee.tipoDocumento || 'CC',
+                    name: foundEmployee.nombre || 'Empleado',
+                    phone: foundEmployee.telefono || '',
+                    address: foundEmployee.dirección || foundEmployee.direccion || '',
                     type: 'employee'
                 };
             }
 
-            // 3. Final Fallback: Cross-search in BOTH lists just in case
-            const [cRes, eRes] = await Promise.all([
-                apiClient.get<any>('/api/Clientes', { pageSize: 1000 }).catch(() => ({ data: [] })),
-                apiClient.get<any>('/api/Empleados', { pageSize: 1000 }).catch(() => ({ data: [] }))
-            ]);
-            
-            const allClients = Array.isArray(cRes) ? cRes : (cRes?.data || []);
-            const allEmployees = Array.isArray(eRes) ? eRes : (eRes?.data || []);
-
-            const foundClient = allClients.find((x: any) => Number(x.usuarioId) === targetId);
-            if (foundClient) return {
-                documentId: foundClient.documentoCliente,
-                documentType: foundClient.tipoDocumento || 'CC',
-                name: foundClient.nombre || 'Cliente',
-                phone: foundClient.telefono || '',
-                address: foundClient.dirección || foundClient.direccion || '',
-                type: 'client'
-            };
-
-            const foundEmployee = allEmployees.find((x: any) => Number(x.usuarioId) === targetId);
-            if (foundEmployee) return {
-                documentId: foundEmployee.documentoEmpleado,
-                documentType: foundEmployee.tipoDocumento || 'CC',
-                name: foundEmployee.nombre || 'Empleado',
-                phone: foundEmployee.telefono || '',
-                address: foundEmployee.dirección || foundEmployee.direccion || '',
-                type: 'employee'
-            };
-
+            console.log('❌ [getPersonForUser] No person found, returning null');
             return null;
         } catch (error) {
-            console.error('Error in getPersonForUser:', error);
+            console.error('❌ [getPersonForUser] Error in function:', error);
             return null;
         }
     },

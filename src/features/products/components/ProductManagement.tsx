@@ -690,9 +690,8 @@ function CategorySearchSelect({ onSelect, selectedId, error, disabled, initialDa
                         String(cat.categoriaId) === String(selectedId) ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <div className="flex flex-col">
+                    <div>
                       <span className="font-medium">{cat.nombre}</span>
-                      {cat.descripcion && <span className="text-[10px] text-gray-500 italic">{cat.descripcion}</span>}
                     </div>
                   </div>
                 </div>
@@ -725,13 +724,59 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  // Función de validación por campo
+  const validateField = (name: string, value: any): string => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'El nombre es requerido';
+        return '';
+      case 'categoryId':
+        if (!value) return 'La categoría es requerida';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Handle Blur para validar al perder el foco
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const error = validateField(name, value);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    }
+  };
+
+  // Handle Key Down para restricciones de entrada
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    
+    // Permitir teclas de control
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      return;
+    }
+    
+    // Permitir Ctrl+A, Ctrl+C, etc.
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+    
+    // Restricciones por campo
+    if (['name', 'description'].includes(name)) {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\d\-]*$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors: any = {};
-    if (!formData.name.trim()) newErrors.name = 'El nombre es requerido';
-    if (!formData.sku.trim()) newErrors.sku = 'El SKU es requerido';
-    if (!formData.categoryId) newErrors.categoryId = 'La categoría es requerida';
+    const nameErr = validateField('name', formData.name);
+    if (nameErr) newErrors.name = nameErr;
+    const categoryErr = validateField('categoryId', formData.categoryId);
+    if (categoryErr) newErrors.categoryId = categoryErr;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -753,13 +798,26 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    // Limitar caracteres
+    if (['name', 'description'].includes(name)) {
+      processedValue = value.slice(0, 100);
+    } else if (name === 'sku') {
+      processedValue = value.slice(0, 15);
+    }
+    
     setFormData({
       ...formData,
-      [name]: value
+      [name]: processedValue
     });
 
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+    // Validación en tiempo real
+    const error = validateField(name, processedValue);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    } else if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -824,16 +882,22 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
                         className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
                         placeholder="Ej: Champú Profesional"
+                        maxLength={100}
                       />
                     </div>
+                    {errors.name && (
+                      <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.name}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código *</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código (Opcional)</label>
                       <div className="relative">
                         <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -841,9 +905,9 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                           name="sku"
                           value={formData.sku}
                           onChange={handleInputChange}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.sku ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                            }`}
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none border-gray-200`}
                           placeholder="INV-001"
+                          maxLength={15}
                         />
                       </div>
                     </div>
@@ -855,6 +919,9 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                         onSelect={(cat: any) => setFormData({ ...formData, categoryId: String(cat.categoriaId) })}
                         error={!!errors.categoryId}
                       />
+                      {errors.categoryId && (
+                        <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.categoryId}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -877,9 +944,12 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
                         rows={3}
                         className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
                         placeholder="Describa el uso o notas del insumo..."
+                        maxLength={100}
                       />
                     </div>
                   </div>

@@ -15,8 +15,7 @@ export interface Delivery {
     fechaCreado: string;
     fechaEntrega: string;
     fechaCompletado?: string | null;
-    estado: string;
-    estadoId?: number; // Added for API consistency
+    estado: boolean; // true = Entregado
     cantidadItems: number;
     detalles?: DeliveryDetail[];
 }

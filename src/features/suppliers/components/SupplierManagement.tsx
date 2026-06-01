@@ -857,9 +857,20 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    // Limitar caracteres
+    if (['name', 'contactPerson', 'email', 'address'].includes(name)) {
+      processedValue = value.slice(0, 100);
+    } else if (['phone'].includes(name)) {
+      processedValue = value.slice(0, 10);
+    } else if (['taxId'].includes(name)) {
+      processedValue = value.slice(0, 15);
+    }
+    
     const updatedData = {
       ...formData,
-      [name]: value
+      [name]: processedValue
     };
 
     // Si cambia a tipo natural, limpiar el campo de persona de contacto
@@ -910,6 +921,90 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
   const inputClass = (field: string) =>
     `w-full px-4 py-3 border ${errors[field] ? 'border-red-400 ring-2 ring-red-200' : 'border-gray-300'
     } rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent`;
+
+  // ── Handlers para restricciones de entrada y validación en blur ──
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const newErrors = { ...errors };
+
+    if (name === 'name') {
+      const err = validateName(value);
+      if (err) newErrors.name = err; else delete newErrors.name;
+    }
+    if (name === 'contactPerson') {
+      const err = validateContactPerson(value);
+      if (err) newErrors.contactPerson = err; else delete newErrors.contactPerson;
+    }
+    if (name === 'phone') {
+      const err = validatePhone(value);
+      if (err) newErrors.phone = err; else delete newErrors.phone;
+    }
+    if (name === 'taxId') {
+      const err = validateTaxId(value);
+      if (err) newErrors.taxId = err; else delete newErrors.taxId;
+    }
+    if (name === 'email') {
+      const err = validateEmail(value);
+      if (err) newErrors.email = err; else delete newErrors.email;
+    }
+    if (name === 'address') {
+      const err = validateAddress(value);
+      if (err) newErrors.address = err; else delete newErrors.address;
+    }
+
+    setErrors(newErrors);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+
+    // Permitir teclas de control
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      return;
+    }
+
+    // Permitir Ctrl+A, Ctrl+C, etc.
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+
+    // Restricciones por campo
+    if (['name', 'contactPerson'].includes(name)) {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+
+    if (['phone', 'taxId'].includes(name)) {
+      if (!/^[\d\.\-]*$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    const pastedText = e.clipboardData.getData('text');
+    let sanitized = pastedText;
+
+    if (['name', 'contactPerson'].includes(name)) {
+      sanitized = pastedText.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+    }
+
+    if (['phone', 'taxId'].includes(name)) {
+      sanitized = pastedText.replace(/[^\d\.\-]/g, '');
+    }
+
+    if (sanitized !== pastedText) {
+      e.preventDefault();
+      // Insertar el texto sanitizado
+      const target = e.target as HTMLInputElement;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const newValue = target.value.substring(0, start) + sanitized + target.value.substring(end);
+      handleInputChange({ target: { name, value: newValue } } as any);
+    }
+  };
 
   // Comprobar si el formulario tiene errores activos
   const hasErrors = Object.keys(errors).length > 0;
@@ -987,6 +1082,9 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                         name="taxId"
                         value={formData.taxId}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
                         className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.taxId ? 'border-red-300' : 'border-gray-200'}`}
                         placeholder="Ej: 900.123.456-7"
                       />
@@ -1003,6 +1101,9 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
+                      onPaste={handlePaste}
                       className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.name ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="Nombre comercial"
                     />
@@ -1017,6 +1118,9 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                         name="contactPerson"
                         value={formData.contactPerson}
                         onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
                         className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.contactPerson ? 'border-red-300' : 'border-gray-200'}`}
                         placeholder="Nombre del representante"
                       />
@@ -1041,6 +1145,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
                       className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.email ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="ejemplo@proveedor.com"
                     />
@@ -1054,6 +1159,9 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
+                      onPaste={handlePaste}
                       className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.phone ? 'border-red-300' : 'border-gray-200'}`}
                       placeholder="Número de 10 dígitos"
                     />
@@ -1104,6 +1212,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
+                    onBlur={handleBlur}
                     className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.address ? 'border-red-300' : 'border-gray-200'}`}
                     placeholder="Calle, Carrera, Barrio..."
                   />

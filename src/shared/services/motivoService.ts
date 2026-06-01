@@ -9,6 +9,7 @@ export interface Motivo {
   documentoEmpleado: string;
   nombreEmpleado?: string;
   estado: "pendiente" | "aprobado" | "rechazado";
+  estadoId: number;
 }
 
 export interface CreateMotivoData {
@@ -24,6 +25,7 @@ export interface UpdateMotivoData {
   horaFin?: string;
   descripcion?: string;
   estado?: "pendiente" | "aprobado" | "rechazado";
+  estadoId?: number;
 }
 
 export const motivoService = {

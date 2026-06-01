@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Send, Plus, Calendar, Filter, Search, CheckCircle, Clock, ChevronDown,
-  X, Save, AlertCircle, Package, User, MapPin, FileText, Eye, Ban, Trash2, ShoppingCart, RefreshCw
+  X, Save, AlertCircle, Package, User, MapPin, FileText, Eye, Trash2, ShoppingCart, RefreshCw
 } from 'lucide-react';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
 import { deliveryService, type Delivery } from '../services/deliveryService';
@@ -40,9 +40,6 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
   const [itemsPerPage] = useState(5);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [deliveryToCancel, setDeliveryToCancel] = useState<Delivery | null>(null);
-  const [cancelReason, setCancelReason] = useState('');
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
@@ -114,43 +111,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
     return users.find(u => u.id === documentoEmpleado);
   };
 
-  const getStatusColor = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s.includes('pendiente')) return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    if (s.includes('completado') || s.includes('entregado')) return 'bg-green-100 text-green-700 border-green-200';
-    if (s.includes('cancelado')) return 'bg-gray-100 text-brand-pink border-red-200';
-    return 'bg-gray-100 text-gray-700 border-gray-200';
-  };
 
-  const getStatusIcon = (status: string) => {
-    const s = status?.toLowerCase();
-    switch (s) {
-      case 'pendiente':
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'completado':
-      case 'completed': return <CheckCircle className="w-4 h-4" />;
-      case 'cancelado':
-      case 'cancelled': return <X className="w-4 h-4" />;
-      default: return <AlertCircle className="w-4 h-4" />;
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    if (!status) return 'Pendiente';
-    const s = status.toString().toLowerCase();
-
-    // Map any variation of 'completed' or 'delivered' to 'Completado'
-    if (s.includes('completado') || s.includes('completed') || s.includes('entregado')) {
-      return 'Completado';
-    }
-
-    // Map any variation of 'cancelled' to 'Cancelado'
-    if (s.includes('cancelado') || s.includes('cancelled')) {
-      return 'Cancelado';
-    }
-
-    return 'Pendiente';
-  };
 
   const handleViewDetail = async (delivery: Delivery) => {
     try {
@@ -316,14 +277,8 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
           </div>
           <div style="margin-bottom: 10px;">
             <strong>Estado:</strong> 
-            <span style="padding: 4px 12px; border-radius: 20px; border: 1px solid ${delivery.estado.toLowerCase() === 'completado' || delivery.estado.toLowerCase() === 'completed' ? '#28a745' :
-        delivery.estado.toLowerCase() === 'pendiente' || delivery.estado.toLowerCase() === 'pending' ? '#ffc107' : '#dc3545'
-      }; background-color: ${delivery.estado.toLowerCase() === 'completado' || delivery.estado.toLowerCase() === 'completed' ? '#d4edda' :
-        delivery.estado.toLowerCase() === 'pendiente' || delivery.estado.toLowerCase() === 'pending' ? '#fff3cd' : '#f8d7da'
-      }; color: ${delivery.estado.toLowerCase() === 'completado' || delivery.estado.toLowerCase() === 'completed' ? '#155724' :
-        delivery.estado.toLowerCase() === 'pendiente' || delivery.estado.toLowerCase() === 'pending' ? '#856404' : '#721c24'
-      };">
-              ${getStatusLabel(delivery.estado)}
+            <span style="padding: 4px 12px; border-radius: 20px; border: 1px solid ${delivery.estado ? '#28a745' : '#ffc107'}; background-color: ${delivery.estado ? '#d4edda' : '#fff3cd'}; color: ${delivery.estado ? '#155724' : '#856404'};">
+              ${delivery.estado ? 'Entregado' : 'Pendiente'}
             </span>
           </div>
         </div>
@@ -528,6 +483,17 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
                       )}
                     </td>
 
+                    <td className="px-6 py-4">
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-xs font-bold border-2",
+                        delivery.estado 
+                          ? "bg-green-100 text-green-700 border-green-200" 
+                          : "bg-gray-100 text-gray-700 border-gray-200"
+                      )}>
+                        {delivery.estado ? 'Entregado' : 'Pendiente'}
+                      </span>
+                    </td>
+
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end space-x-2">
                         <button
@@ -565,106 +531,6 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
           />
         </div>
       </div>
-
-      {/* Cancel Confirmation Modal */}
-      {showCancelModal && deliveryToCancel && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Standard Header */}
-            <div className="bg-gradient-to-r from-red-500 to-pink-600 p-5 text-white shrink-0 shadow-md">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
-                    <AlertCircle className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold leading-tight">Confirmar Cancelación</h3>
-                    <p className="text-red-100 text-xs font-medium">Esta acción no se puede deshacer</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowCancelModal(false);
-                    setDeliveryToCancel(null);
-                    setCancelReason('');
-                  }}
-                  disabled={isProcessing}
-                  className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/30 hover:scale-110 active:scale-95 transition-all shadow-sm"
-                >
-                  <X className="w-5 h-5 text-white" />
-                </button>
-              </div>
-            </div>
-
-            <div className="p-8">
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-100 rotate-3">
-                  <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
-                </div>
-                <h4 className="text-lg font-bold text-gray-800 mb-2">
-                  ¿Cancelar entrega #{deliveryToCancel.id}?
-                </h4>
-                <p className="text-sm text-gray-500 leading-relaxed mb-6">
-                  Estás a punto de cancelar esta entrega. Se devolverá el stock a los insumos correspondientes.
-                </p>
-                
-                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col space-y-2 mb-6">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Responsable:</span>
-                    <span className="font-bold text-gray-700">{getUserInfo(deliveryToCancel.documentoEmpleado)?.name || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha:</span>
-                    <span className="font-bold text-gray-700">{deliveryToCancel.fechaEntrega.split('T')[0]}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Insumos:</span>
-                    <span className="font-bold text-gray-700">{deliveryToCancel.detalles?.length || 0}</span>
-                  </div>
-                </div>
-
-                <div className="text-left space-y-2">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Motivo de Cancelación *</label>
-                  <textarea
-                    value={cancelReason}
-                    onChange={(e) => setCancelReason(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-300 focus:border-transparent transition-all font-medium text-gray-700 resize-none outline-none"
-                    rows={3}
-                    placeholder="Explica brevemente el motivo..."
-                    disabled={isProcessing}
-                  />
-                </div>
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    setShowCancelModal(false);
-                    setDeliveryToCancel(null);
-                    setCancelReason('');
-                  }}
-                  disabled={isProcessing}
-                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest disabled:opacity-50"
-                >
-                  Volver
-                </button>
-                <button
-                  onClick={confirmCancelDelivery}
-                  disabled={!cancelReason.trim() || isProcessing}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
-                >
-                  {isProcessing ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <X className="w-3.5 h-3.5" />
-                  )}
-                  <span>Cancelar Entrega</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Create Delivery Modal */}
       {showCreateModal && (
@@ -1227,29 +1093,6 @@ function CreateDeliveryModal({ onClose, onSave, supplies, users, isProcessing }:
 
 // Delivery Detail Modal Component
 function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: any) {
-  const getStatusColor = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s.includes('pendiente')) return 'bg-yellow-50/50 border-yellow-100 text-yellow-600';
-    if (s.includes('completado') || s.includes('entregado')) return 'bg-green-50/50 border-green-100 text-green-600';
-    if (s.includes('cancelado')) return 'bg-gray-50/50 border-red-100 text-brand-pink';
-    return 'bg-gray-50/50 border-gray-100 text-gray-600';
-  };
-
-  const getStatusIcon = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s.includes('pendiente')) return <Clock className="w-5 h-5" />;
-    if (s.includes('completado') || s.includes('entregado')) return <CheckCircle className="w-5 h-5" />;
-    if (s.includes('cancelado')) return <Ban className="w-5 h-5" />;
-    return <AlertCircle className="w-5 h-5" />;
-  };
-
-  const getStatusLabel = (status: string) => {
-    const s = status?.toLowerCase();
-    if (s.includes('pendiente')) return 'Pendiente';
-    if (s.includes('completado') || s.includes('entregado')) return 'Completado';
-    if (s.includes('cancelado')) return 'Cancelado';
-    return status;
-  };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1329,15 +1172,12 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
               </div>
 
               {/* Status Card */}
-              <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${getStatusColor(delivery.estado)}`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                  delivery.estado.toLowerCase().includes('pendiente') ? 'bg-yellow-100' : 
-                  delivery.estado.toLowerCase().includes('completado') ? 'bg-green-100' : 'bg-gray-100'
-                }`}>
-                  {getStatusIcon(delivery.estado)}
+              <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${delivery.estado ? 'bg-green-50/50 border-green-100 text-green-600' : 'bg-gray-50/50 border-gray-200 text-gray-600'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${delivery.estado ? 'bg-green-100' : 'bg-gray-100'}`}>
+                  {delivery.estado ? <CheckCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
                 </div>
                 <span className="font-black uppercase text-[10px] tracking-[0.2em]">
-                  {getStatusLabel(delivery.estado)}
+                  {delivery.estado ? 'Entregado' : 'Pendiente'}
                 </span>
               </div>
             </div>
@@ -1407,11 +1247,8 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
                   </div>
                   <div className="pt-6 mt-2 border-t border-purple-200 flex justify-between items-center px-2">
                     <span className="text-sm font-black uppercase tracking-[0.2em] text-purple-800">Estado</span>
-                    <span className={`font-bold text-lg ${
-                      delivery.estado.toLowerCase().includes('pendiente') ? 'text-yellow-600' : 
-                      delivery.estado.toLowerCase().includes('completado') ? 'text-green-600' : 'text-brand-pink'
-                    }`}>
-                      {getStatusLabel(delivery.estado)}
+                    <span className={`font-bold text-lg ${delivery.estado ? 'text-green-600' : 'text-gray-600'}`}>
+                      {delivery.estado ? 'Entregado' : 'Pendiente'}
                     </span>
                   </div>
                 </div>

@@ -552,12 +552,59 @@ function CategoryEditModal({ category, onClose, onSave }) {
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
 
+  // Función de validación por campo
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'El nombre es requerido';
+        return '';
+      case 'description':
+        if (!value.trim()) return 'La descripción es requerida';
+        return '';
+      default:
+        return '';
+    }
+  };
+
+  // Handle Blur para validar al perder el foco
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    const error = validateField(name, value);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    }
+  };
+
+  // Handle Key Down para restricciones de entrada
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name } = e.currentTarget;
+    
+    // Permitir teclas de control
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      return;
+    }
+    
+    // Permitir Ctrl+A, Ctrl+C, etc.
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+    
+    // Restricciones por campo
+    if (['name', 'description'].includes(name)) {
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\d\-]*$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'El nombre es requerido';
-    if (!formData.description.trim()) newErrors.description = 'La descripción es requerida';
+    const newErrors: Record<string, string> = {};
+    const nameErr = validateField('name', formData.name);
+    if (nameErr) newErrors.name = nameErr;
+    const descErr = validateField('description', formData.description);
+    if (descErr) newErrors.description = descErr;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -574,13 +621,23 @@ function CategoryEditModal({ category, onClose, onSave }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    let processedValue = value;
+    
+    if (['name', 'description'].includes(name)) {
+      processedValue = value.slice(0, 100);
+    }
+    
     setFormData({
       ...formData,
-      [name]: value
+      [name]: processedValue
     });
 
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
+    // Validación en tiempo real
+    const error = validateField(name, processedValue);
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    } else if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -643,11 +700,15 @@ function CategoryEditModal({ category, onClose, onSave }) {
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
                       className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                       placeholder="Ej: Cuidado Capilar, Tratamientos..."
+                      maxLength={100}
                     />
                   </div>
+                  {errors.name && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.name}</p>}
                 </div>
 
                 <div>
@@ -658,12 +719,16 @@ function CategoryEditModal({ category, onClose, onSave }) {
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      onKeyDown={handleKeyDown}
                       rows={3}
                       className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                         }`}
                       placeholder="Describa qué incluye esta categoría..."
+                      maxLength={100}
                     />
                   </div>
+                  {errors.description && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.description}</p>}
                 </div>
 
               </div>

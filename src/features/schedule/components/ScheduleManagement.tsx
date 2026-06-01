@@ -68,6 +68,14 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
   const [horarioEmpleados, setHorarioEmpleados] = useState<HorarioEmpleado[]>([]);
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
   const [groups, setGroups] = useState<ScheduleGroup[]>([]);
+  const [motivos, setMotivos] = useState<Motivo[]>([]);
+  const [showMotivos, setShowMotivos] = useState(false);
+  const [currentPageMotivos, setCurrentPageMotivos] = useState(1);
+  const [itemsPerPageMotivos] = useState(5);
+  const [showMotivoDetailModal, setShowMotivoDetailModal] = useState(false);
+  const [showAcceptMotivoModal, setShowAcceptMotivoModal] = useState(false);
+  const [showRejectMotivoModal, setShowRejectMotivoModal] = useState(false);
+  const [selectedMotivo, setSelectedMotivo] = useState<Motivo | null>(null);
 
   // UI states
   const [loading, setLoading] = useState(true);
@@ -103,16 +111,29 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
     setLoading(true);
     showSectionLoading("Cargando horarios...");
     try {
-      const [horariosData, asignacionesData, empleadosData] = await Promise.all([
+      const [horariosData, asignacionesData, empleadosData, motivosData] = await Promise.all([
         horarioService.getAll(),
         horarioEmpleadoService.getAll(),
-        empleadoService.getAll(1, 1000) // Fetch up to 1000 employees to handle frontend search/pagination
+        empleadoService.getAll(1, 1000), // Fetch up to 1000 employees to handle frontend search/pagination
+        motivoService.getAll()
       ]);
 
       const hData = extractArray(horariosData);
       setHorarios(hData);
       setHorarioEmpleados(extractArray(asignacionesData));
       setEmpleados(extractArray(empleadosData));
+
+      // Process motivos to map estadoId to estado text
+      const rawMotivos = extractArray(motivosData);
+      const processedMotivos = rawMotivos.map((motivo: any) => ({
+        ...motivo,
+        estado: motivo.estadoId === 1 ? 'pendiente' :
+                motivo.estadoId === 6 ? 'aprobado' :
+                motivo.estadoId === 7 ? 'rechazado' :
+                motivo.estado || 'pendiente'
+      }));
+      console.log('Processed motivos:', processedMotivos); // Debug log
+      setMotivos(processedMotivos);
 
       // 1. Transform API Horarios into frontend Groups automatically
       // Each Horario object from the new API is essentially a "Group" because it has a name and days.
@@ -187,6 +208,63 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
 
   const handleCreateMotivo = () => {
     setShowMotivoModal(true);
+  };
+
+  const handleViewMotivoDetail = (motivo: Motivo) => {
+    setSelectedMotivo(motivo);
+    setShowMotivoDetailModal(true);
+  };
+
+  const handleAcceptMotivo = (motivo: Motivo) => {
+    setSelectedMotivo(motivo);
+    setShowAcceptMotivoModal(true);
+  };
+
+  const handleRejectMotivo = (motivo: Motivo) => {
+    setSelectedMotivo(motivo);
+    setShowRejectMotivoModal(true);
+  };
+
+  const confirmAcceptMotivo = async () => {
+    if (!selectedMotivo) return;
+    try {
+      setSaving(true);
+      showSectionLoading("Aceptando motivo...");
+      await motivoService.update(selectedMotivo.motivoId, {
+        estado: "aprobado",
+        estadoId: 6
+      });
+      showAlert("success", "Motivo aceptado correctamente");
+      setShowAcceptMotivoModal(false);
+      await loadData();
+    } catch (err) {
+      console.error("Error accepting motivo:", err);
+      showAlert("error", "Error al aceptar el motivo");
+    } finally {
+      setSaving(false);
+      hideSectionLoading();
+    }
+  };
+
+  const confirmRejectMotivo = async () => {
+    if (!selectedMotivo) return;
+    try {
+      setSaving(true);
+      showSectionLoading("Rechazando motivo...");
+      await motivoService.update(selectedMotivo.motivoId, {
+        estado: "rechazado",
+        estadoId: 7
+      });
+      showAlert("success", "Motivo rechazado correctamente");
+      setShowRejectMotivoModal(false);
+      await loadData();
+    } catch (err) {
+      console.error("Error rejecting motivo:", err);
+      showAlert("error", "Error al rechazar el motivo");
+    } finally {
+      setSaving(false);
+      hideSectionLoading();
+    }
   };
 
   const handleSaveMotivo = async (data: CreateMotivoData) => {
@@ -607,6 +685,19 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
             >
               <RefreshCw className={cn("w-5 h-5", loading && "animate-spin")} />
             </button>
+            
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setShowMotivos(!showMotivos);
+                  if (!showMotivos) setCurrentPageMotivos(1);
+                }}
+                className="w-full md:w-auto bg-gradient-to-r from-purple-400 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
+              >
+                <FileText className="w-5 h-5" />
+                <span>{showMotivos ? "Ocultar Motivos" : "Ver Motivos"}</span>
+              </button>
+            )}
 
             {canRegisterMotivo && (
               <button
@@ -798,6 +889,125 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
           )}
         </div>
       </div>
+      
+      {/* Motivos Section (Admin/Super Admin only) */}
+      {isAdmin && showMotivos && (
+        <div className="mt-8 bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
+            <h3 className="text-xl font-bold text-gray-800">Motivos Registrados</h3>
+            <p className="text-gray-600">
+              {motivos.length} motivo{motivos.length !== 1 ? 's' : ''} registrado{motivos.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="text-left p-4 font-semibold text-gray-600">Empleado</th>
+                  <th className="text-left p-4 font-semibold text-gray-600">Fecha</th>
+                  <th className="text-left p-4 font-semibold text-gray-600">Hora Inicio</th>
+                  <th className="text-left p-4 font-semibold text-gray-600">Hora Fin</th>
+                  <th className="text-left p-4 font-semibold text-gray-600">Descripción</th>
+                  <th className="text-left p-4 font-semibold text-gray-600">Estado</th>
+                  <th className="text-left p-4 font-semibold text-gray-600">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const totalPages = Math.max(1, Math.ceil(motivos.length / itemsPerPageMotivos));
+                  const startIndex = (currentPageMotivos - 1) * itemsPerPageMotivos;
+                  const paginatedMotivos = motivos.slice(startIndex, startIndex + itemsPerPageMotivos);
+
+                  return paginatedMotivos.map((motivo) => (
+                    <tr key={motivo.motivoId} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="p-4">
+                        <div className="font-semibold text-gray-800">
+                          {motivo.nombreEmpleado || motivo.documentoEmpleado}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-gray-800">
+                          {new Date(motivo.fecha + 'T00:00:00').toLocaleDateString('es-ES')}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-gray-800">{formatTo12Hour(motivo.horaInicio)}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-gray-800">{formatTo12Hour(motivo.horaFin)}</div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-gray-800">{motivo.descripcion}</div>
+                      </td>
+                      <td className="p-4">
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-bold border-2",
+                          String(motivo.estado).toLowerCase() === 'aprobado' ? "bg-green-100 text-green-700 border-green-200" :
+                          String(motivo.estado).toLowerCase() === 'rechazado' ? "bg-red-100 text-red-700 border-red-200" :
+                          String(motivo.estado).toLowerCase() === 'pendiente' ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
+                          "bg-gray-100 text-gray-700 border-gray-200"
+                        )}>
+                          {String(motivo.estado).charAt(0).toUpperCase() + String(motivo.estado).slice(1).toLowerCase()}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleViewMotivoDetail(motivo)}
+                            className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            title="Ver detalle"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {(String(motivo.estado).toLowerCase() === 'pendiente' || motivo.estadoId === 1) && (
+                            <>
+                              <button
+                                onClick={() => handleAcceptMotivo(motivo)}
+                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                title="Aceptar"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleRejectMotivo(motivo)}
+                                className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                title="Rechazar"
+                              >
+                                <AlertCircle className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ));
+                })()}
+              </tbody>
+            </table>
+
+            {motivos.length === 0 && (
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No hay motivos registrados</h3>
+                <p className="text-gray-500">No se encontraron motivos en el sistema</p>
+              </div>
+            )}
+          </div>
+
+          {/* Pagination for Motivos */}
+          {motivos.length > 0 && (
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+              <SimplePagination
+                currentPage={currentPageMotivos}
+                totalPages={Math.max(1, Math.ceil(motivos.length / itemsPerPageMotivos))}
+                onPageChange={setCurrentPageMotivos}
+                totalRecords={motivos.length}
+                recordsPerPage={itemsPerPageMotivos}
+              />
+            </div>
+          )}
+        </div>
+      )}
       </>
       )}
 
@@ -854,6 +1064,129 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
           onSave={handleSaveMotivo}
           saving={saving}
         />
+      )}
+
+      {/* Motivo Detail Modal */}
+      {showMotivoDetailModal && selectedMotivo && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="bg-gradient-brand p-5 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold">Detalle del Motivo</h3>
+                </div>
+                <button
+                  onClick={() => setShowMotivoDetailModal(false)}
+                  className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/30 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <div className="space-y-4">
+                <div>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Empleado</span>
+                  <p className="text-lg font-semibold text-gray-800">{selectedMotivo.nombreEmpleado || selectedMotivo.documentoEmpleado}</p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fecha</span>
+                    <p className="text-lg font-semibold text-gray-800">{new Date(selectedMotivo.fecha + 'T00:00:00').toLocaleDateString('es-ES')}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Estado</span>
+                    <p className="text-lg font-semibold text-gray-800">{String(selectedMotivo.estado).charAt(0).toUpperCase() + String(selectedMotivo.estado).slice(1).toLowerCase()}</p>
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Hora Inicio</span>
+                    <p className="text-lg font-semibold text-gray-800">{formatTo12Hour(selectedMotivo.horaInicio)}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Hora Fin</span>
+                    <p className="text-lg font-semibold text-gray-800">{formatTo12Hour(selectedMotivo.horaFin)}</p>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Descripción</span>
+                  <p className="text-gray-800 mt-1">{selectedMotivo.descripcion}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-5 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button
+                onClick={() => setShowMotivoDetailModal(false)}
+                className="px-6 py-2.5 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-all"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Accept Motivo Modal */}
+      {showAcceptMotivoModal && selectedMotivo && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Confirmar Aceptación</h3>
+                <p className="text-gray-600">¿Estás seguro de aceptar este motivo?</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowAcceptMotivoModal(false)}
+                className="flex-1 px-6 py-3 border border-gray-200 text-gray-500 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmAcceptMotivo}
+                className="flex-1 bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Motivo Modal */}
+      {showRejectMotivoModal && selectedMotivo && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Confirmar Rechazo</h3>
+                <p className="text-gray-600">¿Estás seguro de rechazar este motivo?</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowRejectMotivoModal(false)}
+                className="flex-1 px-6 py-3 border border-gray-200 text-gray-500 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmRejectMotivo}
+                className="flex-1 bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

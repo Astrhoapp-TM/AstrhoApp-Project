@@ -1,4 +1,4 @@
-﻿﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Clock,
   Star,
@@ -80,11 +80,26 @@ function getWeekStart(): Date {
   return monday;
 }
 
+function getWeekEnd(): Date {
+  const start = getWeekStart();
+  const end = new Date(start.getTime());
+  end.setDate(end.getDate() + 6); // Sunday
+  end.setHours(23, 59, 59, 999);
+  return end;
+}
+
 function getMonthStart(): Date {
   const d = new Date();
   d.setDate(1);
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+function getMonthEnd(): Date {
+  const start = getMonthStart();
+  const end = new Date(start.getFullYear(), start.getMonth() + 1, 0); // Last day of month
+  end.setHours(23, 59, 59, 999);
+  return end;
 }
 
 function getYearStart(): Date {
@@ -94,11 +109,19 @@ function getYearStart(): Date {
   return d;
 }
 
+function getYearEnd(): Date {
+  const start = getYearStart();
+  const end = new Date(start.getFullYear(), 11, 31); // Dec 31
+  end.setHours(23, 59, 59, 999);
+  return end;
+}
+
 function isInPeriod(dateStr: string, period: Period): boolean {
   if (!dateStr) return false;
   if (period === "all") return true;
-  // Handle "YYYY-MM-DD" or ISO strings. Ensure local time comparison.
-  const date = new Date(dateStr + (dateStr.includes("T") ? "" : "T00:00:00"));
+  // Handle "YYYY-MM-DD", ISO strings, or space-separated date strings safely.
+  const cleanDateStr = dateStr.split(/[ T]/)[0];
+  const date = new Date(cleanDateStr + "T00:00:00");
   date.setHours(0, 0, 0, 0);
 
   const now = new Date();
@@ -108,13 +131,13 @@ function isInPeriod(dateStr: string, period: Period): boolean {
     return date.getTime() === today.getTime();
   }
   if (period === "week") {
-    return date >= getWeekStart();
+    return date >= getWeekStart() && date <= getWeekEnd();
   }
   if (period === "month") {
-    return date >= getMonthStart();
+    return date >= getMonthStart() && date <= getMonthEnd();
   }
   if (period === "year") {
-    return date >= getYearStart();
+    return date >= getYearStart() && date <= getYearEnd();
   }
   return false;
 }
@@ -135,6 +158,14 @@ const HOUR_LABELS = [
   "7pm",
 ];
 const HOUR_MAP: Record<string, string> = {
+  "00": "8am",
+  "01": "8am",
+  "02": "8am",
+  "03": "8am",
+  "04": "8am",
+  "05": "8am",
+  "06": "8am",
+  "07": "8am",
   "08": "8am",
   "09": "9am",
   "10": "10am",
@@ -147,6 +178,10 @@ const HOUR_MAP: Record<string, string> = {
   "17": "5pm",
   "18": "6pm",
   "19": "7pm",
+  "20": "7pm",
+  "21": "7pm",
+  "22": "7pm",
+  "23": "7pm",
 };
 
 function groupAgendaByHour(items: AgendaItem[]): ChartPoint[] {
@@ -341,27 +376,74 @@ export function DashboardOverview({
     setAllAgenda([]);
     setAllSales([]);
     try {
-      const params = { pageSize: 1000 };
-      
-      const agendaPromise = currentUser?.role === 'asistente'
-        ? agendaService.getMisCitasEmpleado(params)
-        : agendaService.getAll(params);
-        
-      const salesPromise = currentUser?.role === 'asistente'
-        ? salesService.getMySalesEmployee(params)
-        : salesService.getAll(params);
+      const fetchAllAgenda = async () => {
+        const pageSize = 200;
+        let page = 1;
+        let totalPages = 1;
+        const all: AgendaItem[] = [];
+        do {
+          const params = { page, pageSize };
+          const response = currentUser?.role === 'asistente'
+            ? await agendaService.getMisCitasEmpleado(params)
+            : await agendaService.getAll(params);
+          const chunk = response.data || [];
+          all.push(...chunk);
+          totalPages = response.totalPages || 1;
+          page += 1;
+        } while (page <= totalPages);
+        return all;
+      };
 
-      const [agenda, sales, clients, supplies, services] =
+      const fetchAllSales = async () => {
+        const pageSize = 200;
+        let page = 1;
+        let totalPages = 1;
+        const all: SaleView[] = [];
+        do {
+          const params = { page, pageSize };
+          const response = currentUser?.role === 'asistente'
+            ? await salesService.getMySalesEmployee(params)
+            : await salesService.getAll(params);
+          const chunk = response.data || [];
+          all.push(...chunk);
+          totalPages = response.totalPages || 1;
+          page += 1;
+        } while (page <= totalPages);
+        return all;
+      };
+
+      const clientParams = { pageSize: 1000 };
+      const supplyParams = { pageSize: 1000 };
+      const serviceParams = { pageSize: 1000 };
+
+      const [agendaRes, salesRes, clients, supplies, services] =
         await Promise.allSettled([
-          agendaPromise,
-          salesPromise,
-          personService.getPersons("client", params),
-          supplyService.getSupplies(params),
-          serviceService.getServices(params),
+          fetchAllAgenda(),
+          fetchAllSales(),
+          personService.getPersons("client", clientParams),
+          supplyService.getSupplies(supplyParams),
+          serviceService.getServices(serviceParams),
         ]);
 
-      if (agenda.status === "fulfilled") setAllAgenda(agenda.value.data || []);
-      if (sales.status === "fulfilled") setAllSales(sales.value.data || []);
+      const cleanDate = (dateStr: string | null | undefined): string => {
+        if (!dateStr) return "";
+        return dateStr.split(/[ T]/)[0];
+      };
+
+      if (agendaRes.status === "fulfilled") {
+        const cleaned = (agendaRes.value || []).map((a) => ({
+          ...a,
+          fechaCita: cleanDate(a.fechaCita)
+        }));
+        setAllAgenda(cleaned);
+      }
+      if (salesRes.status === "fulfilled") {
+        const cleaned = (salesRes.value || []).map((s) => ({
+          ...s,
+          date: cleanDate(s.date)
+        }));
+        setAllSales(cleaned);
+      }
       if (clients.status === "fulfilled") {
         const clientsData = clients.value.data || [];
         setTotalClients(
@@ -388,7 +470,7 @@ export function DashboardOverview({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
     loadData();
@@ -429,8 +511,8 @@ export function DashboardOverview({
           : groupAgendaByMonth(periodAgenda);
 
   // ── Compute Stats ──
-  const appointmentsCount = appointmentsChartData.reduce((sum, p) => sum + p.value, 0);
-  const totalIncome = incomeChartData.reduce((sum, p) => sum + p.value, 0);
+  const appointmentsCount = periodAgenda.length;
+  const totalIncome = periodSales.reduce((sum, s) => sum + (s.total || 0), 0);
 
   const uniqueClientIds = new Set(
     periodAgenda.map((a) => a.documentoCliente).filter(Boolean),
@@ -447,9 +529,14 @@ export function DashboardOverview({
     (id) => !priorClientIds.has(id),
   ).length;
 
-  const servicesCompleted = periodAgenda.filter(
+  const completedAppointments = periodAgenda.filter(
     (a) => a.estado.toLowerCase() === "completado",
-  ).length + periodSales.length;
+  );
+
+  const servicesCompleted = completedAppointments.reduce(
+    (sum, a) => sum + (a.servicios?.length || 0),
+    0
+  );
 
   const currentStats: DashboardStats = {
     appointments: appointmentsCount,
@@ -485,7 +572,7 @@ export function DashboardOverview({
     .slice(0, 5);
 
   const servicioFreq: Record<string, { count: number }> = {};
-  periodAgenda.forEach((apt) => {
+  completedAppointments.forEach((apt) => {
     apt.servicios.forEach((sName) => {
       if (!servicioFreq[sName]) servicioFreq[sName] = { count: 0 };
       servicioFreq[sName].count += 1;

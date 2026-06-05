@@ -88,6 +88,8 @@
 .text-brand-indigo { color: #8477D9 !important; }
 .text-brand-periwinkle { color: #B5B3F2 !important; }
 .text-brand-lavender { color: #BBC3F2 !important; }
+.border-brand-pink { border-color: #F279DE !important; }
+.border-brand-pink-subtle { border-color: rgba(242, 121, 222, 0.3) !important; }
 
 /* --- Badges de Estado Estandarizados --- */
 .status-badge {

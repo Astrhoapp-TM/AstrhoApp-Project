@@ -40,11 +40,18 @@ export interface CreatePurchaseRequest {
     items: CreatePurchaseItem[];
 }
 
+export interface UpdatePurchaseItem {
+    insumoId: number;
+    cantidad: number;
+    precioUnitario: number;
+}
+
 export interface UpdatePurchaseRequest {
     proveedorId: number;
     iva: number;
     estado: boolean;
     observacion?: string;
+    items: UpdatePurchaseItem[];
 }
 
 // ── Service ──

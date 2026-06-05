@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   ShoppingCart, Plus, Eye, Filter, Search, Calendar, AlertTriangle,
   CheckCircle, Clock, Truck, Package, X, Save, DollarSign,
-  FileText, Ban, File, Trash2, ChevronDown, Loader2, ShoppingBag, AlertCircle, RefreshCw, Info
+  FileText, Ban, File, Trash2, ChevronDown, Loader2, ShoppingBag, AlertCircle, RefreshCw, Info, Edit
 } from 'lucide-react';
 import { purchaseService, type PurchaseAPI } from '../services/purchaseService';
 import { supplierService, type SupplierAPI } from '@/features/suppliers/services/supplierService';
@@ -204,6 +204,30 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
     setCurrentPage(page);
   };
 
+  const isPurchaseEditable = (purchase: PurchaseAPI) => {
+    if (!purchase.estado) return false;
+    if (!purchase.fechaRegistro) return false;
+    const regDate = new Date(purchase.fechaRegistro);
+    const now = new Date();
+    const diffMs = now.getTime() - regDate.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours < 24;
+  };
+
+  const handleEditPurchase = async (purchase: PurchaseAPI) => {
+    try {
+      showSectionLoading("Cargando detalle de compra...");
+      const fullPurchase = await purchaseService.getById(purchase.compraId);
+      setSelectedPurchase(fullPurchase);
+      setShowCreateModal(true);
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo cargar la compra para editar");
+    } finally {
+      hideSectionLoading();
+    }
+  };
+
   const handleCancelPurchase = (purchase: PurchaseAPI) => {
     setSelectedPurchase(purchase);
     setShowCancelModal(true);
@@ -218,7 +242,12 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
         proveedorId: selectedPurchase.proveedorId,
         iva: selectedPurchase.iva,
         estado: false,
-        observacion: observation // Pass the observation to the update
+        observacion: observation, // Pass the observation to the update
+        items: selectedPurchase.detalles ? selectedPurchase.detalles.map((d: any) => ({
+          insumoId: d.insumoId,
+          cantidad: d.cantidad,
+          precioUnitario: d.precioUnitario
+        })) : []
       });
 
       await fetchPurchases();
@@ -333,14 +362,27 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   const handleSavePurchase = async (purchaseData: any) => {
     try {
       showSectionLoading("Guardando compra...");
-      await purchaseService.create(purchaseData);
+      if (selectedPurchase) {
+        // Edit mode (PUT)
+        await purchaseService.update(selectedPurchase.compraId, {
+          proveedorId: purchaseData.proveedorId,
+          iva: purchaseData.iva,
+          estado: true,
+          observacion: purchaseData.notes,
+          items: purchaseData.items
+        });
+        showAlert('success', 'Compra actualizada exitosamente');
+      } else {
+        // Create mode (POST)
+        await purchaseService.create(purchaseData);
+        showAlert('success', 'Compra registrada exitosamente');
+      }
       await fetchPurchases();
       setShowCreateModal(false);
       setSelectedPurchase(null);
-      showAlert('success', 'Compra registrada exitosamente');
     } catch (err) {
-      console.error('Error creating purchase:', err);
-      showAlert('error', 'Error al registrar la compra');
+      console.error('Error saving purchase:', err);
+      showAlert('error', selectedPurchase ? 'Error al actualizar la compra' : 'Error al registrar la compra');
     } finally {
       hideSectionLoading();
     }
@@ -515,6 +557,16 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
                           <File className="w-4 h-4" />
                         </button>
 
+                        {hasPermission('manage_purchases') && isPurchaseEditable(purchase) && (
+                          <button
+                            onClick={() => handleEditPurchase(purchase)}
+                            className="p-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+                            title="Editar Compra"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
+
                         {hasPermission('manage_purchases') && purchase.estado && (
                           <button
                             onClick={() => handleCancelPurchase(purchase)}
@@ -559,6 +611,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
       {/* Purchase Creation Modal */}
       {showCreateModal && (
         <PurchaseCreateModal
+          purchase={selectedPurchase}
           onClose={() => {
             setShowCreateModal(false);
             setSelectedPurchase(null);
@@ -1058,8 +1111,34 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
   );
 }
 
+const handlePriceChange = (value: string, prevValue: any): number => {
+  let cleanValue = value.replace(/\D/g, ''); // Eliminar todo lo que no sea dígito
+  const prevStr = (prevValue ?? '').toString().replace(/\D/g, '');
+  
+  if (prevStr === '0' || prevStr === '') {
+    if (cleanValue.length === 2) {
+      if (cleanValue.startsWith('0')) {
+        cleanValue = cleanValue.substring(1);
+      } else if (cleanValue.endsWith('0')) {
+        cleanValue = cleanValue.substring(0, 1);
+      }
+    }
+  }
+  
+  if (cleanValue.length > 1 && cleanValue.startsWith('0')) {
+    cleanValue = cleanValue.replace(/^0+/, '');
+  }
+  
+  if (cleanValue.length > 6) {
+    cleanValue = cleanValue.slice(0, 6);
+  }
+  
+  return parseInt(cleanValue, 10) || 0;
+};
+
 // Purchase Creation Modal Component
-function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
+function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }: {
+  purchase?: PurchaseAPI | null;
   onClose: () => void;
   onSave: (data: any) => void;
   suppliers: SupplierAPI[];
@@ -1083,6 +1162,25 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
     notes: '',
     items: [] as { insumoId: string; insumoNombre: string; cantidad: number; precioUnitario: number; subtotal: number }[]
   });
+
+  useEffect(() => {
+    if (purchase) {
+      setFormData({
+        proveedorId: purchase.proveedorId ? purchase.proveedorId.toString() : '',
+        iva: purchase.iva !== undefined ? purchase.iva.toString() : '0',
+        orderDate: purchase.fechaRegistro ? purchase.fechaRegistro.split('T')[0] : getCurrentDate(),
+        purchaseNumber: (purchase as any).purchaseNumber || purchase.compraId.toString() || '',
+        notes: (purchase as any).notes || (purchase as any).observaciones || (purchase as any).observacion || '',
+        items: purchase.detalles ? purchase.detalles.map((d: any) => ({
+          insumoId: d.insumoId ? d.insumoId.toString() : '',
+          insumoNombre: d.insumoNombre || '',
+          cantidad: d.cantidad || 0,
+          precioUnitario: d.precioUnitario || 0,
+          subtotal: d.subtotal || (d.cantidad * d.precioUnitario) || 0
+        })) : []
+      });
+    }
+  }, [purchase]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -1139,7 +1237,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
     });
   };
 
-  const updateProduct = (index: number, field: string, value: any) => {
+  const updateProduct = (index: number, field: string, value: any, isDirectNumber = false) => {
     const newItems = [...formData.items];
     const item = { ...newItems[index] };
 
@@ -1149,7 +1247,11 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
     } else if (field === 'cantidad') {
       item.cantidad = Math.max(1, parseInt(value) || 1);
     } else if (field === 'precioUnitario') {
-      item.precioUnitario = parseFloat(value) || 0;
+      if (isDirectNumber) {
+        item.precioUnitario = value;
+      } else {
+        item.precioUnitario = handlePriceChange(value, item.precioUnitario);
+      }
     }
 
     // Recalcular subtotal
@@ -1206,6 +1308,8 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
       }
       if (item.precioUnitario <= 0) {
         newErrors[`price_${index}`] = 'El precio debe ser mayor a 0';
+      } else if (item.precioUnitario.toString().length > 6) {
+        newErrors[`price_${index}`] = 'El precio no puede exceder los 6 caracteres';
       }
     });
 
@@ -1252,8 +1356,12 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                 <ShoppingBag className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold leading-tight">Registrar Compra</h3>
-                <p className="text-pink-100 text-sm">Abastece tu inventario registrando facturas de proveedores</p>
+                <h3 className="text-xl font-bold leading-tight">
+                  {purchase ? 'Editar Compra' : 'Registrar Compra'}
+                </h3>
+                <p className="text-pink-100 text-sm">
+                  {purchase ? `Actualizando la compra #${purchase.compraId}` : 'Abastece tu inventario registrando facturas de proveedores'}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -1413,8 +1521,42 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
                             <input
                               type="number"
                               min="0"
-                              value={item.precioUnitario === 0 ? '' : item.precioUnitario}
+                              value={item.precioUnitario}
                               onChange={(e) => updateProduct(index, 'precioUnitario', e.target.value)}
+                              onKeyDown={(e) => {
+                                if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+                                  return;
+                                }
+                                if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+                                  return;
+                                }
+                                if (!/^[0-9]$/.test(e.key)) {
+                                  e.preventDefault();
+                                  return;
+                                }
+                                if (e.currentTarget.value.replace(/\D/g, '').length >= 6) {
+                                  const selectionStart = e.currentTarget.selectionStart;
+                                  const selectionEnd = e.currentTarget.selectionEnd;
+                                  if (selectionStart === null || selectionEnd === null || selectionStart === selectionEnd) {
+                                    e.preventDefault();
+                                  }
+                                }
+                              }}
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                const pastedText = e.clipboardData.getData('text');
+                                const sanitized = pastedText.replace(/\D/g, '');
+                                
+                                const currentValue = e.currentTarget.value;
+                                const selectionStart = e.currentTarget.selectionStart ?? 0;
+                                const selectionEnd = e.currentTarget.selectionEnd ?? 0;
+                                
+                                let newValue = currentValue.substring(0, selectionStart) + sanitized + currentValue.substring(selectionEnd);
+                                newValue = newValue.replace(/\D/g, '').slice(0, 6);
+                                const parsedValue = parseInt(newValue, 10) || 0;
+                                
+                                updateProduct(index, 'precioUnitario', parsedValue, true);
+                              }}
                               className={cn(
                                 "w-full pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 transition-all font-bold text-gray-700 text-sm",
                                 item.precioUnitario === 0 ? 'pl-7' : 'pl-3',
@@ -1504,7 +1646,7 @@ function PurchaseCreateModal({ onClose, onSave, suppliers, supplies }: {
             className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
           >
             <Save className="w-4 h-4" />
-            <span>Registrar Compra</span>
+            <span>{purchase ? 'Actualizar Compra' : 'Registrar Compra'}</span>
           </button>
         </div>
       </div>

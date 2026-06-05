@@ -500,8 +500,14 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                                                 <>
                                                     <button
                                                         onClick={() => handleEditPerson(person)}
-                                                        className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                                                        title="Editar registro"
+                                                        disabled={person.status === 'inactive'}
+                                                        className={cn(
+                                                            "p-2 rounded-lg transition-colors",
+                                                            person.status === 'inactive'
+                                                                ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                                                : "bg-green-100 text-green-700 hover:bg-green-200"
+                                                        )}
+                                                        title={person.status === 'inactive' ? "No se puede editar un registro inactivo" : "Editar registro"}
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
@@ -509,8 +515,14 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                                                     {person.documentId !== '8729451090' && (
                                                         <button
                                                             onClick={() => handleDeletePerson(person)}
-                                                            className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                                                            title="Eliminar registro"
+                                                            disabled={person.status === 'inactive'}
+                                                            className={cn(
+                                                                "p-2 rounded-lg transition-colors",
+                                                                person.status === 'inactive'
+                                                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                                                    : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                                                            )}
+                                                            title={person.status === 'inactive' ? "No se puede eliminar un registro inactivo" : "Eliminar registro"}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>

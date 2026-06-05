@@ -4,6 +4,32 @@ import { type Supply } from '@/shared/data/management';
 import { SUPPLY_TYPES, SUPPLY_STATUSES } from '../../data/supplyConstants';
 import { supplyCategoryService } from '@/features/categories/services/supplyCategoryService';
 import { cn } from '@/shared/components/ui/utils';
+import { toast } from 'sonner';
+
+const handlePriceChange = (value: string, prevValue: any): number => {
+  let cleanValue = value.replace(/\D/g, ''); // Eliminar todo lo que no sea dígito
+  const prevStr = (prevValue ?? '').toString().replace(/\D/g, '');
+  
+  if (prevStr === '0' || prevStr === '') {
+    if (cleanValue.length === 2) {
+      if (cleanValue.startsWith('0')) {
+        cleanValue = cleanValue.substring(1);
+      } else if (cleanValue.endsWith('0')) {
+        cleanValue = cleanValue.substring(0, 1);
+      }
+    }
+  }
+  
+  if (cleanValue.length > 1 && cleanValue.startsWith('0')) {
+    cleanValue = cleanValue.replace(/^0+/, '');
+  }
+  
+  if (cleanValue.length > 6) {
+    cleanValue = cleanValue.slice(0, 6);
+  }
+  
+  return parseInt(cleanValue, 10) || 0;
+};
 
 function unwrapValues(obj: any): any {
   if (obj == null) return obj;
@@ -233,6 +259,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
         return '';
       case 'unitCost':
         if (value < 0) return 'El precio no puede ser negativo';
+        if (value.toString().length > 6) return 'El precio no puede exceder los 6 caracteres';
         return '';
       case 'minStock':
         if (value < 0) return 'El stock mínimo no puede ser negativo';
@@ -271,9 +298,22 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
         e.preventDefault();
       }
     }
-    if (['quantity', 'unitCost', 'minStock', 'maxStock'].includes(name)) {
+    if (name === 'unitCost') {
+      if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+        return;
+      }
+      if (e.currentTarget.value.replace(/\D/g, '').length >= 6) {
+        const selectionStart = e.currentTarget.selectionStart;
+        const selectionEnd = e.currentTarget.selectionEnd;
+        if (selectionStart === null || selectionEnd === null || selectionStart === selectionEnd) {
+          e.preventDefault();
+        }
+      }
+    } else if (['quantity', 'minStock', 'maxStock'].includes(name)) {
       if (!/^[\d.]$/.test(e.key)) {
         e.preventDefault();
+        return;
       }
     }
   };
@@ -299,6 +339,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
 
     if (formData.quantity < 0) newErrors.quantity = 'La cantidad no puede ser negativa';
     if (formData.unitCost < 0) newErrors.unitCost = 'El precio no puede ser negativo';
+    if (formData.unitCost.toString().length > 6) newErrors.unitCost = 'El precio no puede exceder los 6 caracteres';
     if (formData.minStock < 0) newErrors.minStock = 'El stock mínimo no puede ser negativo';
 
     if (Object.keys(newErrors).length > 0) {
@@ -328,6 +369,8 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
       processedValue = value.slice(0, 100);
     } else if (name === 'sku') {
       processedValue = value.slice(0, 15);
+    } else if (name === 'unitCost') {
+      processedValue = handlePriceChange(value, formData.unitCost).toString();
     }
 
     const finalValue = ['quantity', 'unitCost', 'minStock', 'maxStock'].includes(name)
@@ -526,6 +569,27 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                       onChange={handleInputChange}
                       onBlur={handleBlur}
                       onKeyDown={handleKeyDown}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pastedText = e.clipboardData.getData('text');
+                        const sanitized = pastedText.replace(/\D/g, '');
+                        
+                        const currentValue = e.currentTarget.value;
+                        const selectionStart = e.currentTarget.selectionStart ?? 0;
+                        const selectionEnd = e.currentTarget.selectionEnd ?? 0;
+                        
+                        let newValue = currentValue.substring(0, selectionStart) + sanitized + currentValue.substring(selectionEnd);
+                        newValue = newValue.replace(/\D/g, '').slice(0, 6);
+                        const parsedValue = parseInt(newValue, 10) || 0;
+                        
+                        setFormData(prev => ({
+                          ...prev,
+                          unitCost: parsedValue
+                        }));
+                        
+                        const error = validateField('unitCost', parsedValue);
+                        setErrors(prev => ({ ...prev, unitCost: error }));
+                      }}
                       className="w-full px-4 py-3 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700"
                       placeholder="0.00"
                     />
@@ -704,7 +768,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
     setImageFiles(newImageFiles);
   };
 
-  const updateSupply = (index, field, value) => {
+  const updateSupply = (index, field, value, isDirectNumber = false) => {
     let processedValue = value;
     
     // Apply max length restrictions
@@ -712,6 +776,12 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
       processedValue = value.slice(0, 100);
     } else if (field === 'sku') {
       processedValue = value.slice(0, 15);
+    } else if (field === 'unitCost') {
+      if (isDirectNumber) {
+        processedValue = value;
+      } else {
+        processedValue = handlePriceChange(value, supplies[index].unitCost);
+      }
     }
     
     const newSupplies = [...supplies];
@@ -740,11 +810,19 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validar que todos los insumos tengan datos básicos
+    // Validar que todos los insumos tengan datos básicos y costos válidos
     for (let i = 0; i < supplies.length; i++) {
       const supply = supplies[i];
       if (!supply.name.trim() || !supply.description.trim()) {
         toast.error(`El insumo ${i + 1} debe tener nombre y descripción`);
+        return;
+      }
+      if (supply.unitCost < 0) {
+        toast.error(`El costo unitario del insumo ${i + 1} no puede ser negativo`);
+        return;
+      }
+      if (supply.unitCost.toString().length > 6) {
+        toast.error(`El costo unitario del insumo ${i + 1} no puede exceder los 6 caracteres`);
         return;
       }
     }
@@ -919,6 +997,40 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                               type="number"
                               value={supply.unitCost}
                               onChange={(e) => updateSupply(index, 'unitCost', e.target.value)}
+                              onKeyDown={(e) => {
+                                if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+                                  return;
+                                }
+                                if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+                                  return;
+                                }
+                                if (!/^[0-9]$/.test(e.key)) {
+                                  e.preventDefault();
+                                  return;
+                                }
+                                if (e.currentTarget.value.replace(/\D/g, '').length >= 6) {
+                                  const selectionStart = e.currentTarget.selectionStart;
+                                  const selectionEnd = e.currentTarget.selectionEnd;
+                                  if (selectionStart === null || selectionEnd === null || selectionStart === selectionEnd) {
+                                    e.preventDefault();
+                                  }
+                                }
+                              }}
+                              onPaste={(e) => {
+                                e.preventDefault();
+                                const pastedText = e.clipboardData.getData('text');
+                                const sanitized = pastedText.replace(/\D/g, '');
+                                
+                                const currentValue = e.currentTarget.value;
+                                const selectionStart = e.currentTarget.selectionStart ?? 0;
+                                const selectionEnd = e.currentTarget.selectionEnd ?? 0;
+                                
+                                let newValue = currentValue.substring(0, selectionStart) + sanitized + currentValue.substring(selectionEnd);
+                                newValue = newValue.replace(/\D/g, '').slice(0, 6);
+                                const parsedValue = parseInt(newValue, 10) || 0;
+                                
+                                updateSupply(index, 'unitCost', parsedValue, true);
+                              }}
                               className="w-full px-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-300 focus:border-transparent transition-all font-medium text-gray-700 text-sm"
                               placeholder="0.00"
                             />

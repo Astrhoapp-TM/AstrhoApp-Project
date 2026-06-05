@@ -589,16 +589,28 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
                           <>
                             <button
                               onClick={() => handleEditService(service)}
-                              className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                              title="Editar"
+                              disabled={service.status === 'inactive'}
+                              className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                service.status === 'inactive'
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                  : "bg-green-100 text-green-700 hover:bg-green-200"
+                              )}
+                              title={service.status === 'inactive' ? "No se puede editar un servicio inactivo" : "Editar"}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
 
                             <button
                               onClick={() => handleDeleteService(service)}
-                              className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                              title="Eliminar"
+                              disabled={service.status === 'inactive'}
+                              className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                service.status === 'inactive'
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                  : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                              )}
+                              title={service.status === 'inactive' ? "No se puede eliminar un servicio inactivo" : "Eliminar"}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -806,6 +818,31 @@ function ServiceDetailModal({ service, onClose }) {
   );
 }
 
+const handlePriceChange = (value: string, prevValue: any): number => {
+  let cleanValue = value.replace(/\D/g, ''); // Eliminar todo lo que no sea dígito
+  const prevStr = (prevValue ?? '').toString().replace(/\D/g, '');
+  
+  if (prevStr === '0' || prevStr === '') {
+    if (cleanValue.length === 2) {
+      if (cleanValue.startsWith('0')) {
+        cleanValue = cleanValue.substring(1);
+      } else if (cleanValue.endsWith('0')) {
+        cleanValue = cleanValue.substring(0, 1);
+      }
+    }
+  }
+  
+  if (cleanValue.length > 1 && cleanValue.startsWith('0')) {
+    cleanValue = cleanValue.replace(/^0+/, '');
+  }
+  
+  if (cleanValue.length > 6) {
+    cleanValue = cleanValue.slice(0, 6);
+  }
+  
+  return parseInt(cleanValue, 10) || 0;
+};
+
 // Service Edit Modal Component
 function ServiceEditModal({ service, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -837,6 +874,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
         return '';
       case 'price':
         if (value <= 0) return 'El precio debe ser mayor a 0';
+        if (value.toString().length > 6) return 'El precio no puede exceder los 6 caracteres';
         return '';
       default:
         return '';
@@ -866,14 +904,30 @@ function ServiceEditModal({ service, onClose, onSave }) {
       return;
     }
     
-    // Para duration y price solo números y punto decimal
+    // Para duration y price solo números y punto decimal (o enteros para price)
     if (['duration', 'price'].includes(name)) {
-      if (!/^[0-9.]$/.test(e.key)) {
-        e.preventDefault();
-      }
-      // No permitir más de un punto decimal
-      if (e.key === '.' && e.currentTarget.value.includes('.')) {
-        e.preventDefault();
+      if (name === 'price') {
+        if (!/^[0-9]$/.test(e.key)) {
+          e.preventDefault();
+          return;
+        }
+        if (e.currentTarget.value.replace(/\D/g, '').length >= 6) {
+          const selectionStart = e.currentTarget.selectionStart;
+          const selectionEnd = e.currentTarget.selectionEnd;
+          if (selectionStart === null || selectionEnd === null || selectionStart === selectionEnd) {
+            e.preventDefault();
+          }
+        }
+      } else {
+        if (!/^[0-9.]$/.test(e.key)) {
+          e.preventDefault();
+          return;
+        }
+        // No permitir más de un punto decimal
+        if (e.key === '.' && e.currentTarget.value.includes('.')) {
+          e.preventDefault();
+          return;
+        }
       }
     }
   };
@@ -882,12 +936,30 @@ function ServiceEditModal({ service, onClose, onSave }) {
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const { name } = e.currentTarget;
     
-    if (['duration', 'price'].includes(name)) {
+    if (name === 'price') {
       e.preventDefault();
       const pastedText = e.clipboardData.getData('text');
-      // Solo permitir números y punto decimal
+      const sanitized = pastedText.replace(/\D/g, '');
+      
+      const currentValue = e.currentTarget.value;
+      const selectionStart = e.currentTarget.selectionStart ?? 0;
+      const selectionEnd = e.currentTarget.selectionEnd ?? 0;
+      
+      let newValue = currentValue.substring(0, selectionStart) + sanitized + currentValue.substring(selectionEnd);
+      newValue = newValue.replace(/\D/g, '').slice(0, 6);
+      const parsedValue = parseInt(newValue, 10) || 0;
+      
+      setFormData(prev => ({
+        ...prev,
+        price: parsedValue
+      }));
+      
+      const error = validateField(name, parsedValue);
+      setErrors(prev => ({ ...prev, [name]: error }));
+    } else if (name === 'duration') {
+      e.preventDefault();
+      const pastedText = e.clipboardData.getData('text');
       const sanitized = pastedText.replace(/[^0-9.]/g, '');
-      // No permitir más de un punto decimal
       const dotIndex = sanitized.indexOf('.');
       let finalValue = sanitized;
       if (dotIndex !== -1) {
@@ -896,11 +968,8 @@ function ServiceEditModal({ service, onClose, onSave }) {
       const currentValue = e.currentTarget.value;
       const newValue = currentValue + finalValue;
       
-      // Validar en tiempo real
       const error = validateField(name, parseFloat(newValue) || 0);
       setErrors(prev => ({ ...prev, [name]: error }));
-      
-      // Actualizar formData
       handleInputChange({ target: { name, value: newValue } });
     }
   };
@@ -964,7 +1033,11 @@ function ServiceEditModal({ service, onClose, onSave }) {
     if (['name', 'description'].includes(name)) {
       processedValue = value.slice(0, 100);
     } else if (['duration', 'price'].includes(name)) {
-      processedValue = parseFloat(value) || 0;
+      if (name === 'price') {
+        processedValue = handlePriceChange(value, formData.price);
+      } else {
+        processedValue = parseFloat(value) || 0;
+      }
     }
     
     setFormData({
@@ -977,6 +1050,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
     if (error) {
       setErrors(prev => ({ ...prev, [name]: error }));
     } else if (errors[name]) {
+      setFormData(prev => ({ ...prev, [name]: processedValue })); // Just in case, ensuring value is set
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };

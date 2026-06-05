@@ -327,7 +327,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
               return (
                 <div
                   key={service.id}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                  className="bg-white rounded-2xl shadow-lg border-2 border-brand-pink overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
                 >
                   {/* Service Image */}
                   <div className="relative h-48 overflow-hidden">
@@ -337,7 +337,6 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                       className="w-full h-full object-cover"
                       onError={handleImageError}
                     />
-                    <div className={`absolute inset-0 bg-gradient-to-t ${service.color} opacity-60`}></div>
                     <div className="absolute top-4 right-4">
                       <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
                         <Icon className="w-6 h-6 text-brand-pink" />

@@ -619,8 +619,14 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                           <>
                             <button
                               onClick={() => handleEditUser(user)}
-                              className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                              title="Editar usuario"
+                              disabled={user.estado !== true}
+                              className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                user.estado !== true
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                  : "bg-green-100 text-green-700 hover:bg-green-200"
+                              )}
+                              title={user.estado !== true ? "No se puede editar un usuario inactivo" : "Editar usuario"}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
@@ -628,8 +634,14 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                             {(user.rolNombre || '').toLowerCase() !== 'super admin' && (
                               <button
                                 onClick={() => handleDeleteUser(user)}
-                                className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                                title="Eliminar usuario"
+                                disabled={user.estado !== true}
+                                className={cn(
+                                  "p-2 rounded-lg transition-colors",
+                                  user.estado !== true
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                    : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                                )}
+                                title={user.estado !== true ? "No se puede eliminar un usuario inactivo" : "Eliminar usuario"}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>

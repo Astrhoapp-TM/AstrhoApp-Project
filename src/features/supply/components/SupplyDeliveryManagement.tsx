@@ -8,6 +8,7 @@ import { deliveryService, type Delivery } from '../services/deliveryService';
 import { supplyService, type Supply } from '../services/supplyService';
 import { personService, type Person } from '@/features/persons/services/personService';
 import { authService } from '@/features/auth/services/authService';
+import { userService } from '@/features/users/services/userService';
 import { Loader2, Info } from 'lucide-react';
 import { cn } from '@/shared/components/ui/utils';
 import { useLoading } from '@/shared/contexts/LoadingContext';
@@ -15,6 +16,7 @@ import { SectionLoader } from '@/shared/components/GlobalLoader';
 
 interface SupplyDeliveryManagementProps {
   hasPermission: (permission: string) => boolean;
+  currentUser: any;
 }
 
 // Map any variation of status to a normalized UI label
@@ -26,10 +28,11 @@ const getNormalizedLabel = (status: string) => {
   return 'Pendiente';
 };
 
-export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManagementProps) {
+export function SupplyDeliveryManagement({ hasPermission, currentUser }: SupplyDeliveryManagementProps) {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [supplies, setSupplies] = useState<Supply[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [currentUserPerson, setCurrentUserPerson] = useState<Person | null>(null);
   const [loading, setLoading] = useState(false);
   const { showSectionLoading, hideSectionLoading } = useLoading();
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
@@ -92,6 +95,37 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
   useEffect(() => {
     fetchData();
   }, [currentPage, searchTerm]);
+
+  // Fetch current user's person
+  useEffect(() => {
+    const fetchCurrentUserPerson = async () => {
+      try {
+        console.log('currentUser prop:', currentUser);
+        if (currentUser) {
+          let userForService = currentUser;
+          
+          // If we have user id, fetch full user details from API
+          const userId = currentUser.usuarioId || currentUser.id;
+          if (userId) {
+            try {
+              const fullUser = await userService.getById(Number(userId));
+              console.log('fullUser from API:', fullUser);
+              userForService = { ...currentUser, ...fullUser };
+            } catch (apiErr) {
+              console.warn('Could not fetch full user details:', apiErr);
+            }
+          }
+          
+          const person = await userService.getPersonForUser(userForService);
+          console.log('person from userService:', person);
+          setCurrentUserPerson(person);
+        }
+      } catch (error) {
+        console.error('Error fetching current user person:', error);
+      }
+    };
+    fetchCurrentUserPerson();
+  }, [currentUser]);
 
   // Removed redundant setCurrentPage(1) effect for searchTerm to avoid race conditions
   // Now handled in search input onChange
@@ -157,14 +191,31 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
     try {
       showSectionLoading("Registrando entrega...");
       setIsProcessing(true);
-      const userStr = localStorage.getItem('user');
-      const currentUser = userStr ? JSON.parse(userStr) : null;
+
+      let person = currentUserPerson;
+      if (!person && currentUser) {
+        // Try to fetch person again
+        const userId = currentUser.usuarioId || currentUser.id;
+        if (userId) {
+          try {
+            const fullUser = await userService.getById(Number(userId));
+            person = await userService.getPersonForUser({ ...currentUser, ...fullUser });
+          } catch (err) {
+            console.error('Error fetching person on save:', err);
+          }
+        }
+      }
+
+      if (!person) {
+        showAlert('error', 'No se pudo obtener el usuario actual');
+        return;
+      }
 
       // Format data for the backend API - matching CrearEntregaDto exactly
       const payload = {
-        usuarioId: currentUser?.id || 1,
+        usuarioId: currentUser?.id || currentUser?.usuarioId || 1,
         fechaEntrega: new Date(deliveryData.deliveryDate).toISOString(),
-        documentoEmpleado: deliveryData.responsibleId.toString(),
+        documentoEmpleado: person.documentId.toString(),
         detalles: deliveryData.items.map((item: any) => ({
           insumoId: Number(item.supplyId),
           cantidad: Number(item.quantity)
@@ -538,7 +589,7 @@ export function SupplyDeliveryManagement({ hasPermission }: SupplyDeliveryManage
           onClose={() => setShowCreateModal(false)}
           onSave={handleSaveDelivery}
           supplies={supplies}
-          users={users}
+          currentUserPerson={currentUserPerson}
           isProcessing={isProcessing}
         />
       )}
@@ -750,10 +801,9 @@ function ProductSearchSelect({ supplies, onSelect, selectedSupplyId, error, plac
 }
 
 // Create Delivery Modal Component
-function CreateDeliveryModal({ onClose, onSave, supplies, users, isProcessing }: any) {
+function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isProcessing }: any) {
   const [formData, setFormData] = useState({
     deliveryDate: new Date().toISOString().split('T')[0],
-    responsibleId: '',
     notes: '',
     items: []
   });
@@ -818,7 +868,6 @@ function CreateDeliveryModal({ onClose, onSave, supplies, users, isProcessing }:
     if (formData.items.length === 0) {
       newErrors.items = 'Agrega al menos un insumo';
     }
-    if (!formData.responsibleId) newErrors.responsibleId = 'Selecciona un responsable';
 
     formData.items.forEach((item: any, index: number) => {
       const supplyIdNum = parseInt(item.supplyId);
@@ -848,12 +897,9 @@ function CreateDeliveryModal({ onClose, onSave, supplies, users, isProcessing }:
       return;
     }
 
-    const responsible = users.find(u => u.id.toString() === formData.responsibleId.toString());
-
     onSave({
       ...formData,
-      responsibleId: formData.responsibleId,
-      responsiblePerson: responsible?.name,
+      responsiblePerson: currentUserPerson?.name,
       destination: 'Salón de Belleza',
       items: formData.items.map((item: any) => ({
         supplyId: parseInt(item.supplyId),
@@ -927,7 +973,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, users, isProcessing }:
                     <User className="w-4 h-4 text-brand-pink" />
                     <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Información de Entrega</h4>
                   </div>
-                  <div className="p-6 space-y-4">
+                  <div className="p-6">
                     <div>
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Fecha de Entrega *</label>
                       <div className="relative">
@@ -942,22 +988,6 @@ function CreateDeliveryModal({ onClose, onSave, supplies, users, isProcessing }:
                           required
                         />
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Responsable *</label>
-                      <EmployeeSearchSelect
-                        users={users}
-                        selectedId={formData.responsibleId}
-                        onSelect={(u: any) => {
-                          setFormData({ ...formData, responsibleId: u.id.toString() });
-                          if (errors.responsibleId) {
-                            setErrors({ ...errors, responsibleId: '' });
-                          }
-                        }}
-                        error={!!errors.responsibleId}
-                      />
-                      {errors.responsibleId && <p className="text-[9px] text-brand-pink mt-1 ml-1">{errors.responsibleId}</p>}
                     </div>
                   </div>
                 </div>

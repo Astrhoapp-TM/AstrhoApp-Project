@@ -93,7 +93,7 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
       case 'suppliers':
         return <SupplierManagement hasPermission={hasPermission} />;
       case 'deliveries':
-        return <SupplyDeliveryManagement hasPermission={hasPermission} />;
+        return <SupplyDeliveryManagement hasPermission={hasPermission} currentUser={currentUser} />;
       default:
         return <DashboardOverview currentUser={currentUser} hasPermission={hasPermission} />;
     }

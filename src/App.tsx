@@ -175,6 +175,7 @@ function App() {
         "module_clients",
         "module_schedules",
         "module_products",
+        "module_supplies",
         "module_deliveries"
       ],
       admin: [
@@ -188,6 +189,7 @@ function App() {
         "module_clients",
         "module_categories",
         "module_schedules",
+        "module_supplies",
         "module_deliveries",
         "module_roles"
       ],
@@ -249,7 +251,7 @@ function App() {
             if (lowerP === 'ventas' || lowerP === 'sales') return 'module_sales';
             if (lowerP === 'compras' || lowerP === 'purchases') return 'module_purchases';
             if (lowerP === 'proveedores' || lowerP === 'suppliers') return 'module_suppliers';
-            if (lowerP === 'productos' || lowerP === 'insumos' || lowerP === 'products' || lowerP === 'supplies' || lowerP === 'insumo') return 'module_products';
+            if (lowerP === 'productos' || lowerP === 'insumos' || lowerP === 'products' || lowerP === 'supplies' || lowerP === 'insumo') return 'module_supplies';
             if (lowerP === 'clientes' || lowerP === 'personas' || lowerP === 'clients') return 'module_clients';
             if (lowerP === 'categoría de insumos' || lowerP === 'categorías' || lowerP === 'categories') return 'module_categories';
             if (lowerP === 'horarios' || lowerP === 'schedules') return 'module_schedules';
@@ -262,9 +264,10 @@ function App() {
       return userPermissions.includes(backendPermission);
     }
 
-    // For staff (admin/assistant), if no permissions in DB, only allow dashboard
+    // For staff (admin/assistant), if no permissions in DB, use role allowed modules
     if (currentUser.role === 'admin' || currentUser.role === 'asistente') {
-      return backendPermission === 'module_dashboard';
+      const allowedForRole = ROLE_ALLOWED_MODULES[currentUser.role as keyof typeof ROLE_ALLOWED_MODULES] || [];
+      return allowedForRole.includes(backendPermission);
     }
 
     // Fallback hardcoded permissions for other roles (like customer)

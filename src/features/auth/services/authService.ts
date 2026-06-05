@@ -110,6 +110,7 @@ export const authService = {
 
     /**
      * Register a new client: POST /api/Usuarios then POST /api/Clientes
+     * Includes rollback: if Client creation fails, delete the created User
      */
     async registerClient(data: any): Promise<any> {
         // 1. Create the User (Rol 2 is Cliente)
@@ -121,6 +122,7 @@ export const authService = {
         };
 
         let userResponse;
+        let usuarioId = null;
         try {
             userResponse = await apiClient.post('/api/Usuarios', userPayload);
         } catch (error: any) {
@@ -155,7 +157,6 @@ export const authService = {
         // Try to login immediately to get a token and the user ID
         // This is necessary because GET /api/Usuarios (to find the ID) is protected
         // and creating the Client details might also be protected.
-        let usuarioId = null;
         try {
             const loginData = await this.login(data.email, data.password);
             if (loginData && loginData.token) {
@@ -186,8 +187,22 @@ export const authService = {
             }
         }
 
+        // Helper function to delete the created user if we need to rollback
+        const deleteCreatedUser = async () => {
+            if (!usuarioId) return;
+            try {
+                console.log(`Rolling back user creation: deleting user with ID ${usuarioId}`);
+                await apiClient.delete(`/api/Usuarios/${usuarioId}`);
+                console.log('User rolled back successfully');
+            } catch (deleteError: any) {
+                console.error('Failed to rollback user creation:', deleteError);
+            }
+        };
+
         if (!usuarioId) {
-            throw new Error('El usuario fue creado pero no se pudo obtener su ID para completar el registro del cliente.');
+            // No ID to rollback? But we still have to make sure nothing is left
+            await deleteCreatedUser(); // Try anyway
+            throw new Error('No se pudo obtener el ID del usuario. No se creará la cuenta.');
         }
 
         // 2. Create the Client details
@@ -213,8 +228,9 @@ export const authService = {
             const clientResponse = await apiClient.post('/api/Clientes', clientPayload);
             return { user: userResponse, client: clientResponse };
         } catch (error: any) {
-            console.error('Error creating client:', error);
-            const errorMessage = error.message || error.body || 'Error al guardar los datos del cliente.';
+            console.error('Error creating client, rolling back user creation:', error);
+            await deleteCreatedUser();
+            const errorMessage = error.message || error.body || 'Error al guardar los datos del cliente. No se creó la cuenta.';
             throw new Error(errorMessage);
         }
     },

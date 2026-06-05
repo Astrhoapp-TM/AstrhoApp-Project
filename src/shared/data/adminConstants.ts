@@ -85,17 +85,17 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
   },
   // COMPRAS
   {
+    id: 'products',
+    label: 'Insumos',
+    icon: Package,
+    permission: 'module_supplies',
+    category: 'COMPRAS'
+  },
+  {
     id: 'purchases',
     label: 'Compras',
     icon: ShoppingCart,
     permission: 'module_purchases',
-    category: 'COMPRAS'
-  },
-  {
-    id: 'products',
-    label: 'Insumos',
-    icon: Package,
-    permission: 'module_products',
     category: 'COMPRAS'
   },
   {

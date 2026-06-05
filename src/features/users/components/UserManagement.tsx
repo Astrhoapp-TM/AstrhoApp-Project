@@ -252,7 +252,9 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             return 'CC';
           };
 
-          if (isClient) {
+          const newEstado = userData.estado !== undefined ? userData.estado : selectedUser.estado;
+
+        if (isClient) {
             await apiClient.put(`/api/Clientes/${docId}`, {
               documentoCliente: docId,
               usuarioId: userId,
@@ -260,6 +262,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
               nombre: userData.nombre,
               telefono: userData.phone,
               dirección: userData.direccion,
+              estado: newEstado,
             });
           } else {
             await apiClient.put(`/api/Empleados/${docId}`, {
@@ -269,6 +272,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
               nombre: userData.nombre,
               telefono: userData.phone,
               dirección: userData.direccion,
+              estado: newEstado,
             });
           }
         }
@@ -373,6 +377,44 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         email: detail.email,
         estado: newEstado,
       });
+      
+      // Also update associated client or employee
+      const personInfo = await userService.getPersonForUser(user);
+      if (personInfo) {
+        const docId = personInfo.documentId;
+        if (personInfo.type === 'client') {
+          // First get the client to keep other data unchanged
+          try {
+            const existingClient = await apiClient.get(`/api/Clientes/${docId}`);
+            await apiClient.put(`/api/Clientes/${docId}`, {
+              ...existingClient,
+              estado: newEstado,
+            });
+          } catch (e) {
+            // If we can't get existing client, just send the required fields
+            await apiClient.put(`/api/Clientes/${docId}`, {
+              documentoCliente: docId,
+              usuarioId: userId,
+              estado: newEstado,
+            });
+          }
+        } else if (personInfo.type === 'employee') {
+          try {
+            const existingEmployee = await apiClient.get(`/api/Empleados/${docId}`);
+            await apiClient.put(`/api/Empleados/${docId}`, {
+              ...existingEmployee,
+              estado: newEstado,
+            });
+          } catch (e) {
+            await apiClient.put(`/api/Empleados/${docId}`, {
+              documentoEmpleado: docId,
+              usuarioId: userId,
+              estado: newEstado,
+            });
+          }
+        }
+      }
+      
       showAlert('success', 'Estado de usuario actualizado correctamente');
       await fetchUsers();
     } catch (error) {

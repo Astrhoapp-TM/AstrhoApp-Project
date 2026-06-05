@@ -309,6 +309,24 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 status: newStatus
             });
 
+            // Update associated user status if exists
+            if (personToUpdate.usuarioId) {
+                try {
+                    const userDetail = await userService.getById(personToUpdate.usuarioId);
+                    if (userDetail) {
+                        const newEstado = newStatus === 'active';
+                        await userService.update(personToUpdate.usuarioId, {
+                            rolId: userDetail.rol?.rolId,
+                            email: userDetail.email,
+                            estado: newEstado
+                        });
+                    }
+                } catch (userUpdateError) {
+                    console.error('Error updating associated user status:', userUpdateError);
+                    // Don't fail the whole operation, just log it
+                }
+            }
+
             setPersons(persons.map(p =>
                 p.documentId === personId ? { ...p, status: newStatus } : p
             ));

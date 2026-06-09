@@ -1431,6 +1431,7 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
     phone: sale.customerPhone
   });
   const [loadingInfo, setLoadingInfo] = useState(false);
+  const [servicesWithNames, setServicesWithNames] = useState(sale.services);
 
   useEffect(() => {
     const fetchExtraInfo = async () => {
@@ -1468,7 +1469,40 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
       }
     };
 
+    const fetchServiceNames = async () => {
+      try {
+        // Check if any service is missing a name
+        const needsNames = sale.services.some(s => !s.name);
+        if (needsNames) {
+          const servicesData = await serviceService.getServices({ pageSize: 100 });
+          const allServices = servicesData.data || servicesData;
+          
+          const mappedServices = sale.services.map(service => {
+            if (service.name) return service;
+            
+            const foundService = allServices.find((s: any) => 
+              s.servicioId === service.serviceId || 
+              s.id === service.serviceId
+            );
+            
+            return {
+              ...service,
+              name: foundService?.nombre || 'Servicio'
+            };
+          });
+          
+          setServicesWithNames(mappedServices);
+        } else {
+          setServicesWithNames(sale.services);
+        }
+      } catch (err) {
+        console.error('Error fetching service names:', err);
+        setServicesWithNames(sale.services);
+      }
+    };
+
     fetchExtraInfo();
+    fetchServiceNames();
   }, [sale]);
 
   const getPaymentMethodLabel = (method) => {
@@ -1579,7 +1613,7 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
                   <span>Servicios y Productos</span>
                 </h4>
                 <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
-                  {sale.services?.length || 0} ítems
+                  {servicesWithNames?.length || 0} ítems
                 </span>
               </div>
 
@@ -1592,7 +1626,7 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {sale.services?.map((service, index) => (
+                    {servicesWithNames?.map((service, index) => (
                       <tr key={index} className="hover:bg-gray-50/30 transition-colors">
                         <td className="px-6 py-4 text-sm font-bold text-gradient-brand">
                           {service.name || 'Servicio'}

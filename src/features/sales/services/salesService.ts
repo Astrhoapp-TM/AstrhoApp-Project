@@ -77,6 +77,7 @@ function extractDateTime(dateStr: any): { date: string; time: string } {
 }
 
 function mapApiSaleToView(apiSale: any): SaleView {
+  console.log('🔍 mapApiSaleToView raw apiSale:', JSON.stringify(apiSale, null, 2));
   const id =
     apiSale?.id ||
     apiSale?.sale_number ||
@@ -98,27 +99,46 @@ function mapApiSaleToView(apiSale: any): SaleView {
         }))
     : [];
 
-  const services: SaleServiceItem[] = Array.isArray(apiSale?.items)
-    ? apiSale.items
-        .filter((it: any) => String(it?.item_type || it?.tipo)?.toLowerCase().includes('serv'))
-        .map((it: any) => ({
-          serviceId: it?.service_id ?? it?.servicioId,
-          appointmentId: apiSale?.appointment_id ?? apiSale?.citaId,
-          price: safeNumber(it?.unit_price ?? it?.precio),
-          discount: safeNumber(it?.discount ?? it?.descuento),
-          totalPrice: safeNumber(it?.total ?? it?.totalPrice ?? it?.subtotal),
-          name: it?.service_name ?? it?.nombreServicio ?? it?.nombre,
-        }))
-    : Array.isArray(apiSale?.servicios)
-    ? apiSale.servicios.map((s: any) => ({
-        serviceId: s?.servicioId ?? s?.id,
-        appointmentId: s?.appointmentId ?? apiSale?.appointment_id,
-        price: safeNumber(s?.precio),
-        discount: safeNumber(s?.descuento),
-        totalPrice: safeNumber(s?.totalPrice ?? s?.subtotal ?? s?.precio),
-        name: s?.nombre,
-      }))
-    : [];
+  let services: SaleServiceItem[] = [];
+  if (Array.isArray(apiSale?.items)) {
+    services = apiSale.items
+      .filter((it: any) => String(it?.item_type || it?.tipo)?.toLowerCase().includes('serv'))
+      .map((it: any) => ({
+        serviceId: it?.service_id ?? it?.servicioId,
+        appointmentId: apiSale?.appointment_id ?? apiSale?.citaId,
+        price: safeNumber(it?.unit_price ?? it?.precio ?? it?.precioUnitario ?? it?.totalPrice ?? it?.total ?? it?.subtotal),
+        discount: safeNumber(it?.discount ?? it?.descuento),
+        totalPrice: safeNumber(it?.total ?? it?.totalPrice ?? it?.subtotal ?? it?.precio ?? it?.unit_price ?? it?.precioUnitario),
+        name: it?.service_name ?? it?.nombreServicio ?? it?.nombre,
+      }));
+  } else if (Array.isArray(apiSale?.servicios)) {
+    services = apiSale.servicios.map((s: any) => ({
+      serviceId: s?.servicioId ?? s?.id,
+      appointmentId: s?.appointmentId ?? apiSale?.appointment_id,
+      price: safeNumber(s?.precio ?? s?.precioUnitario ?? s?.totalPrice ?? s?.subtotal),
+      discount: safeNumber(s?.descuento),
+      totalPrice: safeNumber(s?.totalPrice ?? s?.subtotal ?? s?.precio ?? s?.precioUnitario),
+      name: s?.nombre,
+    }));
+  } else if (Array.isArray(apiSale?.detalles)) {
+    services = apiSale.detalles
+      .filter((d: any) => d?.servicioId != null)
+      .map((d: any) => ({
+        serviceId: d?.servicioId,
+        price: safeNumber(d?.precio ?? d?.precioUnitario ?? d?.subtotal),
+        discount: safeNumber(d?.descuento),
+        totalPrice: safeNumber(d?.subtotal ?? d?.precio ?? d?.precioUnitario),
+        name: d?.nombreServicio ?? d?.nombre ?? d?.descripcion,
+      }));
+  } else if (Array.isArray(apiSale?.motivos)) {
+    services = apiSale.motivos.map((m: any) => ({
+      serviceId: m?.servicioId ?? m?.id,
+      price: safeNumber(m?.precio ?? m?.totalPrice ?? m?.subtotal),
+      discount: safeNumber(m?.descuento),
+      totalPrice: safeNumber(m?.totalPrice ?? m?.subtotal ?? m?.precio),
+      name: m?.descripcion ?? m?.nombre,
+    }));
+  }
 
   const subtotal = safeNumber(apiSale?.subtotal);
   const discount = safeNumber(apiSale?.discount ?? apiSale?.descuento);
@@ -147,7 +167,7 @@ function mapApiSaleToView(apiSale: any): SaleView {
     paymentMethod: toPaymentMethod(apiSale?.payment_method ?? apiSale?.metodoPago),
     status: toStatus(apiSale?.payment_status ?? apiSale?.estado),
     notes: apiSale?.notes ?? apiSale?.observaciones ?? apiSale?.observacion ?? apiSale?.observación ?? apiSale?.Observaciones ?? apiSale?.Observación,
-    createdAt: apiSale?.created_at ?? apiSale?.createdAt,
+    createdAt: apiSale?.created_at ?? apiSale?.createdAt ?? apiSale?.fechaRegistro,
     updatedAt: apiSale?.updated_at ?? apiSale?.updatedAt,
   };
 }
@@ -158,18 +178,21 @@ export const salesService = {
     for (const ep of endpoints) {
       try {
         const res = await apiClient.get<any>(ep, params);
-        if (res && res.data && Array.isArray(res.data)) {
+        // Handle { success, data } format
+        const responseData = res?.success && res?.data ? res.data : res;
+        
+        if (responseData && responseData.data && Array.isArray(responseData.data)) {
           return {
-            ...res,
-            data: res.data.map(mapApiSaleToView)
+            ...responseData,
+            data: responseData.data.map(mapApiSaleToView)
           };
         }
-        if (Array.isArray(res)) {
+        if (Array.isArray(responseData)) {
           return {
-            data: res.map(mapApiSaleToView),
-            totalCount: res.length,
+            data: responseData.map(mapApiSaleToView),
+            totalCount: responseData.length,
             page: params?.page || 1,
-            pageSize: params?.pageSize || res.length,
+            pageSize: params?.pageSize || responseData.length,
             totalPages: 1
           };
         }
@@ -181,28 +204,28 @@ export const salesService = {
   },
 
   async getById(id: string | number): Promise<SaleView> {
-    const res = await apiClient.get(`/api/Ventas/${id}`);
-    return mapApiSaleToView(res);
+    const res = await apiClient.get('/api/Ventas/' + id);
+    // Handle { success, data } format
+    const saleData = res?.success && res?.data ? res.data : res;
+    return mapApiSaleToView(saleData);
   },
 
   async update(id: string | number, data: any): Promise<SaleView | null> {
-    const res = await apiClient.put(`/api/Ventas/${id}`, data);
+    const res = await apiClient.put('/api/Ventas/' + id, data);
     if (!res) return null;
     return mapApiSaleToView(res);
   },
 
   async cancel(id: string | number, observacion: string): Promise<SaleView | null> {
     try {
-      // Intentamos primero con el endpoint de cancelación si existe
-      const res = await apiClient.post(`/api/Ventas/${id}/cancel`, { observacion });
+      const res = await apiClient.post('/api/Ventas/' + id + '/cancel', { observacion });
       if (res) return mapApiSaleToView(res);
     } catch (err) {
-      // Si falla, intentamos con el PUT tradicional que desactiva la venta
       const payload = {
         estado: false,
         observacion: observacion
       };
-      const res = await apiClient.put(`/api/Ventas/${id}`, payload);
+      const res = await apiClient.put('/api/Ventas/' + id, payload);
       if (res) return mapApiSaleToView(res);
     }
     return null;
@@ -262,28 +285,34 @@ export const salesService = {
 
   async create(data: any): Promise<SaleView | null> {
     try {
+      console.log('🎯 salesService.create payload:', data);
+      
+      // Prepare detalles array in the exact format API expects: { servicioId, precio }
+      const detalles = data.items
+        .filter((i: any) => i.tipo === 'service')
+        .map((item: any) => ({
+          servicioId: item.id,
+          precio: item.precioUnitario || item.price || 0
+        }));
+      
       const payload = {
         documentoCliente: data.clienteId,
         documentoEmpleado: data.empleadoId,
-        metodoPagoId: data.metodoPagoId,
+        metodopagoId: data.metodoPagoId, // Note: API expects "metodopagoId" (lowercase "d")
+        observacion: data.observaciones || "", // Note: API expects "observacion" (singular)
         subtotal: data.subtotal,
-        descuento: data.descuento,
         total: data.total,
-        observaciones: data.observaciones,
-        estado: true,
-        serviciosIds: data.items.filter(i => i.tipo === 'service').map(i => i.id),
-        detalles: data.items.map((item: any) => ({
-          productoId: item.tipo === 'product' ? item.id : null,
-          servicioId: item.tipo === 'service' ? item.id : null,
-          cantidad: item.cantidad,
-          precioUnitario: item.precioUnitario,
-          subtotal: item.total
-        }))
+        detalles: detalles
       };
 
+      console.log('📤 Sending to API:', payload);
       const res = await apiClient.post('/api/Ventas', payload);
+      console.log('✅ API create sale response:', res);
       if (!res) return null;
-      return mapApiSaleToView(res);
+      
+      // Handle both possible response formats: { success, data } or just the data
+      const saleData = res?.success && res?.data ? res.data : res;
+      return mapApiSaleToView(saleData);
     } catch (error) {
       console.error('Error in salesService.create:', error);
       throw error;

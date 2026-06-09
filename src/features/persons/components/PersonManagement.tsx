@@ -1193,18 +1193,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                             </div>
                         </div>
 
-                        {/* Additional Info / Footer Summary */}
-                        <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
-                            <div className="flex items-center space-x-3 mb-3">
-                                <Star className="w-5 h-5 text-brand-pink" />
-                                <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Resumen del Registro</h4>
-                            </div>
-                            <p className="text-sm text-gray-600 italic">
-                                {editingPerson
-                                    ? `Está modificando la información de un ${personType === 'client' ? 'cliente' : 'empleado'} existente.`
-                                    : `Está registrando un nuevo ${personType === 'client' ? 'cliente' : 'empleado'} en el sistema AsthroApp.`}
-                            </p>
-                        </div>
+
                     </div>
                 </form>
 

@@ -25,6 +25,7 @@ import { salesService, type SaleView } from "@/features/sales/services/salesServ
 import { personService } from "@/features/persons/services/personService";
 import { supplyService } from "@/features/supply/services/supplyService";
 import { serviceService, type Service } from "@/features/services/services/serviceService";
+import { userService } from "@/features/users/services/userService";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -356,9 +357,11 @@ export function DashboardOverview({
 }: DashboardOverviewProps) {
   const isAsistente = currentUser?.role === 'asistente';
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("today");
+  const [viewMode, setViewMode] = useState<"my" | "all">("all");
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentUserPerson, setCurrentUserPerson] = useState<any>(null);
 
   // Raw API data
   const [allAgenda, setAllAgenda] = useState<AgendaItem[]>([]);
@@ -472,6 +475,23 @@ export function DashboardOverview({
     }
   }, [currentUser]);
 
+  // Fetch current user's person
+  useEffect(() => {
+    const fetchCurrentUserPerson = async () => {
+      if (currentUser) {
+        try {
+          console.log("Dashboard: Fetching current user person");
+          const person = await userService.getPersonForUser(currentUser);
+          console.log("Dashboard: Current user person found", person);
+          setCurrentUserPerson(person);
+        } catch (err) {
+          console.error("Dashboard: Error fetching current user person", err);
+        }
+      }
+    };
+    fetchCurrentUserPerson();
+  }, [currentUser]);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -488,38 +508,52 @@ export function DashboardOverview({
     isInPeriod(s.date, selectedPeriod) && s.status === "completed",
   );
 
+  // ── Filter by view mode (my vs all) ──
+  const filteredAgenda = viewMode === "my" && currentUserPerson?.documentId
+    ? periodAgenda.filter(a => a.documentoEmpleado === currentUserPerson.documentId)
+    : periodAgenda;
+  
+  const filteredSales = viewMode === "my" && currentUserPerson?.documentId
+    ? periodSales.filter(s => s.employeeId === currentUserPerson.documentId)
+    : periodSales;
+
   // ── Charts ──
 
   // Revenue chart
   const incomeChartData: ChartPoint[] =
     selectedPeriod === "today"
-      ? groupSalesByHour(periodSales)
+      ? groupSalesByHour(filteredSales)
       : selectedPeriod === "week"
-        ? groupSalesByDay(periodSales)
+        ? groupSalesByDay(filteredSales)
         : selectedPeriod === "month"
-          ? groupSalesByWeek(periodSales)
-          : groupSalesByMonth(periodSales);
+          ? groupSalesByWeek(filteredSales)
+          : groupSalesByMonth(filteredSales);
 
   // Appointments chart
   const appointmentsChartData: ChartPoint[] =
     selectedPeriod === "today"
-      ? groupAgendaByHour(periodAgenda)
+      ? groupAgendaByHour(filteredAgenda)
       : selectedPeriod === "week"
-        ? groupAgendaByDay(periodAgenda)
+        ? groupAgendaByDay(filteredAgenda)
         : selectedPeriod === "month"
-          ? groupAgendaByWeek(periodAgenda)
-          : groupAgendaByMonth(periodAgenda);
+          ? groupAgendaByWeek(filteredAgenda)
+          : groupAgendaByMonth(filteredAgenda);
 
   // ── Compute Stats ──
-  const appointmentsCount = periodAgenda.length;
-  const totalIncome = periodSales.reduce((sum, s) => sum + (s.total || 0), 0);
+  const appointmentsCount = filteredAgenda.length;
+  const totalIncome = filteredSales.reduce((sum, s) => sum + (s.total || 0), 0);
 
   const uniqueClientIds = new Set(
-    periodAgenda.map((a) => a.documentoCliente).filter(Boolean),
+    filteredAgenda.map((a) => a.documentoCliente).filter(Boolean),
   );
   const clientsCount = uniqueClientIds.size;
 
-  const allPriorAgenda = safeAgenda.filter(
+  // For prior agenda, we should use the same viewMode filter too!
+  const priorSafeAgenda = viewMode === "my" && currentUserPerson?.documentId
+    ? safeAgenda.filter(a => a.documentoEmpleado === currentUserPerson.documentId)
+    : safeAgenda;
+  
+  const allPriorAgenda = priorSafeAgenda.filter(
     (a) => !isInPeriod(a.fechaCita, selectedPeriod),
   );
   const priorClientIds = new Set(
@@ -529,7 +563,7 @@ export function DashboardOverview({
     (id) => !priorClientIds.has(id),
   ).length;
 
-  const completedAppointments = periodAgenda.filter(
+  const completedAppointments = filteredAgenda.filter(
     (a) => a.estado.toLowerCase() === "completado",
   );
 
@@ -546,7 +580,12 @@ export function DashboardOverview({
     total_income: totalIncome,
   };
 
-  const upcomingAppointments = safeAgenda
+  // Upcoming appointments with viewMode filter applied
+  const upcomingAgenda = viewMode === "my" && currentUserPerson?.documentId
+    ? safeAgenda.filter(a => a.documentoEmpleado === currentUserPerson.documentId)
+    : safeAgenda;
+
+  const upcomingAppointments = upcomingAgenda
     .filter((a) => {
       const status = (a.estado || "").toLowerCase();
       // Omitir completados y cancelados
@@ -655,6 +694,16 @@ export function DashboardOverview({
             <option value="month">Este Mes</option>
             <option value="year">Este Año</option>
             <option value="all">Todos</option>
+          </select>
+
+          {/* View mode selector (my vs all) */}
+          <select
+            value={viewMode}
+            onChange={(e) => setViewMode(e.target.value as "my" | "all")}
+            className="bg-white border border-gray-300 rounded-xl px-4 py-2 font-medium text-gray-700 focus:ring-2 focus:ring-brand-periwinkle/300"
+          >
+            <option value="all">Todos</option>
+            <option value="my">Mis datos</option>
           </select>
         </div>
       </div>

@@ -219,10 +219,10 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       const message = (err.message || '').toLowerCase();
       const body = (err.body || '').toLowerCase();
       
-      if (status === 404 || message.includes('no existe') || message.includes('not found')) {
-        setApiError('El usuario no existe. Regístrate para acceder.');
-      } else if (status === 403 || message.includes('inactivo') || message.includes('inactive')) {
+      if (message.includes('desactivado') || message.includes('inactivo') || message.includes('inactive') || body.includes('desactivado') || body.includes('inactivo')) {
         setApiError('Tu cuenta está inactiva. Contacta al administrador.');
+      } else if (status === 404 || message.includes('no existe') || message.includes('not found')) {
+        setApiError('El usuario no existe. Regístrate para acceder.');
       } else if (status === 401 || message.includes('contraseña') || message.includes('password') || message.includes('unauthorized')) {
         setApiError('Contraseña incorrecta. Inténtalo de nuevo.');
       } else {

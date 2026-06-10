@@ -221,10 +221,16 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       
       if (message.includes('desactivado') || message.includes('inactivo') || message.includes('inactive') || body.includes('desactivado') || body.includes('inactivo')) {
         setApiError('Tu cuenta está inactiva. Contacta al administrador.');
-      } else if (status === 404 || message.includes('no existe') || message.includes('not found')) {
-        setApiError('El usuario no existe. Regístrate para acceder.');
-      } else if (status === 401 || message.includes('contraseña') || message.includes('password') || message.includes('unauthorized')) {
-        setApiError('Contraseña incorrecta. Inténtalo de nuevo.');
+      } else if (
+        status === 404 || 
+        status === 401 || 
+        message.includes('no existe') || 
+        message.includes('not found') || 
+        message.includes('contraseña') || 
+        message.includes('password') || 
+        message.includes('unauthorized')
+      ) {
+        setApiError('Credenciales incorrectas, verifica los datos.');
       } else {
         setApiError('Credenciales inválidas o error de conexión. Verifica tus datos.');
       }

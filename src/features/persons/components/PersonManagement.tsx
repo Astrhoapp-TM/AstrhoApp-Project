@@ -245,6 +245,37 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             showSectionLoading("Guardando información...");
             const { email, roleId, ...personOnlyData } = personData;
 
+            // Validar documento duplicado si es un registro nuevo o si el documento ha cambiado
+            const docId = personOnlyData.documentId.trim();
+            const originalDocId = editingPerson?.documentId;
+            
+            if (!editingPerson || docId !== originalDocId) {
+                let docExists = false;
+                
+                // Buscar en Clientes
+                try {
+                    const client = await personService.getPersonByDocument(docId, 'client');
+                    if (client) docExists = true;
+                } catch (e) {
+                    // No encontrado
+                }
+                
+                // Buscar en Empleados
+                if (!docExists) {
+                    try {
+                        const employee = await personService.getPersonByDocument(docId, 'employee');
+                        if (employee) docExists = true;
+                    } catch (e) {
+                        // No encontrado
+                    }
+                }
+                
+                if (docExists) {
+                    showAlert('error', 'Error: El número de documento ya está registrado para otro usuario.');
+                    return;
+                }
+            }
+
             if (!editingPerson && email) {
                 const { emailExists } = await authService.checkDuplicates(email);
                 if (emailExists) {
@@ -832,7 +863,13 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                 const effectiveDocType = docType || formData.documentType;
                 if (value.trim()) {
                     const len = value.trim().length;
-                    if (effectiveDocType === 'NIT') {
+                    const docTypeLower = (effectiveDocType || '').toLowerCase();
+                    if (docTypeLower === 'pasaporte') {
+                        // Pasaporte permite letras y números
+                        if (!/^[a-zA-Z0-9]+$/.test(value.trim()))
+                            return 'El pasaporte debe contener solo letras y números';
+                        if (len < 5 || len > 20) return 'El pasaporte debe tener entre 5 y 20 caracteres';
+                    } else if (docTypeLower === 'nit') {
                         // NIT permite números y guion
                         if (!/^\d+(-\d)?$/.test(value.trim()))
                             return 'El NIT debe contener solo números y un guion opcional';
@@ -907,15 +944,24 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
             return;
         }
         
-        // Para teléfono y documento (excepto NIT) solo números
-        if (name === 'phone' || (name === 'documentId' && formData.documentType !== 'NIT')) {
+        const docTypeLower = (formData.documentType || '').toLowerCase();
+
+        // Para teléfono y documento (excepto NIT y Pasaporte) solo números
+        if (name === 'phone' || (name === 'documentId' && docTypeLower !== 'nit' && docTypeLower !== 'pasaporte')) {
             if (!/^[0-9]$/.test(e.key)) {
                 e.preventDefault();
             }
         }
         
+        // Para Pasaporte: permitir letras y números
+        if (name === 'documentId' && docTypeLower === 'pasaporte') {
+            if (!/^[a-zA-Z0-9]$/.test(e.key)) {
+                e.preventDefault();
+            }
+        }
+        
         // Para NIT: números y un solo guion
-        if (name === 'documentId' && formData.documentType === 'NIT') {
+        if (name === 'documentId' && docTypeLower === 'nit') {
             const currentValue = e.currentTarget.value;
             if (!/^[0-9-]$/.test(e.key)) {
                 e.preventDefault();
@@ -933,11 +979,15 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
         const pastedText = e.clipboardData.getData('text');
         let sanitizedText = pastedText;
         
-        if (name === 'phone' || (name === 'documentId' && formData.documentType !== 'NIT')) {
+        const docTypeLower = (formData.documentType || '').toLowerCase();
+
+        if (name === 'phone' || (name === 'documentId' && docTypeLower !== 'nit' && docTypeLower !== 'pasaporte')) {
             sanitizedText = pastedText.replace(/[^0-9]/g, '');
+        } else if (name === 'documentId' && docTypeLower === 'pasaporte') {
+            sanitizedText = pastedText.replace(/[^a-zA-Z0-9]/g, '');
         }
         
-        if (name === 'documentId' && formData.documentType === 'NIT') {
+        if (name === 'documentId' && docTypeLower === 'nit') {
             sanitizedText = pastedText.replace(/[^0-9-]/g, '');
             // Solo permite un guion
             const firstDashIndex = sanitizedText.indexOf('-');
@@ -962,8 +1012,11 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
         } else if (['phone'].includes(field)) {
             processedValue = value.slice(0, 10);
         } else if (['documentId'].includes(field)) {
-            if (formData.documentType === 'NIT') {
+            const docTypeLower = (formData.documentType || '').toLowerCase();
+            if (docTypeLower === 'nit') {
                 processedValue = value.slice(0, 11); // NIT hasta 11 caracteres
+            } else if (docTypeLower === 'pasaporte') {
+                processedValue = value.slice(0, 20); // Pasaporte hasta 20 caracteres
             } else {
                 processedValue = value.slice(0, 15);
             }
@@ -1053,12 +1106,12 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                         }
                                                     }}
                                                     className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none appearance-none"
-                                                    disabled={!!editingPerson}
                                                 >
                                                     <option value="TI">Tarjeta Identidad (TI)</option>
                                                     <option value="CC">Cédula (CC)</option>
                                                     <option value="CE">Extranjería (CE)</option>
                                                     <option value="NIT">NIT</option>
+                                                    <option value="Pasaporte">Pasaporte</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -1076,9 +1129,8 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                     onPaste={handlePaste}
                                                     className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                                         }`}
-                                                    placeholder={formData.documentType === 'NIT' ? '901234567-1' : '1234567890'}
-                                                    maxLength={formData.documentType === 'NIT' ? 11 : 10}
-                                                    disabled={!!editingPerson}
+                                                    placeholder={formData.documentType === 'NIT' ? '901234567-1' : formData.documentType?.toLowerCase() === 'pasaporte' ? 'PAS123456' : '1234567890'}
+                                                    maxLength={formData.documentType === 'NIT' ? 11 : formData.documentType?.toLowerCase() === 'pasaporte' ? 20 : 15}
                                                 />
                                             </div>
                                             {errors.documentId && <p className="text-[9px] text-brand-pink mt-1">{errors.documentId}</p>}

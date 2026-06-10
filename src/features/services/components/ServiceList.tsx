@@ -142,7 +142,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
         </div>
 
         {/* Services Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 relative min-h-[400px]">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16 relative min-h-[400px] items-start">
           {isLoading && (
             <div className="col-span-full py-20 flex justify-center items-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>

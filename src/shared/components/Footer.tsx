@@ -45,13 +45,23 @@ export function Footer() {
 
             <div className="space-y-6">
               {/* Phone */}
-              <a href="tel:+573148512539" className="flex items-start space-x-4 group transition-all duration-300 hover:translate-x-1">
+              <a
+                href="https://wa.me/573148512539?text=Hola,%20quiero%20más%20información%20sobre%20sus%20servicios"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start space-x-4 group transition-all duration-300 hover:translate-x-1"
+              >
                 <div className="w-12 h-12 rounded-2xl bg-brand-pink/10 flex items-center justify-center shrink-0 group-hover:bg-brand-pink group-hover:text-white transition-colors duration-300">
                   <Phone className="w-5 h-5 text-brand-pink group-hover:text-white transition-colors" />
                 </div>
+
                 <div className="pt-1">
-                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Llámanos</div>
-                  <div className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-brand-pink transition-colors">314 851 2539</div>
+                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    Escríbenos por WhatsApp
+                  </div>
+                  <div className="text-base font-semibold text-slate-900 dark:text-white group-hover:text-brand-pink transition-colors">
+                    314 851 2539
+                  </div>
                 </div>
               </a>
 
@@ -74,7 +84,7 @@ export function Footer() {
                 </div>
                 <div className="pt-1">
                   <div className="text-sm font-medium text-slate-500 dark:text-slate-400">Horario</div>
-                  <div className="text-base font-semibold text-slate-900 dark:text-white">Lun - Sáb: 8:00 AM - 7:00 PM</div>
+                  <div className="text-base font-semibold text-slate-900 dark:text-white">Lun - Sáb: 8:00 AM - 10:30 PM</div>
                 </div>
               </div>
             </div>

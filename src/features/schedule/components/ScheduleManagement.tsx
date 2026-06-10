@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   CheckCircle,
   Calendar, Clock, Users, Plus,
-  AlertCircle, Edit, Eye, Trash2,
+  AlertCircle, Edit, Eye, Trash2, Info,
   Save, X, Loader2, RefreshCw, Copy, UserPlus, UserMinus, FileText, Search, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { SimplePagination } from '@/shared/components/ui/simple-pagination';
@@ -835,8 +835,14 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                       {canManageSchedules && (
                         <button
                           onClick={() => handleEditSchedule(group)}
-                          className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                          title="Editar horario"
+                          disabled={!group.estado}
+                          className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            !group.estado
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                              : "bg-green-100 text-green-700 hover:bg-green-200"
+                          )}
+                          title={!group.estado ? "No se puede editar un horario inactivo" : "Editar horario"}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -846,8 +852,14 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                       {canManageSchedules && (
                         <button
                           onClick={() => handleDeleteSchedule(group)}
-                          className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                          title="Eliminar horario"
+                          disabled={!group.estado}
+                          className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            !group.estado
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                              : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                          )}
+                          title={!group.estado ? "No se puede eliminar un horario inactivo" : "Eliminar horario"}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

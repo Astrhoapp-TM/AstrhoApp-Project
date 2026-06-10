@@ -476,16 +476,28 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
                         <>
                           <button
                             onClick={() => handleEditSupplier(supplier)}
-                            className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                            title="Editar"
+                            disabled={supplier.status === 'inactive'}
+                            className={cn(
+                              "p-2 rounded-lg transition-colors",
+                              supplier.status === 'inactive'
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                : "bg-green-100 text-green-700 hover:bg-green-200"
+                            )}
+                            title={supplier.status === 'inactive' ? "No se puede editar un proveedor inactivo" : "Editar"}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
 
                           <button
                             onClick={() => handleDeleteSupplier(supplier)}
-                            className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                            title="Eliminar"
+                            disabled={supplier.status === 'inactive'}
+                            className={cn(
+                              "p-2 rounded-lg transition-colors",
+                              supplier.status === 'inactive'
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                            )}
+                            title={supplier.status === 'inactive' ? "No se puede eliminar un proveedor inactivo" : "Eliminar"}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

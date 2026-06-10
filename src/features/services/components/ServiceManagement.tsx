@@ -818,24 +818,14 @@ function ServiceDetailModal({ service, onClose }) {
   );
 }
 
-const handlePriceChange = (value: string, prevValue: any): number => {
-  let cleanValue = value.replace(/\D/g, ''); // Eliminar todo lo que no sea dígito
-  const prevStr = (prevValue ?? '').toString().replace(/\D/g, '');
+const handlePriceChange = (value: string): number => {
+  // Eliminar todo lo que no sea dígito
+  let cleanValue = value.replace(/\D/g, '');
   
-  if (prevStr === '0' || prevStr === '') {
-    if (cleanValue.length === 2) {
-      if (cleanValue.startsWith('0')) {
-        cleanValue = cleanValue.substring(1);
-      } else if (cleanValue.endsWith('0')) {
-        cleanValue = cleanValue.substring(0, 1);
-      }
-    }
-  }
+  // Eliminar ceros iniciales
+  cleanValue = cleanValue.replace(/^0+/, '');
   
-  if (cleanValue.length > 1 && cleanValue.startsWith('0')) {
-    cleanValue = cleanValue.replace(/^0+/, '');
-  }
-  
+  // Limitar a 6 dígitos
   if (cleanValue.length > 6) {
     cleanValue = cleanValue.slice(0, 6);
   }
@@ -1034,7 +1024,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
       processedValue = value.slice(0, 100);
     } else if (['duration', 'price'].includes(name)) {
       if (name === 'price') {
-        processedValue = handlePriceChange(value, formData.price);
+        processedValue = handlePriceChange(value);
       } else {
         processedValue = parseFloat(value) || 0;
       }
@@ -1153,13 +1143,15 @@ function ServiceEditModal({ service, onClose, onSave }) {
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
-                          type="number"
+                          type="text"
+                          inputMode="numeric"
                           name="price"
-                          value={formData.price}
+                          value={formData.price === 0 ? '' : formData.price}
                           onChange={handleInputChange}
                           onBlur={handleBlur}
                           onKeyDown={handleKeyDown}
                           onPaste={handlePaste}
+                          placeholder="0"
                           className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.price ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                             }`}
                         />

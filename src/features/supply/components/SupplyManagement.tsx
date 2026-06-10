@@ -336,10 +336,30 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                       </button>
                       {hasPermission('manage_supplies') && (
                         <>
-                          <button onClick={() => handleEditSupply(supply)} className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors" title="Editar">
+                          <button
+                            onClick={() => handleEditSupply(supply)}
+                            disabled={supply.estado !== true}
+                            className={cn(
+                              "p-2 rounded-lg transition-colors",
+                              supply.estado !== true
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                : "bg-green-100 text-green-700 hover:bg-green-200"
+                            )}
+                            title={supply.estado !== true ? "No se puede editar un insumo inactivo" : "Editar"}
+                          >
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteSupply(supply.insumoId)} className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors" title="Eliminar">
+                          <button
+                            onClick={() => handleDeleteSupply(supply.insumoId)}
+                            disabled={supply.estado !== true}
+                            className={cn(
+                              "p-2 rounded-lg transition-colors",
+                              supply.estado !== true
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                            )}
+                            title={supply.estado !== true ? "No se puede eliminar un insumo inactivo" : "Eliminar"}
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </>

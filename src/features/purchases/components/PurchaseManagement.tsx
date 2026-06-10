@@ -1111,24 +1111,14 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
   );
 }
 
-const handlePriceChange = (value: string, prevValue: any): number => {
-  let cleanValue = value.replace(/\D/g, ''); // Eliminar todo lo que no sea dígito
-  const prevStr = (prevValue ?? '').toString().replace(/\D/g, '');
+const handlePriceChange = (value: string): number => {
+  // Eliminar todo lo que no sea dígito
+  let cleanValue = value.replace(/\D/g, '');
   
-  if (prevStr === '0' || prevStr === '') {
-    if (cleanValue.length === 2) {
-      if (cleanValue.startsWith('0')) {
-        cleanValue = cleanValue.substring(1);
-      } else if (cleanValue.endsWith('0')) {
-        cleanValue = cleanValue.substring(0, 1);
-      }
-    }
-  }
+  // Eliminar ceros iniciales
+  cleanValue = cleanValue.replace(/^0+/, '');
   
-  if (cleanValue.length > 1 && cleanValue.startsWith('0')) {
-    cleanValue = cleanValue.replace(/^0+/, '');
-  }
-  
+  // Limitar a 6 dígitos
   if (cleanValue.length > 6) {
     cleanValue = cleanValue.slice(0, 6);
   }
@@ -1250,7 +1240,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
       if (isDirectNumber) {
         item.precioUnitario = value;
       } else {
-        item.precioUnitario = handlePriceChange(value, item.precioUnitario);
+        item.precioUnitario = handlePriceChange(value);
       }
     }
 
@@ -1515,13 +1505,12 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                         <div className="w-32">
                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Precio Unit. *</label>
                           <div className="relative">
-                            {item.precioUnitario === 0 && (
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">$</span>
-                            )}
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">$</span>
                             <input
-                              type="number"
+                              type="text"
+                              inputMode="numeric"
                               min="0"
-                              value={item.precioUnitario}
+                              value={item.precioUnitario === 0 ? '' : item.precioUnitario}
                               onChange={(e) => updateProduct(index, 'precioUnitario', e.target.value)}
                               onKeyDown={(e) => {
                                 if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
@@ -1534,7 +1523,8 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                                   e.preventDefault();
                                   return;
                                 }
-                                if (e.currentTarget.value.replace(/\D/g, '').length >= 6) {
+                                const currentDigits = e.currentTarget.value.replace(/\D/g, '').replace(/^0+/, '');
+                                if (currentDigits.length >= 6) {
                                   const selectionStart = e.currentTarget.selectionStart;
                                   const selectionEnd = e.currentTarget.selectionEnd;
                                   if (selectionStart === null || selectionEnd === null || selectionStart === selectionEnd) {
@@ -1557,12 +1547,11 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                                 
                                 updateProduct(index, 'precioUnitario', parsedValue, true);
                               }}
+                              placeholder="0"
                               className={cn(
-                                "w-full pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 transition-all font-bold text-gray-700 text-sm",
-                                item.precioUnitario === 0 ? 'pl-7' : 'pl-3',
+                                "w-full pl-7 pr-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 transition-all font-bold text-gray-700 text-sm",
                                 errors[`price_${index}`] ? 'border-red-300' : 'border-gray-200'
                               )}
-                              placeholder="0"
                             />
                           </div>
                         </div>

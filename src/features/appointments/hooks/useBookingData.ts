@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { serviceService } from '@/features/services/services/serviceService';
 import { empleadoAgendaService } from '../services/agendaService';
 import { personService } from '@/features/persons/services/personService';
+import { userService } from '@/features/users/services/userService';
 import { Scissors, User } from 'lucide-react';
 
 export function useServicios(pageSize: number = 6) {
@@ -126,6 +127,7 @@ export function useEmpleados(pageSize: number = 6) {
     setLoading(true);
     setError(null);
     try {
+      // Get employees from Empleados API
       const response = await empleadoAgendaService.getAll({
         page: currentPage,
         pageSize,
@@ -135,30 +137,76 @@ export function useEmpleados(pageSize: number = 6) {
       let employeesArray = [];
       if (Array.isArray(response)) {
         employeesArray = response;
-        setTotalPages(1);
-        setTotalCount(response.length);
       } else if (response && response.data) {
         employeesArray = response.data;
-        setTotalPages(response.totalPages || 1);
-        setTotalCount(response.totalCount || response.data.length);
       }
 
-      let activeProfessionals = employeesArray
-        .filter((p: any) => {
-          const est = p.estado !== undefined ? p.estado : p.Estado;
-          return est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
-        })
-        .map((p: any, index: number) => ({
+      // Also get users and check for super admins
+      const usersResponse = await userService.getAll({ page: 1, pageSize: 100 });
+      let usersArray = [];
+      if (Array.isArray(usersResponse)) {
+        usersArray = usersResponse;
+      } else if (usersResponse && usersResponse.data) {
+        usersArray = usersResponse.data;
+      }
+
+      // Filter super admin users
+      const superAdminUsers = usersArray.filter((u: any) => {
+        const roleName = (u.rolNombre || u.rol?.nombre || '').toLowerCase().trim();
+        return roleName.includes('super admin') || roleName.includes('superadmin');
+      });
+
+      // Map employees and super admins to professional format
+      const allProfessionals = [
+        ...employeesArray.map((p: any) => ({
           id: p.documentoEmpleado || p.DocumentoEmpleado,
           name: p.nombre || p.Nombre,
           role: 'Estilista Profesional',
-          rating: 4.8 + (index * 0.1) % 0.2,
-          color: ['bg-rose-500', 'bg-violet-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'][index % 5],
-          avatar: (p.nombre || p.Nombre || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
-        }));
+          _source: 'employee'
+        })),
+        ...(await Promise.all(superAdminUsers.map(async (u: any, index: number) => {
+          // Try to get person data for name
+          const person = await userService.getPersonForUser(u).catch(() => null);
+          const name = person?.name || u.nombre || u.Nombre || u.email || 'Super Admin';
+          return {
+            id: person?.documentId || u.documentoEmpleado || u.documentoCliente || String(u.usuarioId || u.id),
+            name,
+            role: 'Super Admin',
+            _source: 'super-admin',
+            _index: employeesArray.length + index
+          };
+        })))
+      ];
 
-      // Apply client-side search and pagination if it's a raw array response
+      // Remove duplicates by id
+      const uniqueProfessionals = Array.from(
+        new Map(allProfessionals.map(p => [p.id, p])).values()
+      );
+
+      // Filter active
+      let activeProfessionals = uniqueProfessionals.filter((p: any, index: number) => {
+        if (p._source === 'super-admin') {
+          // Super admin is always active
+          return true;
+        }
+        const originalData = employeesArray.find((e: any) => 
+          (e.documentoEmpleado || e.DocumentoEmpleado) === p.id
+        );
+        if (!originalData) return true;
+        const est = originalData.estado !== undefined ? originalData.estado : originalData.Estado;
+        return est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
+      }).map((p: any, index: number) => ({
+        id: p.id,
+        name: p.name,
+        role: p.role,
+        rating: 4.8 + ((p._index || index) * 0.1) % 0.2,
+        color: ['bg-rose-500', 'bg-violet-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'][(p._index || index) % 5],
+        avatar: (p.name || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+      }));
+
+      // Update total count and pages based on original response and super admins
       if (Array.isArray(response)) {
+        // Client-side search and pagination
         if (searchTerm) {
           const term = searchTerm.toLowerCase();
           activeProfessionals = activeProfessionals.filter((p: any) => 
@@ -174,6 +222,9 @@ export function useEmpleados(pageSize: number = 6) {
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
         activeProfessionals = activeProfessionals.slice(start, end);
+      } else {
+        setTotalPages(response.totalPages || 1);
+        setTotalCount(response.totalCount || activeProfessionals.length);
       }
 
       setData(activeProfessionals);

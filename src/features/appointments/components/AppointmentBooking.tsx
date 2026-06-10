@@ -45,8 +45,9 @@ const formatTo12Hour = (timeStr: string): string => {
 
 const buildDateTime = (date: string, time: string): Date => {
   const safeDate = (date || '').split('T')[0];
-  const safeTime = time.length === 5 ? `${time}:00` : time;
-  return new Date(`${safeDate}T${safeTime}`);
+  const [year, month, day] = safeDate.split('-').map(Number);
+  const [hour, minute] = time.split(':').map(Number);
+  return new Date(year, month - 1, day, hour, minute);
 };
 
 const normalizeDateOnly = (dateValue: string): string => (dateValue || '').split('T')[0];
@@ -389,39 +390,105 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   // Helper to get day name in Spanish (normalized)
   const getDayName = (date: Date) => {
     const days = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
-    return days[date.getDay()];
+    const dayName = days[date.getDay()];
+    console.log('getDayName called with date:', date, 'returning:', dayName);
+    return dayName;
+  };
+  
+  // Helper to safely parse YYYY-MM-DD date string as local date
+  const parseLocalDate = (dateString: string): Date => {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // month is 0-based
   };
 
   // Check if professional works on a specific date
   const professionalWorksOn = (professionalId: string, date: Date) => {
-    const targetDay = getDayName(date);
-    return horariosEmpleados.some(h => 
-      String(h.documentoEmpleado) === String(professionalId) && 
-      normalizeDayName(h.diaSemana) === targetDay
-    );
+    const targetDay = normalizeDayName(getDayName(date));
+    console.log('professionalWorksOn:', { professionalId, date, targetDay, horariosEmpleados });
+    
+    // First check if they have a schedule
+    const hasSchedule = horariosEmpleados.some(h => {
+      const matches = 
+        String(h.documentoEmpleado) === String(professionalId) && 
+        normalizeDayName(h.diaSemana) === targetDay;
+      if (String(h.documentoEmpleado) === String(professionalId)) {
+        console.log('  checking schedule:', { h, diaSemana: h.diaSemana, normalized: normalizeDayName(h.diaSemana), targetDay, matches });
+      }
+      return matches;
+    });
+    
+    if (hasSchedule) {
+      console.log('professionalWorksOn result:', true);
+      return true;
+    }
+    
+    // Check if this is a super admin (or any professional without a schedule) - they work every day
+    const professional = professionals.find(p => String(p.id) === String(professionalId));
+    if (professional) {
+      console.log('professionalWorksOn: No schedule found for professional, treating as available every day:', professional);
+      return true;
+    }
+    
+    console.log('professionalWorksOn result:', false);
+    return false;
   };
 
   // Get time slots for professional on a specific date
   const getTimeSlotsForDate = (professionalId: string, date: Date) => {
-    const targetDay = getDayName(date);
-    const schedules = horariosEmpleados.filter(h => 
-      String(h.documentoEmpleado) === String(professionalId) && 
-      normalizeDayName(h.diaSemana) === targetDay
-    );
+    const targetDay = normalizeDayName(getDayName(date));
+    console.log('getTimeSlotsForDate called with:', { 
+      professionalId, 
+      date, 
+      targetDay, 
+      horariosEmpleadosCount: horariosEmpleados.length 
+    });
+    
+    const schedules = horariosEmpleados.filter(h => {
+      const matches = 
+        String(h.documentoEmpleado) === String(professionalId) && 
+        normalizeDayName(h.diaSemana) === targetDay;
+      
+      console.log('Checking horarioEmpleado:', {
+        documentoEmpleado: h.documentoEmpleado,
+        diaSemana: h.diaSemana,
+        normalizedDiaSemana: normalizeDayName(h.diaSemana),
+        targetDay,
+        matches
+      });
+      
+      return matches;
+    });
 
-    if (schedules.length === 0) return [];
+    console.log('Found schedules:', schedules);
+    
+    // If no schedules found (super admin), use default 8am-10pm schedule
+    let finalSchedules = schedules;
+    if (schedules.length === 0) {
+      console.log('getTimeSlotsForDate: No schedules found, using default schedule (8am-10pm)');
+      finalSchedules = [{
+        horaInicio: '08:00',
+        horaFin: '22:00'
+      }];
+    }
+
+    if (finalSchedules.length === 0) return [];
+
+    // Calculate total duration of selected services (minimum 30 minutes)
+    let totalDuration = getTotalDuration();
+    if (totalDuration <= 0) totalDuration = 30;
 
     // Combine slots from all schedules for that day (in case there are multiple shifts)
     const allSlots: string[] = [];
     
-    schedules.forEach(schedule => {
+    finalSchedules.forEach(schedule => {
       const [startH, startM] = schedule.horaInicio.split(':').map(Number);
       const [endH, endM] = schedule.horaFin.split(':').map(Number);
       
       let currentTotalMinutes = startH * 60 + startM;
       const endTotalMinutes = endH * 60 + endM;
 
-      while (currentTotalMinutes < endTotalMinutes) {
+      // Only include slots where slot + totalDuration <= end time
+      while (currentTotalMinutes + totalDuration <= endTotalMinutes) {
         const h = Math.floor(currentTotalMinutes / 60);
         const m = currentTotalMinutes % 60;
         const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
@@ -530,23 +597,60 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
   // Check if time slot is available
   const isTimeSlotAvailable = (date: string, time: string, professionalId: string, duration: number) => {
+    console.log('isTimeSlotAvailable called with:', { date, time, professionalId, duration });
+    
     const appointments = existingAppointments.filter(apt =>
       normalizeDateOnly(apt.fechaCita) === date && String(apt.documentoEmpleado) === String(professionalId)
     );
 
     const [hours, minutes] = time.split(':').map(Number);
     const slotStart = hours * 60 + minutes;
-    const slotEnd = slotStart + duration;
+    const slotEnd = slotStart + (duration > 0 ? duration : 30);
     const slotStartDate = buildDateTime(date, time);
     const now = new Date();
     const minLead = new Date(now.getTime() + 90 * 60 * 1000);
 
     // Regla: solo citas futuras y con al menos 1h 30m de anticipación
-    if (slotStartDate <= now) return false;
-    if (slotStartDate < minLead) return false;
+    if (slotStartDate <= now) {
+      console.log('isTimeSlotAvailable false: slotStartDate <= now');
+      return false;
+    }
+    if (slotStartDate < minLead) {
+      console.log('isTimeSlotAvailable false: slotStartDate < minLead', { slotStartDate, minLead });
+      return false;
+    }
 
-    // Check salon closing time (example: 20:00)
-    if (slotEnd > 20 * 60) return false;
+    // Check if slot fits within professional's schedule
+    const targetDay = normalizeDayName(getDayName(parseLocalDate(date)));
+    let schedules = horariosEmpleados.filter(h => 
+      String(h.documentoEmpleado) === String(professionalId) && 
+      normalizeDayName(h.diaSemana) === targetDay
+    );
+    
+    // If no schedules (super admin), use default 8am-10pm
+    if (schedules.length === 0) {
+      schedules = [{
+        horaFin: '22:00'
+      }];
+    }
+    
+    console.log('isTimeSlotAvailable - schedules:', schedules);
+
+    let fitsInSchedule = false;
+    for (const schedule of schedules) {
+      const [endH, endM] = schedule.horaFin.split(':').map(Number);
+      const endTotalMinutes = endH * 60 + endM;
+      console.log('isTimeSlotAvailable - checking schedule:', { schedule, slotEnd, endTotalMinutes });
+      if (slotEnd <= endTotalMinutes) {
+        fitsInSchedule = true;
+        break;
+      }
+    }
+
+    if (!fitsInSchedule) {
+      console.log('isTimeSlotAvailable false: !fitsInSchedule');
+      return false;
+    }
 
     // Solo citas canceladas liberan espacio.
     const NON_BLOCKING_STATES = ["cancelado", "cancelled", "canceled"];
@@ -572,7 +676,10 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       return (slotStart < aptEnd && aptStart < slotEnd);
     });
 
-    if (hasAppointmentOverlap) return false;
+    if (hasAppointmentOverlap) {
+      console.log('isTimeSlotAvailable false: hasAppointmentOverlap');
+      return false;
+    }
 
     // Check absence motives (ALL motives block the schedule, regardless of state)
     const activeMotivos = motivos.filter(m => 
@@ -590,7 +697,8 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       // Rule: unavailable if slot overlaps with [mStart, mEnd)
       return (slotStart < mEnd && mStart < slotEnd);
     });
-
+    
+    console.log('isTimeSlotAvailable result:', !hasAbsenceOverlap);
     return !hasAbsenceOverlap;
   };
 
@@ -1454,6 +1562,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
   // Step 3: Select Date and Time
   if (step === 3) {
+    console.log('Step 3 - selectedProfessional:', selectedProfessional);
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -1539,7 +1648,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     const isActive = selectedDate === dateString;
                     const isToday = date.toDateString() === new Date().toDateString();
                     const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
-                    const worksToday = selectedProfessional ? professionalWorksOn(selectedProfessional.id, date) : true;
+                    const worksToday = selectedProfessional ? professionalWorksOn(selectedProfessional.id, parseLocalDate(dateString)) : true;
                     const isDisabled = isPast || !worksToday;
 
                     return (
@@ -1597,8 +1706,9 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {(() => {
+                    console.log('Rendering time slots:', { selectedDate, selectedProfessional, totalDuration: getTotalDuration() });
                     const currentSlots = selectedProfessional 
-                      ? getTimeSlotsForDate(selectedProfessional.id, new Date(selectedDate + 'T00:00:00'))
+                      ? getTimeSlotsForDate(selectedProfessional.id, parseLocalDate(selectedDate))
                       : defaultTimeSlots;
 
                     if (currentSlots.length === 0) {

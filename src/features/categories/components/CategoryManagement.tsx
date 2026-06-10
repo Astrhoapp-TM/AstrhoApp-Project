@@ -90,7 +90,11 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
       setTotalCount(response.totalCount || 0);
       setTotalPages(response.totalPages || 0);
 
-      setCategories(unwrapValues(data).map(mapCategoryToUI));
+      const sorted = unwrapValues(data)
+        .map(mapCategoryToUI)
+        .sort((a: any, b: any) => b.id - a.id);
+
+      setCategories(sorted);
       setError(null);
     } catch (err) {
       console.error('Error fetching categories:', err);
@@ -228,12 +232,13 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
           c.id === (selectedCategory as any).id
             ? mapCategoryToUI(updatedAPI)
             : c
-        ));
+        ).sort((a: any, b: any) => b.id - a.id));
         showAlert('success', `Categoría "${categoryData.name}" actualizada correctamente`);
       } else {
         // Create new category
         const createdAPI = await supplyCategoryService.createCategory(mapCategoryToAPI(categoryData) as APICategory);
-        setCategories([...categories, mapCategoryToUI(createdAPI)]);
+        const newCat = mapCategoryToUI(createdAPI);
+        setCategories([newCat, ...categories].sort((a: any, b: any) => b.id - a.id));
         showAlert('success', `Categoría "${categoryData.name}" creada correctamente`);
       }
       setShowEditModal(false);

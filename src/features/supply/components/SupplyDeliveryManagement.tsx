@@ -1327,20 +1327,14 @@ function DeliveryItemsPreview({ deliveryId, getSupplyInfo }: { deliveryId: numbe
   if (loading) return <div className="text-xs text-purple-400 animate-pulse font-medium">Cargando insumos...</div>;
   if (!items || items.length === 0) return <div className="text-sm text-gray-400 italic">No hay insumos o no se detectaron</div>;
 
-  const visibleItems = items.slice(0, 2);
-  const hasMore = items.length > 2;
+  const firstItem = items[0];
+  const prod = getSupplyInfo(firstItem.insumoId);
+  const insumoName = prod?.nombre || ('Insumo #' + firstItem.insumoId);
+  const hasMore = items.length > 1;
 
   return (
-    <div className="space-y-1.5">
-      {visibleItems.map((item, idx) => {
-        const prod = getSupplyInfo(item.insumoId);
-        return (
-          <div key={idx} className="text-sm font-medium text-gray-700 flex items-center space-x-2">
-            <span>{prod?.nombre || 'Insumo #' + item.insumoId}: <strong className="text-brand-indigo ml-1">{item.cantidad}</strong></span>
-          </div>
-        );
-      })}
-      {hasMore && <div className="text-sm font-medium text-gray-500">...</div>}
+    <div className="text-sm font-medium text-gray-700">
+      {insumoName}{hasMore ? ' ...' : ''}
     </div>
   );
 }

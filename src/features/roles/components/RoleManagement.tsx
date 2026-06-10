@@ -142,6 +142,11 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
     description: ''
   });
 
+  const [editRoleErrors, setEditRoleErrors] = useState({
+    name: '',
+    description: ''
+  });
+
   // Handle Key Down for restrictions
   const handleRoleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     // Permitir teclas de control
@@ -388,6 +393,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
   };
 
   const handleEditRole = async (role) => {
+    setEditRoleErrors({ name: '', description: '' });
     showSectionLoading("Cargando datos del rol...");
     setLoading(true);
     try {
@@ -1144,12 +1150,6 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
         if (isSuperAdmin && editingRole.permissions.length !== allPermissions.length) {
           editingRole.permissions = allPermissions;
         }
-
-        // Estado para errores en edición
-        const [editRoleErrors, setEditRoleErrors] = React.useState({
-          name: '',
-          description: ''
-        });
 
         // Validar campo de edición
         const validateEditRoleField = (name: string, value: string) => {

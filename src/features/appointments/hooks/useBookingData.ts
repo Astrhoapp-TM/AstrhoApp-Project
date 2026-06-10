@@ -150,13 +150,20 @@ export function useEmpleados(pageSize: number = 6) {
         usersArray = usersResponse.data;
       }
 
-      // Filter super admin users
-      const superAdminUsers = usersArray.filter((u: any) => {
+      // Filter admin and super admin users
+      const adminAndSuperAdminUsers = usersArray.filter((u: any) => {
         const roleName = (u.rolNombre || u.rol?.nombre || '').toLowerCase().trim();
-        return roleName.includes('super admin') || roleName.includes('superadmin');
+        return (
+          roleName.includes('super admin') || 
+          roleName.includes('superadmin') || 
+          roleName.includes('super_admin') || 
+          roleName.includes('admin') || 
+          roleName.includes('administrador') || 
+          roleName.includes('administradora')
+        );
       });
 
-      // Map employees and super admins to professional format
+      // Map employees, super admins, and admins to professional format
       const allProfessionals = [
         ...employeesArray.map((p: any) => ({
           id: p.documentoEmpleado || p.DocumentoEmpleado,
@@ -164,15 +171,17 @@ export function useEmpleados(pageSize: number = 6) {
           role: 'Estilista Profesional',
           _source: 'employee'
         })),
-        ...(await Promise.all(superAdminUsers.map(async (u: any, index: number) => {
+        ...(await Promise.all(adminAndSuperAdminUsers.map(async (u: any, index: number) => {
           // Try to get person data for name
           const person = await userService.getPersonForUser(u).catch(() => null);
-          const name = person?.name || u.nombre || u.Nombre || u.email || 'Super Admin';
+          const name = person?.name || u.nombre || u.Nombre || u.email || 'Administrador';
+          const roleName = (u.rolNombre || u.rol?.nombre || '').toLowerCase().trim();
+          const isSuper = roleName.includes('super');
           return {
             id: person?.documentId || u.documentoEmpleado || u.documentoCliente || String(u.usuarioId || u.id),
             name,
-            role: 'Super Admin',
-            _source: 'super-admin',
+            role: isSuper ? 'Super Administradora' : 'Administradora',
+            _source: isSuper ? 'super-admin' : 'admin',
             _index: employeesArray.length + index
           };
         })))

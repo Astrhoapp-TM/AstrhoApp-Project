@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Calendar, Clock, User, ChevronLeft, ChevronRight, Plus,
   ArrowLeft, ArrowRight, CheckCircle, X, Save, Scissors,
@@ -154,7 +154,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     setSearch: setProfessionalSearchTerm,
     totalPages: totalProfessionalPages,
     error: professionalError
-  } = useEmpleados(6);
+  } = useEmpleados(100);
 
   const { 
     data: clients, 
@@ -177,6 +177,12 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [clientDocument, setClientDocument] = useState<string>('');
+
+  const professionalsWithSchedules = useMemo(() => {
+    return professionals.filter(p =>
+      horariosEmpleados.some(h => String(h.documentoEmpleado) === String(p.id))
+    );
+  }, [professionals, horariosEmpleados]);
 
   const hasProfessionalPermissionError = professionalError?.includes('403');
 
@@ -406,31 +412,15 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     const targetDay = normalizeDayName(getDayName(date));
     console.log('professionalWorksOn:', { professionalId, date, targetDay, horariosEmpleados });
     
-    // First check if they have a schedule
+    // Check if they have a schedule for this day
     const hasSchedule = horariosEmpleados.some(h => {
       const matches = 
         String(h.documentoEmpleado) === String(professionalId) && 
         normalizeDayName(h.diaSemana) === targetDay;
-      if (String(h.documentoEmpleado) === String(professionalId)) {
-        console.log('  checking schedule:', { h, diaSemana: h.diaSemana, normalized: normalizeDayName(h.diaSemana), targetDay, matches });
-      }
       return matches;
     });
     
-    if (hasSchedule) {
-      console.log('professionalWorksOn result:', true);
-      return true;
-    }
-    
-    // Check if this is a super admin (or any professional without a schedule) - they work every day
-    const professional = professionals.find(p => String(p.id) === String(professionalId));
-    if (professional) {
-      console.log('professionalWorksOn: No schedule found for professional, treating as available every day:', professional);
-      return true;
-    }
-    
-    console.log('professionalWorksOn result:', false);
-    return false;
+    return hasSchedule;
   };
 
   // Get time slots for professional on a specific date
@@ -447,29 +437,12 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       const matches = 
         String(h.documentoEmpleado) === String(professionalId) && 
         normalizeDayName(h.diaSemana) === targetDay;
-      
-      console.log('Checking horarioEmpleado:', {
-        documentoEmpleado: h.documentoEmpleado,
-        diaSemana: h.diaSemana,
-        normalizedDiaSemana: normalizeDayName(h.diaSemana),
-        targetDay,
-        matches
-      });
-      
       return matches;
     });
 
     console.log('Found schedules:', schedules);
     
-    // If no schedules found (super admin), use default 8am-10pm schedule
-    let finalSchedules = schedules;
-    if (schedules.length === 0) {
-      console.log('getTimeSlotsForDate: No schedules found, using default schedule (8am-10pm)');
-      finalSchedules = [{
-        horaInicio: '08:00',
-        horaFin: '22:00'
-      }];
-    }
+    const finalSchedules = schedules;
 
     if (finalSchedules.length === 0) return [];
 
@@ -622,16 +595,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
     // Check if slot fits within professional's schedule
     const targetDay = normalizeDayName(getDayName(parseLocalDate(date)));
-    let schedules = horariosEmpleados.filter(h => 
+    const schedules = horariosEmpleados.filter(h => 
       String(h.documentoEmpleado) === String(professionalId) && 
       normalizeDayName(h.diaSemana) === targetDay
     );
     
-    // If no schedules (super admin), use default 8am-10pm
     if (schedules.length === 0) {
-      schedules = [{
-        horaFin: '22:00'
-      }];
+      console.log('isTimeSlotAvailable false: no schedule for this day');
+      return false;
     }
     
     console.log('isTimeSlotAvailable - schedules:', schedules);
@@ -1425,10 +1396,10 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   )}
                 </div>
 
-                {professionals.length > 0 ? (
+                {professionalsWithSchedules.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                      {professionals.map((professional) => (
+                      {professionalsWithSchedules.map((professional) => (
                         <div
                           key={professional.id}
                           onClick={() => {

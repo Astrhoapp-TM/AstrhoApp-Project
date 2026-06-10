@@ -758,6 +758,13 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
 
   const validateEmail = (value: string): string | null => {
     if (!value.trim()) return REQUIRED_MSG;
+    
+    // Validar formato de correo electrónico
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value.trim())) {
+      return 'El formato del correo electrónico no es válido';
+    }
+
     // Verificar unicidad contra proveedores existentes (excluir el proveedor actual si se está editando)
     const isDuplicate = existingSuppliers.some(
       (s) => s.email?.toLowerCase() === value.trim().toLowerCase() && (!supplier || s.id !== supplier.id)

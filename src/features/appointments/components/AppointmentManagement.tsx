@@ -472,6 +472,12 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
       // Regla de completado: solo después de finalizar y dentro de 24h.
       if (statusTarget === 'completado') {
+        if (statusActual !== 'confirmado' && statusActual !== 'confirmed') {
+          toast.error('No se puede completar una cita a menos que su estado anterior haya sido Confirmado.');
+          setShowStatusModal(false);
+          setAppointmentToChangeStatus(null);
+          return;
+        }
         if (now < endAt) {
           toast.error('La cita solo puede completarse cuando ya finalizó su duración.');
           setShowStatusModal(false);
@@ -1189,7 +1195,11 @@ function AppointmentModal({
       const isTargetCancelled = targetEstado === 'cancelado' || formData.estadoId === estadoCanceladoId;
 
       if (isTargetCompleted) {
-        if (now < endAt) {
+        const previousStatusName = appointment ? normalizeEstadoKey(appointment.estado) : '';
+        const isPrevConfirmed = previousStatusName === 'confirmado' || previousStatusName === 'confirmed';
+        if (isEdit && !isPrevConfirmed) {
+          newErrors.estadoId = 'No se puede completar una cita a menos que su estado anterior haya sido Confirmado.';
+        } else if (now < endAt) {
           newErrors.estadoId = 'Solo se puede completar una cita cuando su duración ya finalizó.';
         } else if (now > completeLimit) {
           newErrors.estadoId = 'La ventana de 24 horas para completar ya expiró.';

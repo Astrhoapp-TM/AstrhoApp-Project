@@ -256,7 +256,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
         if (isClient) {
             await apiClient.put(`/api/Clientes/${docId}`, {
-              documentoCliente: docId,
+              documentoCliente: userData.documentId,
               usuarioId: userId,
               tipoDocumento: mapDocType(userData.documentType),
               nombre: userData.nombre,
@@ -266,7 +266,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             });
           } else {
             await apiClient.put(`/api/Empleados/${docId}`, {
-              documentoEmpleado: docId,
+              documentoEmpleado: userData.documentId,
               usuarioId: userId,
               tipoDocumento: mapDocType(userData.documentType),
               nombre: userData.nombre,
@@ -875,6 +875,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     estado: user?.estado !== undefined ? user.estado : true,
     password: '',
   });
+  const [originalData, setOriginalData] = useState<{ email: string; documentId: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [validatingFields, setValidatingFields] = useState<Record<string, boolean>>({});
@@ -888,7 +889,9 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
           const mapDocTypeBack = (t: string) => {
             if (t === 'CC') return 'cedula';
             if (t === 'CE') return 'cedula_extranjeria';
+            if (t === 'TI') return 'tarjeta_identidad';
             if (t === 'PAS') return 'pasaporte';
+            if (t === 'NIT') return 'nit';
             return 'cedula';
           };
           
@@ -901,6 +904,10 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
               phone: data.phone,
               direccion: data.address || '',
             }));
+            setOriginalData({
+              email: user.email || '',
+              documentId: data.documentId,
+            });
           }
         } catch (e) {
           console.error("Error fetching person data for user", e);
@@ -916,8 +923,8 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     const isCreate = !user;
     switch (name) {
       case 'nombre':
-        if (isCreate && !value.trim()) return 'El nombre es obligatorio';
-        if (isCreate && value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(value))
+        if (!value.trim()) return 'El nombre es obligatorio';
+        if (value.trim() && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(value))
           return 'El nombre solo debe contener letras';
         return '';
       case 'email':
@@ -925,31 +932,37 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'El formato del correo no es válido';
         return '';
       case 'documentId': {
-        if (isCreate && !value.trim()) return 'El número de documento es obligatorio';
+        if (!value.trim()) return 'El número de documento es obligatorio';
         const effectiveDocType = docType || formData.documentType;
         if (value.trim()) {
           const len = value.trim().length;
-          if (effectiveDocType === 'pasaporte') {
+          const docTypeLower = (effectiveDocType || '').toLowerCase();
+          if (docTypeLower === 'pasaporte') {
             // Passport allows alphanumeric characters
             if (!/^[a-zA-Z0-9]+$/.test(value.trim()))
-              return 'El pasaporte solo debe contener letras y números, sin caracteres especiales';
-            if (len < 6 || len > 15) return 'El pasaporte debe tener entre 6 y 15 caracteres';
+              return 'El pasaporte debe contener solo letras y números';
+            if (len < 5 || len > 20) return 'El pasaporte debe tener entre 5 y 20 caracteres';
+          } else if (docTypeLower === 'nit') {
+            // NIT allows numbers and optional hyphen
+            if (!/^\d+(-\d)?$/.test(value.trim()))
+              return 'El NIT debe contener solo números y un guion opcional';
+            if (len < 9 || len > 11) return 'El NIT debe tener entre 9 y 11 caracteres';
           } else {
-            // CC and CE are numeric-only (7-15 digits)
+            // CC, CE, TI are numeric-only (7-15 digits)
             if (!/^\d+$/.test(value.trim()))
-              return 'El número de documento solo debe contener números, sin letras ni caracteres especiales';
+              return 'El número de documento solo debe contener números';
             if (len < 7 || len > 15) return 'El número de documento debe tener entre 7 y 15 dígitos';
           }
         }
         return '';
       }
       case 'phone':
-        if (isCreate && !value.trim()) return 'El teléfono es obligatorio';
-        if (isCreate && value.trim() && !/^\d{10}$/.test(value))
+        if (!value.trim()) return 'El teléfono es obligatorio';
+        if (value.trim() && !/^\d{10}$/.test(value))
           return 'El teléfono debe tener exactamente 10 dígitos numéricos';
         return '';
       case 'direccion':
-        if (isCreate && !value.trim()) return 'La dirección es obligatoria';
+        if (!value.trim()) return 'La dirección es obligatoria';
         return '';
       case 'password':
         if (isCreate && !value) return 'La contraseña es obligatoria';
@@ -1014,7 +1027,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     // Run all sync validations
     const fieldsToValidate = !user
       ? ['nombre', 'email', 'documentId', 'phone', 'direccion', 'password']
-      : ['email'];
+      : ['nombre', 'email', 'documentId', 'phone', 'direccion'];
 
     for (const field of fieldsToValidate) {
       const err = validateField(field, (formData as any)[field]);
@@ -1027,27 +1040,38 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       return;
     }
 
-    // Async uniqueness checks (only on create)
-    if (!user) {
-      setIsSaving(true);
-      try {
-        const [{ emailExists }, documentExists] = await Promise.all([
-          authService.checkDuplicates(formData.email),
-          userService.checkDocumentDuplicate(formData.documentId),
-        ]);
+    // Async uniqueness checks (on create or if values changed from original on edit)
+    setIsSaving(true);
+    try {
+      const emailChanged = !user || (originalData && formData.email.trim().toLowerCase() !== originalData.email.trim().toLowerCase());
+      const documentChanged = !user || (originalData && formData.documentId.trim() !== originalData.documentId.trim());
 
-        if (emailExists) errors.email = 'El correo electrónico ya se encuentra registrado';
-        if (documentExists) errors.documentId = 'El número de documento ya se encuentra registrado';
+      const checks: Promise<any>[] = [];
+      if (emailChanged) {
+        checks.push(authService.checkDuplicates(formData.email));
+      } else {
+        checks.push(Promise.resolve({ emailExists: false }));
+      }
 
-        if (Object.keys(errors).length > 0) {
-          setFieldErrors(errors);
-          setIsSaving(false);
-          return;
-        }
-      } catch {
+      if (documentChanged) {
+        checks.push(userService.checkDocumentDuplicate(formData.documentId));
+      } else {
+        checks.push(Promise.resolve(false));
+      }
+
+      const [{ emailExists }, documentExists] = await Promise.all(checks);
+
+      if (emailExists) errors.email = 'El correo electrónico ya se encuentra registrado';
+      if (documentExists) errors.documentId = 'El número de documento ya se encuentra registrado';
+
+      if (Object.keys(errors).length > 0) {
+        setFieldErrors(errors);
         setIsSaving(false);
         return;
       }
+    } catch {
+      setIsSaving(false);
+      return;
     }
 
     setFieldErrors({});
@@ -1061,15 +1085,14 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { name } = e.currentTarget;
-    const isPassport = name === 'documentId' && formData.documentType === 'pasaporte';
     
     // Allow: backspace, delete, tab, escape, enter
     if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter'].includes(e.key)) {
       return;
     }
 
-    // Allow: Ctrl+A, Ctrl+C, Ctrl+X (we'll handle paste separately)
-    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'x'].includes(e.key.toLowerCase())) {
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V (we'll handle paste separately)
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
       return;
     }
 
@@ -1078,16 +1101,29 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       return;
     }
 
-    // For phone and non-passport documentId: only allow numbers
-    if (name === 'phone' || (name === 'documentId' && !isPassport)) {
+    const docTypeLower = (formData.documentType || '').toLowerCase();
+
+    // For phone and numeric-only documentIds (except NIT and Pasaporte)
+    if (name === 'phone' || (name === 'documentId' && docTypeLower !== 'nit' && docTypeLower !== 'pasaporte')) {
       if (!/^[0-9]$/.test(e.key)) {
         e.preventDefault();
       }
     }
 
     // For passport documentId: allow letters and numbers
-    if (name === 'documentId' && isPassport) {
+    if (name === 'documentId' && docTypeLower === 'pasaporte') {
       if (!/^[a-zA-Z0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+
+    // For NIT: allow numbers and a single hyphen
+    if (name === 'documentId' && docTypeLower === 'nit') {
+      const currentValue = e.currentTarget.value;
+      if (!/^[0-9-]$/.test(e.key)) {
+        e.preventDefault();
+      }
+      if (e.key === '-' && currentValue.includes('-')) {
         e.preventDefault();
       }
     }
@@ -1095,22 +1131,26 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const { name } = e.currentTarget;
-    const isPassport = name === 'documentId' && formData.documentType === 'pasaporte';
-    
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
     let sanitizedText = pastedText;
 
-    if (name === 'phone' || (name === 'documentId' && !isPassport)) {
-      sanitizedText = pastedText.replace(/[^0-9]/g, '');
-    }
+    const docTypeLower = (formData.documentType || '').toLowerCase();
 
-    if (name === 'documentId' && isPassport) {
+    if (name === 'phone' || (name === 'documentId' && docTypeLower !== 'nit' && docTypeLower !== 'pasaporte')) {
+      sanitizedText = pastedText.replace(/[^0-9]/g, '');
+    } else if (name === 'documentId' && docTypeLower === 'pasaporte') {
       sanitizedText = pastedText.replace(/[^a-zA-Z0-9]/g, '');
+    } else if (name === 'documentId' && docTypeLower === 'nit') {
+      sanitizedText = pastedText.replace(/[^0-9-]/g, '');
+      const firstDashIndex = sanitizedText.indexOf('-');
+      if (firstDashIndex !== -1) {
+        sanitizedText = sanitizedText.slice(0, firstDashIndex + 1) + sanitizedText.slice(firstDashIndex + 1).replace(/-/g, '');
+      }
     }
 
     // Real-time synchronous validation
-    const error = validateField(name, sanitizedText);
+    const error = validateField(name, sanitizedText, formData.documentType);
     setFieldErrors(prev => ({ ...prev, [name]: error }));
 
     // Update form data with sanitized text
@@ -1131,11 +1171,17 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
     // Sanitize documentId based on doc type
     if (name === 'documentId') {
-      if (formData.documentType === 'pasaporte') {
-        // Passport: allow letters and numbers, strip special chars
-        sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15);
+      const docTypeLower = (formData.documentType || '').toLowerCase();
+      if (docTypeLower === 'pasaporte') {
+        sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+      } else if (docTypeLower === 'nit') {
+        sanitized = value.replace(/[^0-9-]/g, '');
+        const firstDashIndex = sanitized.indexOf('-');
+        if (firstDashIndex !== -1) {
+          sanitized = sanitized.slice(0, firstDashIndex + 1) + sanitized.slice(firstDashIndex + 1).replace(/-/g, '');
+        }
+        sanitized = sanitized.slice(0, 11);
       } else {
-        // CC / CE: numeric only, 7-15 digits
         sanitized = value.replace(/[^0-9]/g, '').slice(0, 15);
       }
     }
@@ -1156,7 +1202,11 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
     // When document type changes, truncate documentId to new max and re-validate
     if (name === 'documentType') {
-      const newMaxLen = 15;
+      const docTypeLower = (sanitized || '').toLowerCase();
+      let newMaxLen = 15;
+      if (docTypeLower === 'pasaporte') newMaxLen = 20;
+      else if (docTypeLower === 'nit') newMaxLen = 11;
+
       const trimmedDocId = formData.documentId.slice(0, newMaxLen);
       const docError = validateField('documentId', trimmedDocId, sanitized);
       setFieldErrors(prev => ({ ...prev, documentId: docError }));
@@ -1336,7 +1386,9 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                         >
                           <option value="cedula">Cédula (CC)</option>
                           <option value="cedula_extranjeria">Extranjería (CE)</option>
+                          <option value="tarjeta_identidad">Tarjeta de Identidad (TI)</option>
                           <option value="pasaporte">Pasaporte</option>
+                          <option value="nit">NIT</option>
                         </select>
                       </div>
                     </div>
@@ -1347,11 +1399,11 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                         <input
                           type="text"
                           name="documentId"
-                          inputMode={formData.documentType === 'pasaporte' ? 'text' : 'numeric'}
+                          inputMode={formData.documentType === 'pasaporte' ? 'text' : (formData.documentType === 'nit' ? 'text' : 'numeric')}
                           autoComplete="off"
                           spellCheck="false"
-                          pattern={formData.documentType === 'pasaporte' ? '[a-zA-Z0-9]*' : '[0-9]*'}
-                          maxLength={formData.documentType === 'pasaporte' ? 15 : 11}
+                          pattern={formData.documentType === 'pasaporte' ? '[a-zA-Z0-9]*' : (formData.documentType === 'nit' ? '[0-9-]*' : '[0-9]*')}
+                          maxLength={formData.documentType === 'pasaporte' ? 20 : (formData.documentType === 'nit' ? 11 : 15)}
                           value={formData.documentId}
                           onChange={handleInputChange}
                           onBlur={handleBlur}
@@ -1359,9 +1411,8 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                           onPaste={handlePaste}
                           className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
                             fieldErrors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                          } ${!!user ? 'opacity-60 cursor-not-allowed' : ''}`}
-                          placeholder={formData.documentType === 'pasaporte' ? 'AB1234567' : '1234567890'}
-                          disabled={!!user}
+                          }`}
+                          placeholder={formData.documentType === 'pasaporte' ? 'AB1234567' : (formData.documentType === 'nit' ? '123456789-0' : '1234567890')}
                         />
                       </div>
                       {validatingFields.documentId && <p className="text-[9px] text-blue-500 mt-1 animate-pulse">Verificando...</p>}

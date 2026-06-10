@@ -255,4 +255,11 @@ export const userService = {
             return false;
         }
     },
+
+    changePassword: async (userId: number, nuevaContrasena: string, confirmarContrasena: string): Promise<void> => {
+        return apiClient.put<void>(`/api/Usuarios/${userId}/contrasena`, {
+            nuevaContrasena,
+            confirmarContrasena,
+        });
+    },
 };

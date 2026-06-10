@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   User, Mail, Phone, MapPin, IdCard, Camera, X, Save,
   LogOut, Shield, UserCog, CheckCircle, AlertCircle,
-  FileText, Calendar, Sparkles, Key, Edit, Loader2
+  FileText, Calendar, Sparkles, Key, Edit, Loader2, Eye, EyeOff, Lock
 } from 'lucide-react';
 import { apiClient } from '@/shared/services/apiClient';
 import { userService } from '@/features/users/services/userService';
@@ -31,6 +31,14 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
     telefono: '',
     direccion: '',
   });
+
+  const [passwordForm, setPasswordForm] = useState({
+    nuevaContrasena: '',
+    confirmarContrasena: '',
+  });
+  const [passwordErrors, setPasswordErrors] = useState<{ nueva?: string; confirmar?: string }>({});
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (user?.email) {
@@ -84,6 +92,33 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
     setError(null);
     setSuccess(false);
 
+    // Password validation (only if user filled in at least one field)
+    const hasPasswordInput = passwordForm.nuevaContrasena || passwordForm.confirmarContrasena;
+    if (hasPasswordInput) {
+      const pwErrors: { nueva?: string; confirmar?: string } = {};
+
+      if (!passwordForm.nuevaContrasena) {
+        pwErrors.nueva = 'La nueva contraseña es obligatoria';
+      } else if (passwordForm.nuevaContrasena.length < 6) {
+        pwErrors.nueva = 'La contraseña debe tener al menos 6 caracteres';
+      } else if (passwordForm.nuevaContrasena.length > 15) {
+        pwErrors.nueva = 'La contraseña no puede superar 15 caracteres';
+      }
+
+      if (!passwordForm.confirmarContrasena) {
+        pwErrors.confirmar = 'Debe confirmar la contraseña';
+      } else if (passwordForm.nuevaContrasena !== passwordForm.confirmarContrasena) {
+        pwErrors.confirmar = 'Las contraseñas no coinciden';
+      }
+
+      if (Object.keys(pwErrors).length > 0) {
+        setPasswordErrors(pwErrors);
+        setSaving(false);
+        return;
+      }
+      setPasswordErrors({});
+    }
+
     try {
       const userId = user.usuarioId || user.id;
       const docId = personData.documentId;
@@ -119,6 +154,17 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
         });
       }
 
+      // 3. Change password if provided
+      if (hasPasswordInput) {
+        await userService.changePassword(
+          userId,
+          passwordForm.nuevaContrasena,
+          passwordForm.confirmarContrasena
+        );
+        // Clear password fields after successful change
+        setPasswordForm({ nuevaContrasena: '', confirmarContrasena: '' });
+      }
+
       setSuccess(true);
 
       // Update local state
@@ -143,7 +189,8 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
 
     } catch (err: any) {
       console.error("Error updating profile:", err);
-      setError(err?.response?.data || "Error al actualizar el perfil. Por favor, intente de nuevo.");
+      const errorMsg = err?.response?.data || err?.message || "Error al actualizar el perfil. Por favor, intente de nuevo.";
+      setError(typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg));
     } finally {
       setSaving(false);
     }
@@ -226,22 +273,30 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
 
               <form id="profile-form" onSubmit={handleSave} className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
                 {/* Identity Header Card */}
-                <div className="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex items-center space-x-3 mb-2">
-                  <div className="w-12 h-12 bg-gradient-brand rounded-xl flex items-center justify-center shadow-md shrink-0">
-                    <span className="text-white font-bold text-base">
-                      {personData?.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-gray-800 text-base truncate">
-                      {personData?.name || 'Usuario'}
-                    </p>
-                    <div className="flex items-center mt-0.5">
-                      <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${getRoleBadgeColor(user.role)}`}>
-                        {getRoleDisplayName(user.role)}
+                <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="w-12 h-12 bg-gradient-brand rounded-xl flex items-center justify-center shadow-md shrink-0">
+                      <span className="text-white font-bold text-base">
+                        {personData?.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                       </span>
                     </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-800 text-base truncate">
+                        {personData?.name || 'Usuario'}
+                      </p>
+                      <div className="flex items-center mt-0.5">
+                        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${getRoleBadgeColor(user.role)}`}>
+                          {getRoleDisplayName(user.role)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                  {personData && (
+                    <div className="text-right border-l border-gray-100 pl-4 shrink-0">
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Documento</p>
+                      <p className="font-bold text-gray-700 text-xs">{personData.documentType} {personData.documentId || 'N/A'}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Personal Information Card */}
@@ -250,72 +305,136 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                     <IdCard className="w-4 h-4 text-purple-400" />
                     <h4 className="font-bold text-gray-700 text-sm">Información Personal</h4>
                   </div>
-                  <div className="p-6 grid md:grid-cols-2 gap-6">
-                    {/* Column 1 */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <input
-                            type="text"
-                            value={personForm.nombre}
-                            onChange={(e) => setPersonForm({ ...personForm, nombre: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
-                            required
-                          />
+                  <div className="p-6 space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* Column 1 */}
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
+                          <div className="relative">
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="text"
+                              value={personForm.nombre}
+                              onChange={(e) => setPersonForm({ ...personForm, nombre: e.target.value })}
+                              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico</label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="email"
+                              value={userForm.email}
+                              onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nueva Contraseña</label>
+                          <div className="relative">
+                            <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type={showNewPassword ? 'text' : 'password'}
+                              value={passwordForm.nuevaContrasena}
+                              onChange={(e) => {
+                                const val = e.target.value.slice(0, 15);
+                                setPasswordForm({ ...passwordForm, nuevaContrasena: val });
+                                if (passwordErrors.nueva) setPasswordErrors(prev => ({ ...prev, nueva: undefined }));
+                              }}
+                              className={`w-full pl-10 pr-10 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
+                                passwordErrors.nueva ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                              }`}
+                              placeholder="Dejar vacío para no cambiar"
+                              maxLength={15}
+                              autoComplete="new-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                              {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                          {passwordErrors.nueva && <p className="text-brand-pink text-[9px] mt-1 font-bold">{passwordErrors.nueva}</p>}
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico</label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <input
-                            type="email"
-                            value={userForm.email}
-                            onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
-                            required
-                          />
+                      {/* Column 2 */}
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono</label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="tel"
+                              value={personForm.telefono}
+                              onChange={(e) => setPersonForm({ ...personForm, telefono: e.target.value })}
+                              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
+                              required
+                            />
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 opacity-60 mt-4">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Documento (No Editable)</p>
-                        <p className="font-bold text-gray-700">{personData?.documentType} {personData?.documentId || 'N/A'}</p>
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección</label>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="text"
+                              value={personForm.direccion}
+                              onChange={(e) => setPersonForm({ ...personForm, direccion: e.target.value })}
+                              className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Confirmar Contraseña</label>
+                          <div className="relative">
+                            <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              value={passwordForm.confirmarContrasena}
+                              onChange={(e) => {
+                                const val = e.target.value.slice(0, 15);
+                                setPasswordForm({ ...passwordForm, confirmarContrasena: val });
+                                if (passwordErrors.confirmar) setPasswordErrors(prev => ({ ...prev, confirmar: undefined }));
+                              }}
+                              className={`w-full pl-10 pr-10 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${
+                                passwordErrors.confirmar ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                              }`}
+                              placeholder="Repetir nueva contraseña"
+                              maxLength={15}
+                              autoComplete="new-password"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                          {passwordErrors.confirmar && <p className="text-brand-pink text-[9px] mt-1 font-bold">{passwordErrors.confirmar}</p>}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Column 2 */}
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono</label>
-                        <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <input
-                            type="tel"
-                            value={personForm.telefono}
-                            onChange={(e) => setPersonForm({ ...personForm, telefono: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección</label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <input
-                            type="text"
-                            value={personForm.direccion}
-                            onChange={(e) => setPersonForm({ ...personForm, direccion: e.target.value })}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
-                            required
-                          />
-                        </div>
-                      </div>
+                    <div className="pt-4 border-t border-gray-100 flex items-start space-x-2">
+                      <Lock className="w-3.5 h-3.5 text-brand-pink shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-gray-400 italic">
+                        Cambio de contraseña (opcional): Deje los campos vacíos si solo desea actualizar sus datos personales. La contraseña debe tener entre 6 y 15 caracteres.
+                      </p>
                     </div>
                   </div>
                 </div>

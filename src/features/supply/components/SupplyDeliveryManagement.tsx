@@ -13,6 +13,7 @@ import { Loader2, Info } from 'lucide-react';
 import { cn } from '@/shared/components/ui/utils';
 import { useLoading } from '@/shared/contexts/LoadingContext';
 import { SectionLoader } from '@/shared/components/GlobalLoader';
+import { toast } from 'sonner';
 
 interface SupplyDeliveryManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -810,7 +811,93 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
 
   const [errors, setErrors] = useState<any>({});
 
+  const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow: backspace, delete, tab, escape, enter, arrows, home, end
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      return;
+    }
+
+    // Allow Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+
+    // Block dots, commas, symbols, spaces, letters - only digits are allowed
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const addInsumo = () => {
+    // Check if there are any existing errors or empty fields in the current items
+    let hasError = false;
+    let errorMessage = '';
+
+    if (formData.items.length > 0) {
+      for (let i = 0; i < formData.items.length; i++) {
+        const item = formData.items[i];
+        const supplyIdNum = parseInt(item.supplyId);
+        
+        if (!item.supplyId || isNaN(supplyIdNum)) {
+          hasError = true;
+          errorMessage = `Por favor, selecciona un insumo en la fila ${i + 1}.`;
+          break;
+        }
+
+        const qtyStr = item.quantity;
+        const qtyNum = parseInt(qtyStr);
+        if (!qtyStr) {
+          hasError = true;
+          errorMessage = `Por favor, ingresa una cantidad en la fila ${i + 1}.`;
+          break;
+        }
+        if (isNaN(qtyNum) || qtyNum <= 0) {
+          hasError = true;
+          errorMessage = `La cantidad en la fila ${i + 1} debe ser mayor a cero.`;
+          break;
+        }
+
+        // Check stock
+        const supply = supplies.find((s: any) => s.insumoId === supplyIdNum);
+        if (supply) {
+          const rawStock = supply.cantidad ?? supply.stock ?? supply.existencia ?? supply.stock_quantity;
+          const availableStock = rawStock !== undefined ? parseFloat(rawStock as any) : 0;
+          if (qtyNum > availableStock) {
+            hasError = true;
+            errorMessage = `Stock insuficiente en la fila ${i + 1} (Disponible: ${availableStock}).`;
+            break;
+          }
+        }
+
+        // Check duplicates
+        const isDuplicate = formData.items.some(
+          (otherItem: any, otherIndex: number) => otherIndex !== i && otherItem.supplyId === item.supplyId
+        );
+        if (isDuplicate) {
+          hasError = true;
+          errorMessage = `El insumo en la fila ${i + 1} ya ha sido agregado en otra fila.`;
+          break;
+        }
+
+        // Also check if there's any error in the errors state for this index
+        if (errors[`quantity_${i}`]) {
+          hasError = true;
+          errorMessage = `La cantidad en la fila ${i + 1} tiene errores: ${errors[`quantity_${i}`]}`;
+          break;
+        }
+        if (errors[`supply_${i}`]) {
+          hasError = true;
+          errorMessage = `El insumo en la fila ${i + 1} tiene errores: ${errors[`supply_${i}`]}`;
+          break;
+        }
+      }
+    }
+
+    if (hasError) {
+      toast.error(errorMessage);
+      return;
+    }
+
     setFormData({
       ...formData,
       items: [...formData.items, {
@@ -822,6 +909,30 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
 
   const removeInsumo = (index: number) => {
     const newItems = formData.items.filter((_: any, i: number) => i !== index);
+    
+    // Shift errors to match new indices
+    const newErrors: any = {};
+    Object.keys(errors).forEach((key) => {
+      if (key === 'items') {
+        newErrors.items = errors.items;
+        return;
+      }
+      
+      const match = key.match(/^(quantity|supply)_(\d+)$/);
+      if (match) {
+        const field = match[1];
+        const idx = parseInt(match[2]);
+        if (idx < index) {
+          newErrors[key] = errors[key];
+        } else if (idx > index) {
+          newErrors[`${field}_${idx - 1}`] = errors[key];
+        }
+      } else {
+        newErrors[key] = errors[key];
+      }
+    });
+
+    setErrors(newErrors);
     setFormData({
       ...formData,
       items: newItems
@@ -829,29 +940,76 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
   };
 
   const updateInsumo = (index: number, field: string, value: any) => {
-    if (field === 'supplyId' && value) {
-      const isDuplicate = formData.items.some(
-        (item: any, i: number) => i !== index && item.supplyId === value
-      );
-
-      if (isDuplicate) {
-        setErrors({
-          ...errors,
-          [`supply_${index}`]: 'Este insumo ya ha sido agregado'
-        });
-        return;
-      }
+    const newItems = [...formData.items];
+    let processedValue = value;
+    if (field === 'quantity') {
+      processedValue = value.replace(/[^0-9]/g, '').slice(0, 2);
     }
 
-    const newItems = [...formData.items];
     newItems[index] = {
       ...newItems[index],
-      [field]: value
+      [field]: processedValue
     };
 
     const newErrors: any = { ...errors };
+
+    // Real-time validations
+    if (field === 'quantity') {
+      const qtyStr = processedValue;
+      const qtyNum = parseInt(qtyStr);
+      if (!qtyStr) {
+        newErrors[`quantity_${index}`] = 'Cantidad es obligatoria';
+      } else if (isNaN(qtyNum) || qtyNum <= 0) {
+        newErrors[`quantity_${index}`] = 'La cantidad debe ser mayor a 0';
+      } else {
+        delete newErrors[`quantity_${index}`];
+        
+        // Stock check
+        const supplyIdNum = parseInt(newItems[index].supplyId);
+        if (!isNaN(supplyIdNum)) {
+          const supply = supplies.find((s: any) => s.insumoId === supplyIdNum);
+          if (supply) {
+            const rawStock = supply.cantidad ?? supply.stock ?? supply.existencia ?? supply.stock_quantity;
+            const availableStock = rawStock !== undefined ? parseFloat(rawStock as any) : 0;
+            if (qtyNum > availableStock) {
+              newErrors[`quantity_${index}`] = `Stock insuficiente. Disponible: ${availableStock}`;
+            }
+          }
+        }
+      }
+    }
+
     if (field === 'supplyId') {
-      delete newErrors[`supply_${index}`];
+      const supplyVal = processedValue;
+      if (supplyVal) {
+        const isDuplicate = newItems.some(
+          (item: any, i: number) => i !== index && item.supplyId === supplyVal
+        );
+
+        if (isDuplicate) {
+          newErrors[`supply_${index}`] = 'Este insumo ya ha sido agregado';
+        } else {
+          delete newErrors[`supply_${index}`];
+          
+          // Re-validate quantity for the new supply
+          const supplyIdNum = parseInt(supplyVal);
+          if (!isNaN(supplyIdNum) && newItems[index].quantity) {
+            const qtyNum = parseInt(newItems[index].quantity);
+            const supply = supplies.find((s: any) => s.insumoId === supplyIdNum);
+            if (supply) {
+              const rawStock = supply.cantidad ?? supply.stock ?? supply.existencia ?? supply.stock_quantity;
+              const availableStock = rawStock !== undefined ? parseFloat(rawStock as any) : 0;
+              if (qtyNum > availableStock) {
+                newErrors[`quantity_${index}`] = `Stock insuficiente. Disponible: ${availableStock}`;
+              } else {
+                delete newErrors[`quantity_${index}`];
+              }
+            }
+          }
+        }
+      } else {
+        newErrors[`supply_${index}`] = 'Selecciona un insumo';
+      }
     }
 
     setErrors(newErrors);
@@ -874,18 +1032,21 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
       if (isNaN(supplyIdNum)) {
         newErrors[`supply_${index}`] = 'Selecciona un insumo';
       }
-      if (!item.quantity || parseFloat(item.quantity) <= 0) {
-        newErrors[`quantity_${index}`] = 'Cantidad debe ser mayor a 0';
-      }
-
-      if (!isNaN(supplyIdNum)) {
-        const supply = supplies.find((s: any) => s.insumoId === supplyIdNum);
-        if (supply) {
-          const rawStock = supply.cantidad ?? supply.stock ?? supply.existencia ?? supply.stock_quantity;
-          if (rawStock !== undefined) {
-            const availableStock = parseFloat(rawStock as any);
-            if (parseFloat(item.quantity) > availableStock) {
-              newErrors[`quantity_${index}`] = `Stock insuficiente. Disponible: ${availableStock}`;
+      if (!item.quantity) {
+        newErrors[`quantity_${index}`] = 'Cantidad es obligatoria';
+      } else {
+        const qtyNum = parseInt(item.quantity);
+        if (isNaN(qtyNum) || qtyNum <= 0) {
+          newErrors[`quantity_${index}`] = 'Cantidad debe ser mayor a 0';
+        } else if (!isNaN(supplyIdNum)) {
+          const supply = supplies.find((s: any) => s.insumoId === supplyIdNum);
+          if (supply) {
+            const rawStock = supply.cantidad ?? supply.stock ?? supply.existencia ?? supply.stock_quantity;
+            if (rawStock !== undefined) {
+              const availableStock = parseFloat(rawStock as any);
+              if (qtyNum > availableStock) {
+                newErrors[`quantity_${index}`] = `Stock insuficiente. Disponible: ${availableStock}`;
+              }
             }
           }
         }
@@ -903,7 +1064,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
       destination: 'Salón de Belleza',
       items: formData.items.map((item: any) => ({
         supplyId: parseInt(item.supplyId),
-        quantity: parseFloat(item.quantity)
+        quantity: parseInt(item.quantity)
       }))
     });
   };
@@ -1046,21 +1207,39 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
                                 onSelect={(s: any) => updateInsumo(index, 'supplyId', s.insumoId.toString())}
                                 error={!!errors[`supply_${index}`]}
                               />
+                              {errors[`supply_${index}`] && (
+                                <p className="text-brand-pink text-[9px] mt-1 font-bold">
+                                  {errors[`supply_${index}`]}
+                                </p>
+                              )}
                             </div>
 
                             <div className="w-24">
                               <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Cant. *</label>
                               <input
-                                type="number"
+                                type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                maxLength={2}
                                 value={item.quantity}
                                 onChange={(e) => updateInsumo(index, 'quantity', e.target.value)}
-                                min="1"
+                                onKeyDown={handleQuantityKeyDown}
+                                onPaste={(e) => {
+                                  e.preventDefault();
+                                  const text = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 2);
+                                  updateInsumo(index, 'quantity', text);
+                                }}
                                 className={cn(
                                   "w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 transition-all font-bold text-gray-700 text-sm",
-                                  isOverStock ? 'border-red-300' : 'border-gray-200'
+                                  (isOverStock || !!errors[`quantity_${index}`]) ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                                 )}
                                 required
                               />
+                              {errors[`quantity_${index}`] && (
+                                <p className="text-brand-pink text-[9px] mt-1 font-bold leading-tight">
+                                  {errors[`quantity_${index}`]}
+                                </p>
+                              )}
                             </div>
 
                             {item.supplyId && (

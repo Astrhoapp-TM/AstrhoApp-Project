@@ -38,6 +38,34 @@ function unwrapValues(obj: any): any {
   return obj;
 }
 
+function normalizePurchaseAPI(raw: any, fallbackPurchase?: PurchaseAPI): PurchaseAPI {
+  const unwrapped = unwrapValues(raw);
+  const src = unwrapped?.data && typeof unwrapped.data === 'object' && !Array.isArray(unwrapped.data)
+    ? unwrapped.data
+    : unwrapped?.result && typeof unwrapped.result === 'object' && !Array.isArray(unwrapped.result)
+      ? unwrapped.result
+      : unwrapped;
+
+  return {
+    compraId: src?.compraId ?? src?.CompraId ?? fallbackPurchase?.compraId ?? 0,
+    fechaRegistro: src?.fechaRegistro ?? src?.FechaRegistro ?? fallbackPurchase?.fechaRegistro ?? '',
+    proveedorId: src?.proveedorId ?? src?.ProveedorId ?? fallbackPurchase?.proveedorId ?? 0,
+    proveedorNombre: src?.proveedorNombre ?? src?.ProveedorNombre ?? fallbackPurchase?.proveedorNombre ?? '',
+    iva: src?.iva ?? src?.Iva ?? fallbackPurchase?.iva ?? 0,
+    subtotal: src?.subtotal ?? src?.Subtotal ?? fallbackPurchase?.subtotal ?? 0,
+    total: src?.total ?? src?.Total ?? fallbackPurchase?.total ?? 0,
+    estado: src?.estado ?? src?.Estado ?? fallbackPurchase?.estado ?? false,
+    detalles: (src?.detalles ?? src?.Detalles ?? fallbackPurchase?.detalles ?? []).map((d: any) => ({
+      detalleCompraId: d?.detalleCompraId ?? d?.DetalleCompraId ?? 0,
+      insumoId: d?.insumoId ?? d?.InsumoId ?? 0,
+      insumoNombre: d?.insumoNombre ?? d?.InsumoNombre ?? 'Sin nombre',
+      cantidad: d?.cantidad ?? d?.Cantidad ?? 0,
+      precioUnitario: d?.precioUnitario ?? d?.PrecioUnitario ?? 0,
+      subtotal: d?.subtotal ?? d?.Subtotal ?? 0,
+    })),
+  };
+}
+
 export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   const [purchases, setPurchases] = useState<PurchaseAPI[]>([]);
   const [suppliers, setSuppliers] = useState<SupplierAPI[]>([]);
@@ -155,33 +183,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
       setLoading(true);
       showSectionLoading("Cargando detalle...");
       const raw = await purchaseService.getById(purchase.compraId);
-      const unwrapped = unwrapValues(raw);
-
-      // Normalize: API may return wrapped in .data/.result or use PascalCase keys
-      const src = unwrapped?.data && typeof unwrapped.data === 'object' && !Array.isArray(unwrapped.data)
-        ? unwrapped.data
-        : unwrapped?.result && typeof unwrapped.result === 'object' && !Array.isArray(unwrapped.result)
-          ? unwrapped.result
-          : unwrapped;
-
-      const normalized: PurchaseAPI = {
-        compraId: src?.compraId ?? src?.CompraId ?? purchase.compraId,
-        fechaRegistro: src?.fechaRegistro ?? src?.FechaRegistro ?? purchase.fechaRegistro,
-        proveedorId: src?.proveedorId ?? src?.ProveedorId ?? purchase.proveedorId,
-        proveedorNombre: src?.proveedorNombre ?? src?.ProveedorNombre ?? purchase.proveedorNombre ?? '',
-        iva: src?.iva ?? src?.Iva ?? purchase.iva ?? 0,
-        subtotal: src?.subtotal ?? src?.Subtotal ?? purchase.subtotal ?? 0,
-        total: src?.total ?? src?.Total ?? purchase.total ?? 0,
-        estado: src?.estado ?? src?.Estado ?? purchase.estado,
-        detalles: (src?.detalles ?? src?.Detalles ?? purchase.detalles ?? []).map((d: any) => ({
-          detalleCompraId: d?.detalleCompraId ?? d?.DetalleCompraId ?? 0,
-          insumoId: d?.insumoId ?? d?.InsumoId ?? 0,
-          insumoNombre: d?.insumoNombre ?? d?.InsumoNombre ?? 'Sin nombre',
-          cantidad: d?.cantidad ?? d?.Cantidad ?? 0,
-          precioUnitario: d?.precioUnitario ?? d?.PrecioUnitario ?? 0,
-          subtotal: d?.subtotal ?? d?.Subtotal ?? 0,
-        })),
-      };
+      const normalized = normalizePurchaseAPI(raw, purchase);
 
       setSelectedPurchase(normalized);
       setShowDetailModal(true);
@@ -217,8 +219,9 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   const handleEditPurchase = async (purchase: PurchaseAPI) => {
     try {
       showSectionLoading("Cargando detalle de compra...");
-      const fullPurchase = await purchaseService.getById(purchase.compraId);
-      setSelectedPurchase(fullPurchase);
+      const raw = await purchaseService.getById(purchase.compraId);
+      const normalized = normalizePurchaseAPI(raw, purchase);
+      setSelectedPurchase(normalized);
       setShowCreateModal(true);
     } catch (err) {
       console.error(err);
@@ -1156,17 +1159,17 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
   useEffect(() => {
     if (purchase) {
       setFormData({
-        proveedorId: purchase.proveedorId ? purchase.proveedorId.toString() : '',
-        iva: purchase.iva !== undefined ? purchase.iva.toString() : '0',
+        proveedorId: purchase.proveedorId != null ? purchase.proveedorId.toString() : '',
+        iva: purchase.iva != null ? purchase.iva.toString() : '0',
         orderDate: purchase.fechaRegistro ? purchase.fechaRegistro.split('T')[0] : getCurrentDate(),
-        purchaseNumber: (purchase as any).purchaseNumber || purchase.compraId.toString() || '',
+        purchaseNumber: (purchase as any).purchaseNumber || (purchase.compraId != null ? purchase.compraId.toString() : '') || '',
         notes: (purchase as any).notes || (purchase as any).observaciones || (purchase as any).observacion || '',
-        items: purchase.detalles ? purchase.detalles.map((d: any) => ({
-          insumoId: d.insumoId ? d.insumoId.toString() : '',
-          insumoNombre: d.insumoNombre || '',
-          cantidad: d.cantidad || 0,
-          precioUnitario: d.precioUnitario || 0,
-          subtotal: d.subtotal || (d.cantidad * d.precioUnitario) || 0
+        items: Array.isArray(purchase.detalles) ? purchase.detalles.map((d: any) => ({
+          insumoId: d && d.insumoId != null ? d.insumoId.toString() : '',
+          insumoNombre: (d && d.insumoNombre) || '',
+          cantidad: (d && d.cantidad) || 0,
+          precioUnitario: (d && d.precioUnitario) || 0,
+          subtotal: (d && d.subtotal) || ((d && d.cantidad && d.precioUnitario) ? d.cantidad * d.precioUnitario : 0)
         })) : []
       });
     }
@@ -1298,7 +1301,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
       }
       if (item.precioUnitario <= 0) {
         newErrors[`price_${index}`] = 'El precio debe ser mayor a 0';
-      } else if (item.precioUnitario.toString().length > 6) {
+      } else if ((item.precioUnitario || 0).toString().length > 6) {
         newErrors[`price_${index}`] = 'El precio no puede exceder los 6 caracteres';
       }
     });

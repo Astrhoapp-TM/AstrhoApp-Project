@@ -7,7 +7,6 @@ export interface Service {
     precio: number;
     duracion: number;
     estado: boolean;
-    imagen?: string; // Columna directa en la tabla Servicios
     categoriaId?: number;
     fechaCreacion?: string;
     fechaActualizacion?: string;

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Scissors, Plus, Edit, Trash2, Eye, Search, Filter, Clock, DollarSign,
   Package, X, Save, AlertCircle, TrendingUp, Calendar, Tag, Star, Users,
-  Image as ImageIcon, CheckCircle, FileText, RefreshCw, Loader2, Info
+  CheckCircle, FileText, RefreshCw, Loader2, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { serviceService, type Service as APIService } from '../services/serviceService';
@@ -10,50 +10,6 @@ import { SimplePagination } from '@/shared/components/ui/simple-pagination';
 import { cn } from '@/shared/components/ui/utils';
 import { useLoading } from '@/shared/contexts/LoadingContext';
 import { SectionLoader } from '@/shared/components/GlobalLoader';
-
-const API_ORIGIN = 'https://astrhoapp.somee.com';
-const DEFAULT_SERVICE_IMAGE = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop';
-
-// Helper for image retry logic
-const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-  const target = e.target as HTMLImageElement;
-  const currentSrc = target.src;
-
-  if (target.dataset.triedAll === 'true') return;
-
-  console.log(`SuperMapper: Image load fail for ${currentSrc}, attempting recovery chain...`);
-
-  // Extraer el nombre del archivo
-  const parts = currentSrc.split('/');
-  const filename = parts[parts.length - 1];
-
-  switch (target.dataset.retryCount) {
-    case undefined:
-    case '0':
-      target.dataset.retryCount = '1';
-      target.src = `${API_ORIGIN}/imagenes/${filename}`;
-      break;
-    case '1':
-      target.dataset.retryCount = '2';
-      // Algunas veces en IIS subdirectorios, puede estar bajo /api/imagenes/
-      target.src = `${API_ORIGIN}/api/imagenes/${filename}`;
-      break;
-    case '2':
-      target.dataset.retryCount = '3';
-      // Fallback a wwwroot explicito si está mal configurado el router
-      target.src = `${API_ORIGIN}/wwwroot/imagenes/${filename}`;
-      break;
-    case '3':
-      target.dataset.retryCount = '4';
-      target.src = `${API_ORIGIN}/api/wwwroot/imagenes/${filename}`;
-      break;
-    default:
-      // Fallback final si nada funcionó
-      target.src = DEFAULT_SERVICE_IMAGE;
-      target.dataset.triedAll = 'true';
-      break;
-  }
-};
 
 export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
   const [services, setServices] = useState<any[]>([]);
@@ -78,134 +34,8 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorModalMessage, setErrorModalMessage] = useState('');
 
-  // Helper avanzado para procesar cualquier formato de imagen del backend
-  const processImageSource = (raw: any): string => {
-    if (!raw) {
-      console.log('SuperMapper: Raw input is empty/null');
-      return '';
-    }
-
-    console.log('SuperMapper Debug [Input]:', typeof raw === 'string' && raw.length > 100 ? `${raw.substring(0, 50)}... [length: ${raw.length}]` : raw);
-
-    const PLACEHOLDER = DEFAULT_SERVICE_IMAGE;
-
-    if (raw && typeof raw === 'object' && raw.type !== 'Buffer' && !Array.isArray(raw)) {
-      console.log('SuperMapper: Detected unknown object type in image field:', Object.keys(raw));
-    }
-
-    // Caso 1: Objeto con Buffer
-    if (raw && typeof raw === 'object' && raw.type === 'Buffer' && Array.isArray(raw.data)) {
-      raw = raw.data;
-    }
-
-    // Caso 2: Array de bytes (byte[])
-    if (Array.isArray(raw)) {
-      try {
-        const uint8Array = new Uint8Array(raw);
-        let binary = '';
-        const chunk = 8192;
-        for (let i = 0; i < uint8Array.length; i += chunk) {
-          const sub = uint8Array.subarray(i, i + chunk);
-          binary += String.fromCharCode.apply(null, Array.from(sub));
-        }
-        return `data:image/png;base64,${btoa(binary)}`;
-      } catch (e) {
-        console.error('SuperMapper: Error en Byte Array:', e);
-        return PLACEHOLDER;
-      }
-    }
-
-    if (typeof raw !== 'string') return '';
-
-    let str = raw.trim();
-    if (!str) return '';
-
-    // Caso 3: URL Completa
-    if (str.startsWith('http')) return str;
-
-    // Caso 4: Data URI ya formado
-    if (str.startsWith('data:')) return str;
-
-    // Caso 5: Ruta de Disco Local (Filtro y Rescate)
-    if (str.match(/^[a-zA-Z]:\\/) || str.includes('\\')) {
-      const parts = str.split(/[\\/]/);
-      const fileName = parts[parts.length - 1];
-      if (fileName && fileName.includes('.')) {
-        return `${API_ORIGIN}/uploads/${fileName}`;
-      }
-      return PLACEHOLDER;
-    }
-
-    // Caso 6: Cadena HEXADECIMAL (0xFFD8...)
-    if (/^(0x)?[0-9a-fA-F]{100,}$/.test(str)) {
-      try {
-        const cleanHex = str.startsWith('0x') ? str.substring(2) : str;
-        const binary = cleanHex.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16));
-        if (binary) {
-          const uint8 = new Uint8Array(binary);
-          let binStr = '';
-          for (let i = 0; i < uint8.length; i++) binStr += String.fromCharCode(uint8[i]);
-          const b64 = btoa(binStr);
-          let mime = 'image/png';
-          if (cleanHex.toLowerCase().startsWith('ffd8')) mime = 'image/jpeg';
-          return `data:${mime};base64,${b64}`;
-        }
-      } catch (e) {
-        console.error('SuperMapper: Error en Hex conversion:', e);
-      }
-    }
-
-    // Caso 7: Ruta relativa o solo nombre de archivo
-    if (str.length < 500 && (str.includes('.') || str.includes('/') || str.includes('\\'))) {
-      // Normalizar backslashes a forward slashes
-      const normalizedStr = str.replace(/\\/g, '/');
-      const path = normalizedStr.startsWith('/') ? normalizedStr : `/${normalizedStr}`;
-
-      // SIEMPRE priorizar /imagenes/ ya que el usuario confirmó que es donde se alojan
-      if (!path.includes('/imagenes/') && !path.includes('/uploads/') && !path.includes('/api/') && !path.includes('/Images/')) {
-        return `${API_ORIGIN}/imagenes${path}`;
-      }
-      return `${API_ORIGIN}${path}`;
-    }
-
-    // Caso 8: Base64 crudo
-    const cleanB64 = str.replace(/[\s\n\r"']/g, '');
-    if (cleanB64.length > 50) {
-      let mimeType = 'image/png';
-      if (cleanB64.startsWith('/9j/') || cleanB64.startsWith('/9J/')) mimeType = 'image/jpeg';
-      else if (cleanB64.startsWith('iVBORw0KGgo')) mimeType = 'image/png';
-      else if (cleanB64.startsWith('R0lGOD')) mimeType = 'image/gif';
-      else if (cleanB64.startsWith('UklGR')) mimeType = 'image/webp';
-
-      return `data:${mimeType};base64,${cleanB64}`;
-    }
-
-    return PLACEHOLDER;
-  };
-
   // Map API Service to UI model
   const mapServiceToUI = (service: any) => {
-    // INTROSPECCIÓN DESESPERADA: Log de todas las llaves para encontrar el campo oculto
-    console.log(`SuperMapper: Keys for service ${service.nombre || service.Nombre || '?'}:`, Object.keys(service).join(', '));
-
-    const rawImage =
-      service.imagen || service.Imagen ||
-      service.foto || service.Foto ||
-      service.image || service.Image ||
-      service.imageUrl || service.image_url ||
-      service.urlImagen || service.UrlImagen ||
-      service.rutaImagen || service.RutaImagen ||
-      service.pathImagen || service.PathImagen ||
-      service.linkImagen || service.LinkImagen ||
-      service.archivo || service.Archivo ||
-      service.icono || service.Icono ||
-      service.imagenPrincipal || service.ImagenPrincipal;
-
-    const imageUrl = processImageSource(rawImage);
-
-    console.log(`SuperMapper Debug [Result] for ${service.nombre || service.Nombre || 'unknown'}:`,
-      imageUrl ? (imageUrl.startsWith('data:') ? 'base64 data...' : imageUrl) : 'No image produced - Check keys above!');
-
     return {
       id: service.servicioId || service.ServicioId || service.id,
       name: service.nombre || service.Nombre || 'Sin nombre',
@@ -213,8 +43,7 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
       price: service.precio || service.Precio || 0,
       duration: service.duracion || service.Duracion || 0,
       status: (service.estado !== undefined ? service.estado : (service.Estado !== undefined ? service.Estado : (service.activo !== undefined ? service.activo : service.Activo))) ? 'active' : 'inactive',
-      updatedAt: (service.fechaActualizacion || service.FechaActualizacion || service.fechaCreacion || service.FechaCreacion || '').split('T')[0] || new Date().toISOString().split('T')[0],
-      image: imageUrl || DEFAULT_SERVICE_IMAGE
+      updatedAt: (service.fechaActualizacion || service.FechaActualizacion || service.fechaCreacion || service.FechaCreacion || '').split('T')[0] || new Date().toISOString().split('T')[0]
     };
   };
 
@@ -368,22 +197,6 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
       formData.append('ServicioId', String(id));
       formData.append('servicioId', String(id));
       formData.append('Id', String(id));
-    }
-
-    // Manejar imagen - El usuario dice que ahora es una columna directa
-    const fieldName = 'Imagen'; // O 'imagen'
-    const fieldNameSecondary = 'imagen';
-
-    if (uiData.imageFile instanceof File) {
-      formData.append(fieldName, uiData.imageFile);
-      formData.append(fieldNameSecondary, uiData.imageFile);
-    } else if (typeof uiData.image === 'string' && uiData.image.includes('base64,')) {
-      const base64Content = uiData.image.split('base64,')[1];
-      formData.append(fieldName, base64Content);
-      formData.append(fieldNameSecondary, base64Content);
-    } else if (typeof uiData.image === 'string' && !uiData.image.includes('placeholder')) {
-      formData.append(fieldName, uiData.image);
-      formData.append(fieldNameSecondary, uiData.image);
     }
 
     return formData;
@@ -731,17 +544,7 @@ function ServiceDetailModal({ service, onClose }) {
           `}</style>
 
           <div className="max-w-4xl mx-auto space-y-6">
-            {/* Centered Large Image */}
-            <div className="flex justify-center">
-              <div className="bg-white rounded-3xl p-2 border border-gray-100 shadow-lg overflow-hidden w-full max-w-2xl h-64 md:h-80 transition-transform hover:scale-[1.02] duration-300">
-                <img
-                  src={service.image}
-                  alt={service.name}
-                  className="w-full h-full object-cover rounded-2xl"
-                  onError={handleImageError}
-                />
-              </div>
-            </div>
+
 
             {/* Info & Description Grid */}
             <div className="grid md:grid-cols-3 gap-4 pb-4">
@@ -840,14 +643,10 @@ function ServiceEditModal({ service, onClose, onSave }) {
     description: service?.description || '',
     duration: service?.duration || 30,
     price: service?.price || 0,
-    status: service?.status || 'active',
-    image: service?.image || 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop',
-    imageFile: null,
-    images: service?.images || []
+    status: service?.status || 'active'
   });
 
   const [errors, setErrors] = useState({});
-  const [imagePreview, setImagePreview] = useState(service?.image || null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Función de validación por campo
@@ -964,30 +763,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
     }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setFormData({
-          ...formData,
-          image: reader.result as string,
-          imageFile: file
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  const handleRemoveImage = () => {
-    setImagePreview(null);
-    setFormData({
-      ...formData,
-      image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop',
-      imageFile: null
-    });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -1047,7 +823,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header - Fixed at top */}
         <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
@@ -1080,7 +856,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           `}</style>
 
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-2xl mx-auto space-y-6">
             {/* Errors Notification */}
             {Object.keys(errors).length > 0 && (
               <div className="bg-gray-50 border border-red-200 text-brand-pink px-6 py-4 rounded-2xl flex items-center space-x-3 animate-in fade-in duration-300">
@@ -1089,156 +865,96 @@ function ServiceEditModal({ service, onClose, onSave }) {
               </div>
             )}
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Basic Info Section */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                  <Tag className="w-4 h-4 text-brand-pink" />
-                  <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Información Básica</h4>
+            {/* Basic Info Section */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
+                <Tag className="w-4 h-4 text-brand-pink" />
+                <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Información Básica</h4>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Servicio *</label>
+                  <div className="relative">
+                    <Scissors className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                        }`}
+                      placeholder="Ej: Corte y Peinado"
+                    />
+                    {errors.name && (
+                      <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.name}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="p-6 space-y-4">
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Servicio *</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Duración (Minutos) *</label>
                     <div className="relative">
-                      <Scissors className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <input
+                        type="number"
+                        name="duration"
+                        value={formData.duration}
+                        onChange={handleInputChange}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.duration ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                          }`}
+                      />
+                      {errors.duration && (
+                        <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.duration}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Precio (COP) *</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
                         type="text"
-                        name="name"
-                        value={formData.name}
+                        inputMode="numeric"
+                        name="price"
+                        value={formData.price === 0 ? '' : formData.price}
                         onChange={handleInputChange}
                         onBlur={handleBlur}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.name ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                        onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
+                        placeholder="0"
+                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.price ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
                           }`}
-                        placeholder="Ej: Corte y Peinado"
                       />
-                      {errors.name && (
-                        <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.name}</p>
+                      {errors.price && (
+                        <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.price}</p>
                       )}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Duración (Minutos) *</label>
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                          type="number"
-                          name="duration"
-                          value={formData.duration}
-                          onChange={handleInputChange}
-                          onBlur={handleBlur}
-                          onKeyDown={handleKeyDown}
-                          onPaste={handlePaste}
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.duration ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                            }`}
-                        />
-                        {errors.duration && (
-                          <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.duration}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Precio (COP) *</label>
-                      <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          name="price"
-                          value={formData.price === 0 ? '' : formData.price}
-                          onChange={handleInputChange}
-                          onBlur={handleBlur}
-                          onKeyDown={handleKeyDown}
-                          onPaste={handlePaste}
-                          placeholder="0"
-                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.price ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                            }`}
-                        />
-                        {errors.price && (
-                          <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.price}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción del Servicio</label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        onBlur={handleBlur}
-                        rows={3}
-                        className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
-                          }`}
-                        placeholder="Describa el servicio..."
-                      />
-                      {errors.description && (
-                        <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.description}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* removed status block */}
                 </div>
-              </div>
 
-              {/* Image Section */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
-                  <ImageIcon className="w-4 h-4 text-brand-violet" />
-                  <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Imagen Representativa</h4>
-                </div>
-                <div className="p-6">
-                  {imagePreview ? (
-                    <div className="relative group">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full h-64 object-cover rounded-2xl border border-gray-200 shadow-inner"
-                        onError={handleImageError}
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center space-x-2">
-                        <label htmlFor="image-upload-change" className="p-3 bg-white text-brand-pink rounded-full cursor-pointer hover:scale-110 transition-transform shadow-lg">
-                          <ImageIcon className="w-6 h-6" />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={handleRemoveImage}
-                          className="p-3 bg-white text-brand-pink rounded-full hover:scale-110 transition-transform shadow-lg"
-                        >
-                          <Trash2 className="w-6 h-6" />
-                        </button>
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="image-upload-change"
-                      />
-                    </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center hover:border-brand-periwinkle hover:bg-gray-100/30 transition-all">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="image-upload-new"
-                      />
-                      <label htmlFor="image-upload-new" className="cursor-pointer">
-                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-brand-pink">
-                          <Plus className="w-8 h-8" />
-                        </div>
-                        <p className="text-sm font-bold text-gray-600">Subir Imagen</p>
-                        <p className="text-xs text-gray-400 mt-1">PNG, JPG o WEBP (máx. 5MB)</p>
-                      </label>
-                    </div>
-                  )}
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción del Servicio</label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      onBlur={handleBlur}
+                      rows={3}
+                      className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${errors.description ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'
+                        }`}
+                      placeholder="Describa el servicio..."
+                    />
+                    {errors.description && (
+                      <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.description}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

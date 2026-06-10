@@ -14,50 +14,6 @@ interface ServicesProps {
   onBookAppointment: (selectedService?: any) => void;
 }
 
-const API_ORIGIN = 'https://astrhoapp.somee.com';
-const DEFAULT_SERVICE_IMAGE = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&h=300&fit=crop';
-
-// Helper for image retry logic
-const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-  const target = e.target as HTMLImageElement;
-  const currentSrc = target.src;
-
-  if (target.dataset.triedAll === 'true') return;
-
-  console.log(`SuperMapper: Image load fail for ${currentSrc}, attempting recovery chain...`);
-
-  // Extraer el nombre del archivo
-  const parts = currentSrc.split('/');
-  const filename = parts[parts.length - 1];
-
-  switch (target.dataset.retryCount) {
-    case undefined:
-    case '0':
-      target.dataset.retryCount = '1';
-      target.src = `${API_ORIGIN}/imagenes/${filename}`;
-      break;
-    case '1':
-      target.dataset.retryCount = '2';
-      // Algunas veces en IIS subdirectorios, puede estar bajo /api/imagenes/
-      target.src = `${API_ORIGIN}/api/imagenes/${filename}`;
-      break;
-    case '2':
-      target.dataset.retryCount = '3';
-      // Fallback a wwwroot explicito si está mal configurado el router
-      target.src = `${API_ORIGIN}/wwwroot/imagenes/${filename}`;
-      break;
-    case '3':
-      target.dataset.retryCount = '4';
-      target.src = `${API_ORIGIN}/api/wwwroot/imagenes/${filename}`;
-      break;
-    default:
-      // Fallback final si nada funcionó
-      target.src = DEFAULT_SERVICE_IMAGE;
-      target.dataset.triedAll = 'true';
-      break;
-  }
-};
-
 export function ServiceList({ onBookAppointment }: ServicesProps) {
   const [services, setServices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,133 +28,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
   const [itemsPerPage] = useState(3); // Cambiado de 6 a 3 para forzar la paginación si hay pocos servicios
   const [totalRecords, setTotalRecords] = useState(0);
 
-  // Helper avanzado para procesar cualquier formato de imagen del backend
-  const processImageSource = (raw: any): string => {
-    if (!raw) {
-      console.log('SuperMapper: Raw input is empty/null');
-      return '';
-    }
-
-    console.log('SuperMapper Debug [Input]:', typeof raw === 'string' && raw.length > 100 ? `${raw.substring(0, 50)}... [length: ${raw.length}]` : raw);
-
-    const PLACEHOLDER = DEFAULT_SERVICE_IMAGE;
-
-    if (raw && typeof raw === 'object' && raw.type !== 'Buffer' && !Array.isArray(raw)) {
-      console.log('SuperMapper: Detected unknown object type in image field:', Object.keys(raw));
-    }
-
-    // Caso 1: Objeto con Buffer
-    if (raw && typeof raw === 'object' && raw.type === 'Buffer' && Array.isArray(raw.data)) {
-      raw = raw.data;
-    }
-
-    // Caso 2: Array de bytes (byte[])
-    if (Array.isArray(raw)) {
-      try {
-        const uint8Array = new Uint8Array(raw);
-        let binary = '';
-        const chunk = 8192;
-        for (let i = 0; i < uint8Array.length; i += chunk) {
-          const sub = uint8Array.subarray(i, i + chunk);
-          binary += String.fromCharCode.apply(null, Array.from(sub));
-        }
-        return `data:image/png;base64,${btoa(binary)}`;
-      } catch (e) {
-        console.error('SuperMapper: Error en Byte Array:', e);
-        return PLACEHOLDER;
-      }
-    }
-
-    if (typeof raw !== 'string') return '';
-
-    let str = raw.trim();
-    if (!str) return '';
-
-    // Caso 3: URL Completa
-    if (str.startsWith('http')) return str;
-
-    // Caso 4: Data URI ya formado
-    if (str.startsWith('data:')) return str;
-
-    // Caso 5: Ruta de Disco Local (Filtro y Rescate)
-    if (str.match(/^[a-zA-Z]:\\/) || str.includes('\\')) {
-      const parts = str.split(/[\\/]/);
-      const fileName = parts[parts.length - 1];
-      if (fileName && fileName.includes('.')) {
-        return `${API_ORIGIN}/uploads/${fileName}`;
-      }
-      return PLACEHOLDER;
-    }
-
-    // Caso 6: Cadena HEXADECIMAL (0xFFD8...)
-    if (/^(0x)?[0-9a-fA-F]{100,}$/.test(str)) {
-      try {
-        const cleanHex = str.startsWith('0x') ? str.substring(2) : str;
-        const binary = cleanHex.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16));
-        if (binary) {
-          const uint8 = new Uint8Array(binary);
-          let binStr = '';
-          for (let i = 0; i < uint8.length; i++) binStr += String.fromCharCode(uint8[i]);
-          const b64 = btoa(binStr);
-          let mime = 'image/png';
-          if (cleanHex.toLowerCase().startsWith('ffd8')) mime = 'image/jpeg';
-          return `data:${mime};base64,${b64}`;
-        }
-      } catch (e) {
-        console.error('SuperMapper: Error en Hex conversion:', e);
-      }
-    }
-
-    // Caso 7: Ruta relativa o solo nombre de archivo
-    if (str.length < 500 && (str.includes('.') || str.includes('/') || str.includes('\\'))) {
-      // Normalizar backslashes a forward slashes
-      const normalizedStr = str.replace(/\\/g, '/');
-      const path = normalizedStr.startsWith('/') ? normalizedStr : `/${normalizedStr}`;
-
-      // SIEMPRE priorizar /imagenes/ ya que el usuario confirmó que es donde se alojan
-      if (!path.includes('/imagenes/') && !path.includes('/uploads/') && !path.includes('/api/') && !path.includes('/Images/')) {
-        return `${API_ORIGIN}/imagenes${path}`;
-      }
-      return `${API_ORIGIN}${path}`;
-    }
-
-    // Caso 8: Base64 crudo
-    const cleanB64 = str.replace(/[\s\n\r"']/g, '');
-    if (cleanB64.length > 50) {
-      let mimeType = 'image/png';
-      if (cleanB64.startsWith('/9j/') || cleanB64.startsWith('/9J/')) mimeType = 'image/jpeg';
-      else if (cleanB64.startsWith('iVBORw0KGgo')) mimeType = 'image/png';
-      else if (cleanB64.startsWith('R0lGOD')) mimeType = 'image/gif';
-      else if (cleanB64.startsWith('UklGR')) mimeType = 'image/webp';
-
-      return `data:${mimeType};base64,${cleanB64}`;
-    }
-
-    return PLACEHOLDER;
-  };
-
   const mapAPIServiceToUI = (service: any) => {
-    // INTROSPECCIÓN DESESPERADA: Log de todas las llaves para encontrar el campo oculto
-    console.log(`Public SuperMapper: Keys for service ${service.nombre || service.Nombre || '?'}:`, Object.keys(service).join(', '));
-
-    const rawImage =
-      service.imagen || service.Imagen ||
-      service.foto || service.Foto ||
-      service.image || service.Image ||
-      service.imageUrl || service.image_url ||
-      service.urlImagen || service.UrlImagen ||
-      service.rutaImagen || service.RutaImagen ||
-      service.pathImagen || service.PathImagen ||
-      service.linkImagen || service.LinkImagen ||
-      service.archivo || service.Archivo ||
-      service.icono || service.Icono ||
-      service.imagenPrincipal || service.ImagenPrincipal;
-
-    const imageUrl = processImageSource(rawImage);
-
-    console.log(`SuperMapper Debug [Result] for ${service.nombre || service.Nombre || 'unknown'}:`,
-      imageUrl ? (imageUrl.startsWith('data:') ? 'base64 data...' : imageUrl) : 'No image produced - Check keys above!');
-
     return {
       id: service.servicioId || service.ServicioId || service.id,
       name: service.nombre || service.Nombre || 'Sin nombre',
@@ -207,11 +37,9 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
       duration: service.duracion || service.Duracion || 0,
       rating: 5.0, // Default rating
       reviews: Math.floor(Math.random() * 50) + 10,
-      image: imageUrl || DEFAULT_SERVICE_IMAGE,
       icon: Scissors,
       color: 'from-pink-400 to-rose-500',
       category: service.categoriaNombre || service.CategoriaNombre || 'General',
-      // Default category
       isActive: (service.estado !== undefined ? service.estado : (service.Estado !== undefined ? service.Estado : (service.activo !== undefined ? service.activo : service.Activo)))
     };
   };
@@ -323,65 +151,77 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
 
           {!isLoading && paginatedServices.length > 0 ? (
             paginatedServices.map((service) => {
-              const Icon = service.icon;
+              // Determinar icono dinámicamente: tijeras para cortes/peinados, destellos/estrellas para uñas
+              const nameLower = (service.name || '').toLowerCase();
+              const categoryLower = (service.category || '').toLowerCase();
+              const isCut = categoryLower.includes('corte') || 
+                            categoryLower.includes('peinado') || 
+                            categoryLower.includes('color') ||
+                            nameLower.includes('corte') || 
+                            nameLower.includes('tinte') || 
+                            nameLower.includes('peinado') || 
+                            nameLower.includes('barba');
+              
+              const MainIcon = isCut ? Scissors : Sparkles;
+              const TopRightIcon = isCut ? Scissors : Sparkles;
+
               return (
                 <div
                   key={service.id}
-                  className="bg-white rounded-2xl shadow-lg border-2 border-brand-pink overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                  className="bg-white rounded-2xl shadow-md border-2 border-brand-pink/60 p-5 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col justify-between min-h-[190px] relative"
                 >
-                  {/* Service Image */}
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={service.image}
-                      alt={service.name}
-                      className="w-full h-full object-cover"
-                      onError={handleImageError}
-                    />
-                    <div className="absolute top-4 right-4">
-                      <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-brand-pink" />
+                  <div>
+                    {/* Header Row: Left Icon Box + Text/Category, Right: TopRightIcon */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        {/* Rounded Box with main icon */}
+                        <div className="w-14 h-14 bg-pink-50 rounded-2xl flex items-center justify-center shrink-0 border border-pink-100/50 shadow-sm">
+                          <MainIcon className="w-7 h-7 text-brand-pink" />
+                        </div>
+                        {/* Title and Category */}
+                        <div>
+                          <h3 className="font-extrabold text-gray-800 text-base leading-tight mb-1.5">
+                            {service.name}
+                          </h3>
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 bg-purple-50 text-purple-700 rounded-full uppercase tracking-wider">
+                            {service.category}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Decorative top-right icon */}
+                      <div className="text-brand-pink/70 pt-1">
+                        <TopRightIcon className="w-5 h-5" />
                       </div>
                     </div>
                   </div>
 
-                  {/* Service Content */}
-                  <div className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-bold text-gray-800 mb-1">{service.name}</h3>
-                        <span className="text-xs px-2 py-1 bg-gray-50 text-purple-800 rounded-full">
-                          {service.category}
-                        </span>
+                  {/* Price and Duration Row */}
+                  <div>
+                    <div className="border-t border-gray-100 pt-3 mb-3 flex items-center justify-between">
+                      <div className="flex items-center space-x-1.5 text-gray-500">
+                        <Clock className="w-4 h-4 text-brand-indigo" />
+                        <span className="text-xs font-semibold">{service.duration} min</span>
                       </div>
-                    </div>
-
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {service.description}
-                    </p>
-
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-1 text-gray-600">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-sm">{service.duration} min</span>
-                      </div>
-                      <div className="font-bold text-brand-indigo">
+                      <div className="font-black text-brand-indigo text-base">
                         ${service.price.toLocaleString()}
                       </div>
                     </div>
 
+                    {/* Buttons */}
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleViewDetails(service)}
-                        className="flex-1 px-4 py-2 border-2 border-brand-periwinkle text-brand-indigo rounded-lg font-semibold hover:bg-gray-100 transition-all flex items-center justify-center space-x-2"
+                        className="flex-1 py-2.5 border border-brand-periwinkle text-brand-indigo rounded-lg font-bold hover:bg-gray-50 transition-all flex items-center justify-center space-x-1.5 active:scale-95 text-xs"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3.5 h-3.5" />
                         <span>Ver Más</span>
                       </button>
                       <button
                         onClick={() => handleServiceBooking(service)}
-                        className={`flex-1 px-4 py-2 bg-gradient-to-r ${service.color} text-white rounded-lg font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2`}
+                        className={`flex-1 py-2.5 bg-gradient-to-r ${service.color} text-white rounded-lg font-bold hover:shadow-md transition-all flex items-center justify-center space-x-1.5 active:scale-95 text-xs`}
                       >
-                        <Calendar className="w-4 h-4" />
+                        <Calendar className="w-3.5 h-3.5" />
                         <span>Agendar</span>
                       </button>
                     </div>

@@ -217,9 +217,9 @@ export const authService = {
 
         // 2. Create the Client details
         const clientPayload = {
-            documentoCliente: generate10DigitNumber(),
+            documentoCliente: data.userDocument,
             usuarioId: usuarioId,
-            tipoDocumento: 'CC',
+            tipoDocumento: data.documentType || 'CC',
             nombre: `${data.firstName} ${data.lastName}`.trim(),
             telefono: data.phone
         };

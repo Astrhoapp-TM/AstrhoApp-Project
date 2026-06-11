@@ -263,7 +263,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     setApiError('');
 
     // Validate all fields
-    const fieldsToValidate = ['firstName', 'lastName', 'documentId', 'email', 'phone', 'password', 'confirmPassword'];
+    const fieldsToValidate = ['firstName', 'lastName', 'userDocument', 'email', 'phone', 'password', 'confirmPassword'];
     const errors: Record<string, string> = {};
     for (const field of fieldsToValidate) {
       const err = validateField(field, formData[field as keyof typeof formData]);
@@ -284,7 +284,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
         documentType: formData.documentType,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        documentId: formData.documentId,
+        userDocument: formData.userDocument,
         phone: formData.phone,
         email: formData.email,
         password: formData.password,
@@ -333,9 +333,9 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       sanitized = value.replace(/[^0-9]/g, '').slice(0, 10);
     }
 
-    // Sanitize userDocument: alphanumeric only
+    // Sanitize userDocument: only numbers, max 11 digits
     if (name === 'userDocument') {
-      sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+      sanitized = value.replace(/[^0-9]/g, '').slice(0, 11);
     }
 
     // Sanitize password: max 15 characters
@@ -772,7 +772,22 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Documento de Usuario *</label>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Tipo de Documento *</label>
+                        <select
+                          name="documentType"
+                          value={formData.documentType}
+                          onChange={handleSelectChange}
+                          required
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium ${fieldErrors.documentType ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
+                        >
+                          <option value="CC">Cédula de Ciudadanía (CC)</option>
+                          <option value="CE">Cédula de Extranjería (CE)</option>
+                          <option value="TI">Tarjeta de Identidad (TI)</option>
+                          <option value="NIT">Número de Identificación Tributaria (NIT)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Número de Documento *</label>
                         <input
                           type="text"
                           name="userDocument"
@@ -781,9 +796,10 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           onBlur={handleBlur}
                           onKeyDown={handleKeyDown}
                           onPaste={handlePaste}
+                          maxLength={11}
                           required
                           className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium ${fieldErrors.userDocument ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
-                          placeholder="Ej: USER123456"
+                          placeholder="Ej: 1234567890"
                         />
                         {fieldErrors.userDocument && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.userDocument}</p>}
                       </div>

@@ -485,7 +485,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                                     </td>
 
                                     <td className="px-6 py-4">
-                                        <div className="font-semibold text-gray-800">{person.documentId}</div>
+                                        <div className="font-semibold text-gray-800">{person.userDocument || person.documentId || 'N/A'}</div>
                                     </td>
 
                                     <td className="px-6 py-4">
@@ -637,7 +637,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col space-y-2">
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Documento:</span>
-                                        <span className="font-bold text-gray-700">{personToDelete.documentId}</span>
+                                        <span className="font-bold text-gray-700">{personToDelete.userDocument || personToDelete.documentId}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nombre:</span>

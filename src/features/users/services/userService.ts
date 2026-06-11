@@ -20,6 +20,7 @@ export interface UsuarioDetail {
         nombre: string;
         descripcion: string;
     };
+    documento?: string;
     documentoCliente?: string;
     documentoEmpleado?: string;
 }
@@ -30,6 +31,7 @@ export interface UpdateUsuarioDto {
     contrasena?: string;
     confirmarContrasena?: string;
     estado: boolean;
+    documento?: string;
 }
 
 // ── User Service ──

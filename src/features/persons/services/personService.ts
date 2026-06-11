@@ -2,6 +2,7 @@ import { apiClient, type PaginatedResponse } from '@/shared/services/apiClient';
 
 export interface Person {
     documentId: string;    // Maps to documentoCliente / documentoEmpleado
+    userDocument?: string; // Maps to usuario.documento
     type: 'client' | 'employee';
     documentType: string;  // Maps to tipoDocumento
     name: string;          // Maps to nombre
@@ -26,6 +27,7 @@ export interface CreatePersonData {
 // Map Backend DTO to Frontend Model
 const mapBackendToPerson = (data: any, type: 'client' | 'employee'): Person => ({
     documentId: type === 'client' ? data.documentoCliente : data.documentoEmpleado,
+    userDocument: data.documento, // Get the user document from the data
     type,
     documentType: data.tipoDocumento || 'CC',
     name: data.nombre || '',
@@ -79,17 +81,40 @@ export const personService = {
         const endpoint = type === 'client' ? '/api/Clientes' : '/api/Empleados';
         const response = await apiClient.get<any>(endpoint, params);
         
+        // Fetch users to get document field
+        const usersResponse = await apiClient.get<any>('/api/Usuarios', { page: 1, pageSize: 1000 }).catch(() => ({ data: [] }));
+        const users = usersResponse.data || [];
+        
         if (response && response.data && Array.isArray(response.data)) {
             return {
                 ...response,
-                data: response.data.map(item => mapBackendToPerson(item, type))
+                data: response.data.map(item => {
+                    const person = mapBackendToPerson(item, type);
+                    // Enrich with user document from users API
+                    if (person.usuarioId) {
+                        const user = users.find((u: any) => Number(u.usuarioId) === Number(person.usuarioId));
+                        if (user?.documento) {
+                            person.userDocument = user.documento;
+                        }
+                    }
+                    return person;
+                })
             };
         }
 
         // Fallback
         if (Array.isArray(response)) {
             return {
-                data: response.map(item => mapBackendToPerson(item, type)),
+                data: response.map(item => {
+                    const person = mapBackendToPerson(item, type);
+                    if (person.usuarioId) {
+                        const user = users.find((u: any) => Number(u.usuarioId) === Number(person.usuarioId));
+                        if (user?.documento) {
+                            person.userDocument = user.documento;
+                        }
+                    }
+                    return person;
+                }),
                 totalCount: response.length,
                 page: params?.page || 1,
                 pageSize: params?.pageSize || response.length,
@@ -104,7 +129,21 @@ export const personService = {
     async getPersonByDocument(documentId: string, type: 'client' | 'employee'): Promise<Person> {
         const endpoint = type === 'client' ? `/api/Clientes/${documentId}` : `/api/Empleados/${documentId}`;
         const response = await apiClient.get(endpoint);
-        return mapBackendToPerson(response, type);
+        const person = mapBackendToPerson(response, type);
+        
+        // Fetch user to get document field
+        if (person.usuarioId) {
+            try {
+                const user = await apiClient.get<any>(`/api/Usuarios/${person.usuarioId}`);
+                if (user?.documento) {
+                    person.userDocument = user.documento;
+                }
+            } catch (e) {
+                console.warn('Failed to fetch user data for document:', e);
+            }
+        }
+        
+        return person;
     },
 
     // CREATE

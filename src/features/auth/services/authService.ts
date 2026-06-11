@@ -30,12 +30,14 @@ export interface RegisterData {
     email: string;
     contrasena: string;
     confirmarContrasena: string;
+    documento?: string;
 }
 
 export interface TempUserData {
     rolId?: number;
     email: string;
     password?: string;
+    documento?: string;
 }
 
 export interface UsuarioListItem {
@@ -44,6 +46,11 @@ export interface UsuarioListItem {
     estado: boolean;
     rolNombre: string;
 }
+
+// Generate random 10-digit number
+const generate10DigitNumber = () => {
+    return Math.floor(1000000000 + Math.random() * 9000000000).toString();
+};
 
 // ── Auth Service ──
 export const authService = {
@@ -63,23 +70,25 @@ export const authService = {
      * Register a new user: POST /api/Usuarios
      * Registers with dynamic rolId; defaults to 2 (Cliente) if not provided.
      */
-    async register(data: RegisterData): Promise<any> {
+    async register(data: RegisterData) {
         const response = await apiClient.post('/api/Usuarios', {
             rolId: data.rolId || 2,
             email: data.email.trim().toLowerCase(),
             contrasena: data.contrasena,
             confirmarContrasena: data.confirmarContrasena,
+            documento: data.documento
         });
         return response;
     },
 
-    async createTempUser(data: TempUserData): Promise<any> {
+    async createTempUser(data: TempUserData) {
         const passwordToUse = data.password || Math.random().toString(36).slice(-10);
         const response = await apiClient.post('/api/auth/create-temp-user', {
             rolId: data.rolId || 2,
             email: data.email.trim().toLowerCase(),
             contrasena: passwordToUse,
             confirmarContrasena: passwordToUse,
+            documento: data.documento
         });
         return response;
     },
@@ -119,6 +128,7 @@ export const authService = {
             email: data.email.trim().toLowerCase(),
             contrasena: data.password,
             confirmarContrasena: data.confirmPassword,
+            documento: data.userDocument
         };
 
         let userResponse;
@@ -206,20 +216,10 @@ export const authService = {
         }
 
         // 2. Create the Client details
-        const mapDocType = (t: string): string => {
-            const key = (t || '').toLowerCase();
-            if (key === 'cedula' || key === 'cédula' || key === 'cedula_ciudadania' || key === 'cédula_ciudadanía') return 'CC';
-            if (key === 'tarjeta_identidad' || key === 'ti') return 'TI';
-            if (key === 'cedula_extranjeria' || key === 'cédula_extranjería' || key === 'ce') return 'CE';
-            if (key === 'pasaporte' || key === 'passport') return 'PAS';
-            if (key === 'nit') return 'NIT';
-            return 'CC';
-        };
-
         const clientPayload = {
-            documentoCliente: data.documentId,
+            documentoCliente: generate10DigitNumber(),
             usuarioId: usuarioId,
-            tipoDocumento: mapDocType(data.documentType),
+            tipoDocumento: 'CC',
             nombre: `${data.firstName} ${data.lastName}`.trim(),
             telefono: data.phone
         };

@@ -40,7 +40,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     documentType: 'cedula',
     firstName: '',
     lastName: '',
-    documentId: '',
+    userDocument: '',
     email: '',
     phone: '',
     address: '',
@@ -93,23 +93,13 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
         if (!value.trim()) return 'El correo electrónico es obligatorio';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'El formato del correo no es válido';
         return '';
-      case 'documentId': {
-        if (!value.trim()) return 'El número de documento es obligatorio';
-        const effectiveDocType = docType || formData.documentType;
-        if (value.trim()) {
-          const len = value.trim().length;
-          if (effectiveDocType === 'pasaporte') {
-            // Passport allows alphanumeric characters
-            if (!/^[a-zA-Z0-9]+$/.test(value.trim()))
-              return 'El pasaporte solo debe contener letras y números, sin caracteres especiales';
-            if (len < 6 || len > 15) return 'El pasaporte debe tener entre 6 y 15 caracteres';
-          } else {
-            // CC and CE are numeric-only
-            if (!/^\d+$/.test(value.trim()))
-              return 'El número de documento solo debe contener números, sin letras ni caracteres especiales';
-            if (len < 7 || len > 11) return 'El número de documento debe tener entre 7 y 11 dígitos';
-          }
-        }
+      case 'userDocument': {
+        if (!value.trim()) return 'El documento de usuario es obligatorio';
+        if (!/^\d+$/.test(value.trim()))
+          return 'El documento de usuario solo debe contener números';
+        const len = value.trim().length;
+        if (len < 7) return 'El documento de usuario debe tener al menos 7 caracteres';
+        if (len > 11) return 'El documento de usuario debe tener máximo 11 caracteres';
         return '';
       }
       case 'phone':
@@ -134,7 +124,6 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   // Key down handler for numeric fields
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { name } = e.currentTarget;
-    const isPassport = name === 'documentId' && formData.documentType === 'pasaporte';
 
     // Allow: backspace, delete, tab, escape, enter
     if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter'].includes(e.key)) {
@@ -151,16 +140,9 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       return;
     }
 
-    // For phone and non-passport documentId: only allow numbers
-    if (name === 'phone' || (name === 'documentId' && !isPassport)) {
+    // For phone and userDocument: only allow numbers
+    if (name === 'phone' || name === 'userDocument') {
       if (!/^[0-9]$/.test(e.key)) {
-        e.preventDefault();
-      }
-    }
-
-    // For passport documentId: allow letters and numbers
-    if (name === 'documentId' && isPassport) {
-      if (!/^[a-zA-Z0-9]$/.test(e.key)) {
         e.preventDefault();
       }
     }
@@ -169,17 +151,16 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   // Paste handler for sanitization
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const { name } = e.currentTarget;
-    const isPassport = name === 'documentId' && formData.documentType === 'pasaporte';
 
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
     let sanitizedText = pastedText;
 
-    if (name === 'phone' || (name === 'documentId' && !isPassport)) {
+    if (name === 'phone') {
       sanitizedText = pastedText.replace(/[^0-9]/g, '');
     }
 
-    if (name === 'documentId' && isPassport) {
+    if (name === 'userDocument') {
       sanitizedText = pastedText.replace(/[^a-zA-Z0-9]/g, '');
     }
 
@@ -352,13 +333,9 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       sanitized = value.replace(/[^0-9]/g, '').slice(0, 10);
     }
 
-    // Sanitize documentId
-    if (name === 'documentId') {
-      if (formData.documentType === 'pasaporte') {
-        sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15);
-      } else {
-        sanitized = value.replace(/[^0-9]/g, '').slice(0, 11);
-      }
+    // Sanitize userDocument: alphanumeric only
+    if (name === 'userDocument') {
+      sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
     }
 
     // Sanitize password: max 15 characters
@@ -381,23 +358,10 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    // When document type changes, truncate documentId to new max and re-validate
-    if (name === 'documentType') {
-      const newMaxLen = value === 'pasaporte' ? 15 : 11;
-      const trimmedDocId = formData.documentId.slice(0, newMaxLen);
-      const docError = validateField('documentId', trimmedDocId, value);
-      setFieldErrors(prev => ({ ...prev, documentId: docError }));
-      setFormData(prev => ({
-        ...prev,
-        documentType: value,
-        documentId: trimmedDocId
-      }));
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    }
+    setFormData({
+      ...formData,
+      [name]: value
+    });
     setApiError('');
   };
 
@@ -807,38 +771,21 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                       <h4 className="font-bold uppercase text-[10px] tracking-widest">Identificación</h4>
                     </div>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Tipo de Documento *</label>
-                          <select
-                            name="documentType"
-                            value={formData.documentType}
-                            onChange={handleSelectChange}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
-                          >
-                            <option value="cedula">Cédula de Ciudadanía</option>
-                            <option value="tarjeta_identidad">Tarjeta de Identidad</option>
-                            <option value="cedula_extranjeria">Cédula de Extranjería</option>
-                            <option value="pasaporte">Pasaporte</option>
-                            <option value="nit">NIT</option>
-                          </select>
-                        </div>
-                        <div className="col-span-2">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Número de Documento *</label>
-                          <input
-                            type="text"
-                            name="documentId"
-                            value={formData.documentId}
-                            onChange={handleInputChange}
-                            onBlur={handleBlur}
-                            onKeyDown={handleKeyDown}
-                            onPaste={handlePaste}
-                            required
-                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium ${fieldErrors.documentId ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
-                            placeholder="Ej: 1020304050"
-                          />
-                          {fieldErrors.documentId && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.documentId}</p>}
-                        </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Documento de Usuario *</label>
+                        <input
+                          type="text"
+                          name="userDocument"
+                          value={formData.userDocument}
+                          onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          onKeyDown={handleKeyDown}
+                          onPaste={handlePaste}
+                          required
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium ${fieldErrors.userDocument ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'}`}
+                          placeholder="Ej: USER123456"
+                        />
+                        {fieldErrors.userDocument && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.userDocument}</p>}
                       </div>
                     </div>
                   </div>

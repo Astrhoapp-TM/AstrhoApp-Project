@@ -328,6 +328,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
         email: formData.email,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
+        address: formData.address,
       });
 
       setApiError('');

@@ -3,13 +3,13 @@ import {
   Calendar, Clock, User, ChevronLeft, ChevronRight, Plus,
   ArrowLeft, ArrowRight, CheckCircle, X, Save, Scissors,
   Loader2, Star, ShieldCheck, Search, Info, ShoppingBag,
-  Wallet, Banknote, ArrowRightLeft, Smartphone, CreditCard, Users
+  Wallet, Banknote, ArrowRightLeft, Smartphone, CreditCard, Users, AlertCircle
 } from 'lucide-react';
 import { serviceService } from '@/features/services/services/serviceService';
 import { agendaService, empleadoAgendaService, metodoPagoService, servicioAgendaService, type AgendaItem } from '../services/agendaService';
 import { userService } from '@/features/users/services/userService';
 import { personService } from '@/features/persons/services/personService';
-import { horarioEmpleadoService, type HorarioEmpleado } from '@/features/schedule/services/scheduleService';
+import { horarioEmpleadoService, horarioService, type HorarioEmpleado, type Horario, type HorarioDia } from '@/features/schedule/services/scheduleService';
 import { motivoService, type Motivo } from '@/shared/services/motivoService';
 import { useServicios, useEmpleados, useClientes } from '../hooks/useBookingData';
 
@@ -61,16 +61,31 @@ interface AppointmentBookingProps {
   isAdminBooking?: boolean;
 }
 
-const ProgressHeader = ({ currentStep, isAdminBooking }: { currentStep: number; isAdminBooking?: boolean }) => {
+const ProgressHeader = ({ currentStep, isAdminBooking, isAsistente }: { currentStep: number; isAdminBooking?: boolean; isAsistente?: boolean }) => {
   const steps = isAdminBooking ? [
-    { num: 1, label: 'Cliente', icon: Users },
-    { num: 2, label: 'Servicios', icon: Scissors },
-    { num: 3, label: 'Profesional', icon: User },
-    { num: 4, label: 'Confirmación', icon: Calendar }
+    ...(isAsistente 
+      ? [
+        { num: 1, label: 'Cliente', icon: Users },
+        { num: 2, label: 'Servicios', icon: Scissors },
+        { num: 3, label: 'Confirmación', icon: Calendar }
+      ] 
+      : [
+        { num: 1, label: 'Cliente', icon: Users },
+        { num: 2, label: 'Servicios', icon: Scissors },
+        { num: 3, label: 'Profesional', icon: User },
+        { num: 4, label: 'Confirmación', icon: Calendar }
+      ])
   ] : [
-    { num: 1, label: 'Servicios', icon: Scissors },
-    { num: 2, label: 'Profesional', icon: User },
-    { num: 3, label: 'Confirmación', icon: Calendar }
+    ...(isAsistente 
+      ? [
+        { num: 1, label: 'Servicios', icon: Scissors },
+        { num: 2, label: 'Confirmación', icon: Calendar }
+      ] 
+      : [
+        { num: 1, label: 'Servicios', icon: Scissors },
+        { num: 2, label: 'Profesional', icon: User },
+        { num: 3, label: 'Confirmación', icon: Calendar }
+      ])
   ];
 
   return (
@@ -123,6 +138,7 @@ const ProgressHeader = ({ currentStep, isAdminBooking }: { currentStep: number; 
 };
 
 export function AppointmentBooking({ currentUser, onBookingComplete, onBack, initialService, appointmentToReschedule, isAdminBooking }: AppointmentBookingProps) {
+  const isAsistente = currentUser?.role === 'asistente';
   const [step, setStep] = useState(isAdminBooking ? 0 : 1);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [selectedProfessional, setSelectedProfessional] = useState<any>(null);
@@ -171,11 +187,13 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
   const [existingAppointments, setExistingAppointments] = useState<AgendaItem[]>([]);
   const [metodosPago, setMetodosPago] = useState<any[]>([]);
+  const [horarios, setHorarios] = useState<Horario[]>([]);
   const [horariosEmpleados, setHorariosEmpleados] = useState<HorarioEmpleado[]>([]);
   const [motivos, setMotivos] = useState<Motivo[]>([]);
   const [isBooking, setIsBooking] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showNoScheduleModal, setShowNoScheduleModal] = useState(false);
   const [clientDocument, setClientDocument] = useState<string>('');
 
   const professionalsWithSchedules = useMemo(() => {
@@ -183,6 +201,12 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       horariosEmpleados.some(h => String(h.documentoEmpleado) === String(p.id))
     );
   }, [professionals, horariosEmpleados]);
+
+  const asistenteHasSchedule = useMemo(() => {
+    if (!isAsistente) return true;
+    if (!selectedProfessional) return false;
+    return horariosEmpleados.some(h => String(h.documentoEmpleado) === String(selectedProfessional.id));
+  }, [isAsistente, selectedProfessional, horariosEmpleados]);
 
   const hasProfessionalPermissionError = professionalError?.includes('403');
 
@@ -221,7 +245,90 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     } else if (initialService && services.length > 0) {
       setSelectedServices([initialService]);
     }
-  }, [appointmentToReschedule, initialService, services, professionals]);
+    
+    // Auto-select current professional if it's an asistente/admin
+    if (currentUser && 
+        (currentUser.role === 'asistente' || currentUser.role === 'admin' || currentUser.role === 'super_admin') && 
+        professionals.length > 0 && 
+        !selectedProfessional) {
+      // Match by all possible id fields
+      const currentProf = professionals.find(p => 
+        String(p.id) === String(currentUser.documentId) || 
+        String(p.id) === String(currentUser.documento) ||
+        String(p.id) === String(currentUser.documentoEmpleado) ||
+        String(p.id) === String(currentUser.usuarioId) ||
+        String(p.id) === String(currentUser.id)
+      );
+      if (currentProf) {
+        setSelectedProfessional(currentProf);
+      }
+    }
+  }, [appointmentToReschedule, initialService, services, professionals, currentUser, selectedProfessional]);
+
+  // Helper to extract array from API responses
+  const extractArray = (data: any): any[] => {
+    if (!data) return [];
+    if (data.data) return extractArray(data.data);
+    if (Array.isArray(data)) return data;
+    if (data.$values && Array.isArray(data.$values)) return data.$values;
+    if (data.dias) return extractArray(data.dias);
+    if (data.horarioDias) return extractArray(data.horarioDias);
+    return [];
+  };
+
+  // Helper to combine HorarioEmpleado with HorarioDia to get full schedule info
+  const processEmployeeSchedules = (
+    horariosList: Horario[],
+    horarioEmpleadosList: HorarioEmpleado[]
+  ): HorarioEmpleado[] => {
+    // First, create a map of all HorarioDia by horarioDiaId
+    const horarioDiaMap = new Map<number, HorarioDia>();
+    horariosList.forEach(horario => {
+      const dias = extractArray(horario);
+      dias.forEach(dia => {
+        if (dia?.horarioDiaId) {
+          horarioDiaMap.set(dia.horarioDiaId, dia);
+        }
+      });
+    });
+
+    // Now, enrich each HorarioEmpleado with the diaSemana, horaInicio, horaFin from corresponding HorarioDia
+    return horarioEmpleadosList.map(he => {
+      // First check if he already has diaSemana, horaInicio, horaFin
+      if (he.diaSemana && he.horaInicio && he.horaFin) {
+        return he;
+      }
+
+      // If not, try to find the corresponding HorarioDia
+      const possibleHorario = horariosList.find(h => h.horarioId === he.horarioId);
+      if (possibleHorario) {
+        const dias = extractArray(possibleHorario);
+        // If there's only one day, use that one
+        if (dias.length === 1) {
+          return {
+            ...he,
+            diaSemana: dias[0].diaSemana,
+            horaInicio: dias[0].horaInicio,
+            horaFin: dias[0].horaFin
+          };
+        }
+        // Otherwise, check if there's a horarioDiaId in the HorarioEmpleado
+        const heWithHorarioDiaId = he as any;
+        if (heWithHorarioDiaId.horarioDiaId && horarioDiaMap.has(heWithHorarioDiaId.horarioDiaId)) {
+          const dia = horarioDiaMap.get(heWithHorarioDiaId.horarioDiaId)!;
+          return {
+            ...he,
+            diaSemana: dia.diaSemana,
+            horaInicio: dia.horaInicio,
+            horaFin: dia.horaFin
+          };
+        }
+      }
+
+      // If we can't find the day, return as-is
+      return he;
+    }).filter(he => he.diaSemana && he.horaInicio && he.horaFin);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -253,13 +360,17 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
         };
 
         // Individual catch for each promise to avoid Promise.all failing completely
-        const [appointmentsData, metodosData, horariosData, motivosData, serviciosCatalogData] = await Promise.all([
+        const [appointmentsData, metodosData, horariosData, horariosEmpleadosData, motivosData, serviciosCatalogData] = await Promise.all([
           fetchAllAppointmentsForSchedule().catch(err => {
             console.error('Error fetching appointments:', err);
             return [];
           }),
           metodoPagoService.getAll().catch(err => {
             console.error('Error fetching payment methods:', err);
+            return [];
+          }),
+          horarioService.getAll().catch(err => {
+            console.error('Error fetching schedules:', err);
             return [];
           }),
           horarioEmpleadoService.getAll().catch(err => {
@@ -276,23 +387,18 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
           }),
         ]);
 
+        // Process Horarios
+        let horariosArray = extractArray(horariosData);
+        setHorarios(horariosArray);
+
         // Process Motivos
-        let motivosArray = [];
-        if (Array.isArray(motivosData)) {
-          motivosArray = motivosData;
-        } else if (motivosData && typeof motivosData === 'object') {
-          motivosArray = (motivosData as any).data || (motivosData as any).$values || [];
-        }
+        let motivosArray = extractArray(motivosData);
         setMotivos(motivosArray);
 
         // Process Schedules
-        let horariosArray = [];
-        if (Array.isArray(horariosData)) {
-          horariosArray = horariosData;
-        } else if (horariosData && typeof horariosData === 'object') {
-          horariosArray = (horariosData as any).data || (horariosData as any).$values || [];
-        }
-        setHorariosEmpleados(horariosArray);
+        let horariosEmpleadosRawArray = extractArray(horariosEmpleadosData);
+        let processedHorariosEmpleados = processEmployeeSchedules(horariosArray, horariosEmpleadosRawArray);
+        setHorariosEmpleados(processedHorariosEmpleados);
 
         // Process Payment Methods
         let metodosArray = [];
@@ -721,6 +827,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   };
 
   const handleTimeSlotClick = (date: string, time: string) => {
+    if (isAsistente && (!selectedProfessional || !asistenteHasSchedule)) return;
     if (!selectedProfessional || selectedServices.length === 0) return;
 
     const totalDuration = getTotalDuration();
@@ -731,9 +838,20 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     }
   };
 
+  // Check if selected professional has any schedule
+  const professionalHasSchedule = (professionalId: string) => {
+    return horariosEmpleados.some(h => String(h.documentoEmpleado) === String(professionalId));
+  };
+
   const handleBookingConfirm = async () => {
     if (!selectedProfessional || !selectedDate || !selectedTime) {
       alert('Información incompleta para agendar la cita.');
+      return;
+    }
+
+    // Check if professional has schedule
+    if (selectedProfessional && !professionalHasSchedule(selectedProfessional.id)) {
+      alert('Este profesional no tiene un horario asignado. Por favor, contacta al administrador.');
       return;
     }
 
@@ -830,6 +948,15 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     }
   };
 
+  // Check and show modal if asistente has no schedule
+  useEffect(() => {
+    if (isAsistente && !isLoadingProfessionals && (!selectedProfessional || !asistenteHasSchedule)) {
+      setShowNoScheduleModal(true);
+    } else {
+      setShowNoScheduleModal(false);
+    }
+  }, [isAsistente, isLoadingProfessionals, selectedProfessional, asistenteHasSchedule]);
+
   // Step 0: Select Client (Admin Only)
   if (step === 0 && isAdminBooking) {
     return (
@@ -847,7 +974,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             </div>
           )}
           
-          <ProgressHeader currentStep={1} isAdminBooking={isAdminBooking} />
+          <ProgressHeader currentStep={1} isAdminBooking={isAdminBooking} isAsistente={isAsistente} />
 
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">
@@ -1043,7 +1170,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             </div>
           )}
           
-          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} isAsistente={isAsistente} />
 
           <div className="text-center mb-8">
             <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
@@ -1308,7 +1435,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                           </button>
                         )}
                         <button
-                          onClick={() => setStep(2)}
+                          onClick={() => setStep(isAsistente ? 3 : 2)}
                           className="flex-1 bg-gradient-brand text-white py-3 rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                         >
                           <span>Continuar</span>
@@ -1339,7 +1466,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
 
   // Step 2: Select Professional
-  if (step === 2) {
+  if (step === 2 && !isAsistente) {
     return (
       <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
         <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -1355,7 +1482,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             </div>
           )}
           
-          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} isAsistente={isAsistente} />
 
           <div className="text-center mb-8">
             <h2 className="text-4xl font-bold text-gray-800 mb-4">
@@ -1549,7 +1676,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             </div>
           )}
           
-          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} />
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} isAsistente={isAsistente} />
 
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/50 p-6 rounded-3xl border border-white shadow-sm backdrop-blur-sm">
             <div className="text-center md:text-left">
@@ -1561,17 +1688,43 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
               </p>
             </div>
 
-            <button
-              onClick={() => setStep(2)}
-              className="flex items-center space-x-2 px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 hover:border-brand-periwinkle hover:text-brand-indigo transition-all shadow-sm group shrink-0"
-            >
-              <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-brand-indigo transition-colors" />
-              <span>Cambiar Profesional</span>
-            </button>
+            {!isAsistente && (
+              <button
+                onClick={() => setStep(2)}
+                className="flex items-center space-x-2 px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 hover:border-brand-periwinkle hover:text-brand-indigo transition-all shadow-sm group shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-brand-indigo transition-colors" />
+                <span>Cambiar Profesional</span>
+              </button>
+            )}
+            {isAsistente && (
+              <button
+                onClick={() => setStep(1)}
+                className="flex items-center space-x-2 px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 hover:border-brand-periwinkle hover:text-brand-indigo transition-all shadow-sm group shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-brand-indigo transition-colors" />
+                <span>Volver a Servicios</span>
+              </button>
+            )}
           </div>
 
           <div className="space-y-10">
             {/* Calendar Section - Redesigned to Day Selector + Time Slots */}
+            {selectedProfessional && !professionalHasSchedule(selectedProfessional.id) ? (
+              <div className="text-center py-20 bg-red-50 rounded-3xl border-2 border-dashed border-red-200">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <AlertCircle className="w-10 h-10 text-red-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-red-800 mb-4">Profesional sin horario asignado</h3>
+                <p className="text-red-600 max-w-md mx-auto">Este profesional no tiene un horario asignado. Por favor, contacta al administrador o selecciona otro profesional.</p>
+                <button 
+                  onClick={() => setStep(2)}
+                  className="mt-6 px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors"
+                >
+                  Seleccionar otro profesional
+                </button>
+              </div>
+            ) : (
             <div className="w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
               {/* Calendar Header */}
               <div className="p-8 border-b border-gray-100 bg-gradient-to-br from-white to-pink-50/20">
@@ -1682,6 +1835,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       ? getTimeSlotsForDate(selectedProfessional.id, parseLocalDate(selectedDate))
                       : defaultTimeSlots;
 
+                    if (isAsistente && (!selectedProfessional || !asistenteHasSchedule)) {
+                      return (
+                        <div className="col-span-full py-10 text-center bg-red-50 rounded-2xl border-2 border-dashed border-red-200">
+                          <p className="text-red-600 font-bold uppercase tracking-widest text-sm">No tienes un horario asignado</p>
+                        </div>
+                      );
+                    }
+
                     if (currentSlots.length === 0) {
                       return (
                         <div className="col-span-full py-10 text-center bg-white rounded-2xl border-2 border-dashed border-gray-100">
@@ -1742,6 +1903,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                 </div>
               </div>
             </div>
+            )}
           </div>
         </div>
 
@@ -1840,6 +2002,42 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       <span>Confirmar Cita</span>
                     )}
                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* No Schedule Modal */}
+        {showNoScheduleModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-500 ease-out animate-in fade-in zoom-in-95 slide-in-from-bottom-10">
+              <div className="p-8">
+                <div className="flex justify-center mb-6">
+                  <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                    <AlertCircle className="w-10 h-10 text-red-600" />
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 text-center mb-4">No puedes agendar citas</h3>
+                <p className="text-gray-600 text-center mb-8">
+                  No tienes un horario asignado. Por favor, contacta al administrador para que configure tu horario.
+                </p>
+                <div className="flex justify-center">
+                  {onBack ? (
+                    <button 
+                      onClick={onBack}
+                      className="px-8 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors"
+                    >
+                      Volver
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => setShowNoScheduleModal(false)}
+                      className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-colors"
+                    >
+                      Cerrar
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

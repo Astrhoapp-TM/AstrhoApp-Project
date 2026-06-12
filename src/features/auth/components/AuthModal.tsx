@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Eye, EyeOff, IdCard, Phone, ArrowLeft, CheckCircle, Loader2, Send, Save, AlertCircle } from 'lucide-react';
 import { authService } from '../services/authService';
 import { setAuthToken } from '@/shared/services/apiClient';

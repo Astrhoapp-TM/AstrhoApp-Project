@@ -54,7 +54,7 @@ function App() {
   // Fetch full user person data when logged in
     useEffect(() => {
         const fetchFullUserData = async () => {
-            if (currentUser && (!currentUser.documentId || !currentUser.documento)) {
+            if (currentUser && !currentUser._dataFetched && (!currentUser.documentId || !currentUser.documento)) {
                 try {
                     showLoading("Sincronizando tu perfil...");
                     const person = await userService.getPersonForUser(currentUser);
@@ -67,7 +67,8 @@ function App() {
                         name: person?.name || prev.name,
                         firstName: person?.name ? person.name.split(' ')[0] : prev.firstName,
                         lastName: person?.name ? person.name.split(' ').slice(1).join(' ') : prev.lastName,
-                        phone: person?.phone || prev.phone
+                        phone: person?.phone || prev.phone,
+                        _dataFetched: true // Add a flag to prevent re-fetching
                     }));
                 } catch (error) {
                     console.error("Error fetching full user data in App:", error);
@@ -77,7 +78,7 @@ function App() {
             }
         };
         fetchFullUserData();
-    }, [currentUser, showLoading, hideLoading]);
+    }, [currentUser?.usuarioId, currentUser?.id]); // Only depend on user ID
 
   // Redirect admin/assistant users to admin panel automatically
   useEffect(() => {

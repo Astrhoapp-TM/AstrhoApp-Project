@@ -2142,7 +2142,1077 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     );
   }
 
-  return null;
+  // Determine current step content
+  let stepContent = null;
+  if (step === 0 && isAdminBooking) {
+    stepContent = (
+      <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
+          <ProgressHeader currentStep={1} isAdminBooking={isAdminBooking} isAsistente={isAsistente} />
+
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">
+              Selecciona el Cliente
+            </h2>
+            <p className="text-xl text-gray-600">
+              Elige al cliente para quien vas a registrar la cita
+            </p>
+          </div>
+
+          {clients.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                {clients.map((client) => (
+                  <div
+                    key={client.id}
+                    onClick={() => {
+                      setSelectedClient(client);
+                      setClientDocument(client.id);
+                      setStep(1);
+                    }}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md flex items-center space-x-4 group ${
+                      selectedClient?.id === client.id
+                        ? 'border-pink-500 bg-gray-50 shadow-md scale-[1.02]'
+                        : 'border-gray-100 hover:border-brand-periwinkle bg-white'
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-800 text-base mb-0.5 truncate group-hover:text-brand-indigo transition-colors">
+                        {client.name}
+                      </h4>
+                      <p className="text-gray-500 text-xs font-medium truncate">
+                        {client.phone}
+                      </p>
+                    </div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                      selectedClient?.id === client.id 
+                        ? 'bg-pink-500 text-white rotate-0' 
+                        : 'bg-gray-50 text-gray-400 -rotate-45 group-hover:rotate-0 group-hover:bg-gray-100 group-hover:text-brand-pink'
+                    }`}>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination for Clients */}
+              {totalClientPages > 1 && (
+                <div className="flex items-center justify-center space-x-4 mb-8">
+                  <button
+                    onClick={() => {
+                      setClientPage(p => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={clientPage === 1}
+                    className={`p-2 rounded-xl transition-all ${
+                      clientPage === 1 
+                        ? 'text-gray-300 cursor-not-allowed' 
+                        : 'text-brand-pink hover:bg-gray-100'
+                    }`}
+                  >
+                    <ChevronLeft className="w-8 h-8" />
+                  </button>
+                  
+                  <div className="flex items-center space-x-2">
+                    {[...Array(totalClientPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setClientPage(i + 1);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                          clientPage === i + 1
+                            ? 'bg-pink-500 text-white shadow-md'
+                            : 'text-gray-500 hover:bg-gray-100'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setClientPage(p => Math.min(totalClientPages, p + 1));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    disabled={clientPage === totalClientPages}
+                    className={`p-2 rounded-xl transition-all ${
+                      clientPage === totalClientPages 
+                        ? 'text-gray-300 cursor-not-allowed' 
+                        : 'text-brand-pink hover:bg-gray-100'
+                    }`}
+                  >
+                    <ChevronRight className="w-8 h-8" />
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                {hasProfessionalPermissionError ? (
+                  <ShieldCheck className="w-10 h-10 text-brand-pink" />
+                ) : (
+                  <Search className="w-10 h-10 text-gray-400" />
+                )}
+              </div>
+              {hasProfessionalPermissionError ? (
+                <>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Error de Permisos</h3>
+                  <p className="text-gray-600 max-w-md mx-auto">No tienes permisos para ver la lista de clientes.</p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">No se encontraron clientes</h3>
+                  <p className="text-gray-600">Prueba con otro nombre o teléfono.</p>
+                  <button 
+                    onClick={() => setProfessionalSearchTerm('')}
+                    className="mt-6 text-brand-indigo font-bold hover:underline"
+                  >
+                    Ver todos los clientes
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+    );
+  } else if (step === 1) {
+    stepContent = (
+      <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} isAsistente={isAsistente} />
+
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
+              Selecciona tus <span className="text-transparent bg-clip-text bg-gradient-brand">Servicios</span>
+            </h2>
+            <p className="text-base text-gray-600 font-medium">
+              Elige los servicios que deseas para tu próxima cita
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+              {/* Left Panel: Services */}
+              <div 
+                className={`md:border-r border-black/10 md:pr-5 space-y-6 transition-all duration-300 rounded-2xl ${isDragOverLeft ? 'bg-gray-50/50 ring-4 ring-brand-periwinkle/30 scale-[1.01] p-2' : ''}`}
+                onDragOver={handleDragOverLeft}
+                onDragEnter={handleDragEnterLeft}
+                onDragLeave={handleDragLeaveLeft}
+              >
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-9 h-9 bg-gray-50 text-brand-pink rounded-xl flex items-center justify-center">
+                    <Scissors className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Servicios</h3>
+                </div>
+
+                {isLoadingServices ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="relative">
+                      <div className="w-16 h-16 border-4 border-gray-200 border-t-pink-500 rounded-full animate-spin" />
+                      <Scissors className="w-6 h-6 text-brand-pink absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="mt-4 text-gray-500 font-semibold">Buscando servicios...</p>
+                  </div>
+                ) : services.length > 0 ? (
+                  <>
+                    <div className="relative group mb-6">
+                      <Search className="absolute left-[20px] top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
+                      <input
+                        type="text"
+                        placeholder="¿Qué servicio buscas?"
+                        value={serviceSearchTerm}
+                        onChange={(e) => setServiceSearchTerm(e.target.value)}
+                        className="w-full pl-11 pr-4 py-2.5 bg-gray-50 border-2 border-transparent focus:border-brand-periwinkle focus:bg-white rounded-xl outline-none transition-all text-gray-700 font-medium text-xs"
+                      />
+                    </div>
+
+                    <div className="flex flex-col space-y-2 mb-6 pr-2 max-h-[400px] overflow-y-auto">
+                      {services.map((service) => {
+                        const isSelected = selectedServices.some(s => s.id === service.id);
+                        
+                        // Skip if already selected
+                        if (isSelected) return null;
+
+                        return (
+                          <div
+                            key={service.id}
+                            draggable={!isSelected}
+                            onDragStart={(e) => handleDragStart(service, e)}
+                            onDragEnd={handleDragEnd}
+                            onClick={() => !isSelected && setSelectedServices([...selectedServices, service])}
+                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md flex items-center space-x-4 group ${
+                              isSelected
+                                ? 'border-pink-500 bg-gray-50 shadow-md scale-[1.02]'
+                                : 'border-gray-100 hover:border-brand-periwinkle bg-white'
+                            }`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-gray-800 text-base mb-0.5 truncate group-hover:text-brand-indigo transition-colors">
+                                {service.name}
+                              </h4>
+                              <div className="flex items-center gap-3">
+                                <span className="text-gray-500 text-xs font-medium">{service.duration} min</span>
+                                <span className="font-bold text-brand-pink">${service.price.toLocaleString()}</span>
+                              </div>
+                            </div>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                              isSelected 
+                                ? 'bg-pink-500 text-white rotate-0' 
+                                : 'bg-gray-50 text-gray-400 -rotate-45 group-hover:rotate-0 group-hover:bg-gray-100 group-hover:text-brand-pink'
+                            }`}>
+                              <ArrowRight className="w-4 h-4" />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-20 bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Search className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">No hay servicios disponibles</h3>
+                    <p className="text-gray-600">Por favor, intenta de nuevo más tarde.</p>
+                  </div>
+                )}
+
+                {/* Left Panel Pagination */}
+                {totalServicePages > 1 && (
+                  <div className="flex items-center justify-center space-x-4">
+                    <button
+                      onClick={() => {
+                        setServicePage(p => Math.max(1, p - 1));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      disabled={servicePage === 1}
+                      className={`p-2 rounded-xl transition-all ${
+                        servicePage === 1 
+                          ? 'text-gray-300 cursor-not-allowed' 
+                          : 'text-brand-pink hover:bg-gray-100'
+                      }`}
+                    >
+                      <ChevronLeft className="w-8 h-8" />
+                    </button>
+                    
+                    <div className="flex items-center space-x-2">
+                      {[...Array(totalServicePages)].map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setServicePage(i + 1);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                            servicePage === i + 1
+                              ? 'bg-pink-500 text-white shadow-md'
+                              : 'text-gray-500 hover:bg-gray-100'
+                          }`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setServicePage(p => Math.min(totalServicePages, p + 1));
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      disabled={servicePage === totalServicePages}
+                      className={`p-2 rounded-xl transition-all ${
+                        servicePage === totalServicePages 
+                          ? 'text-gray-300 cursor-not-allowed' 
+                          : 'text-brand-pink hover:bg-gray-100'
+                      }`}
+                    >
+                      <ChevronRight className="w-8 h-8" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Panel: Selected Services */}
+              <div 
+                className={`space-y-6 transition-all duration-300 rounded-2xl ${isDragOver ? 'bg-brand-periwinkle/20 ring-4 ring-brand-periwinkle/30 scale-[1.01] p-2' : ''}`}
+                onDragOver={handleDragOver}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-9 h-9 bg-brand-periwinkle/20 text-brand-indigo rounded-xl flex items-center justify-center">
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Servicios Seleccionados</h3>
+                </div>
+
+                {selectedServices.length > 0 ? (
+                  <>
+                    <div className="space-y-3">
+                      {selectedServices.map((service) => (
+                        <div
+                          key={service.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(service, e)}
+                          onDragEnd={handleDragEnd}
+                          className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 shadow-sm"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-pink-400 shrink-0" />
+                            <span className="font-bold text-gray-800">{service.name}</span>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <span className="text-gray-500 font-medium">{service.duration} min</span>
+                            <span className="font-bold text-gray-900">${service.price.toLocaleString()}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleServiceSelection(service);
+                              }}
+                              className="p-1 hover:bg-gray-50 rounded-lg transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5 text-brand-pink" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-200/50 space-y-2">
+                      <div className="flex justify-between items-center text-[10px] font-medium text-gray-500">
+                        <span>Tiempo estimado</span>
+                        <span className="text-gray-900 font-bold">{getTotalDuration()} min</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-bold text-gray-900">Total</span>
+                        <p className="text-xl font-black text-transparent bg-clip-text bg-gradient-brand">
+                          ${getTotalPrice().toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-row items-center justify-between gap-4 mt-5">
+                      {onBack && !isAdminBooking && (
+                        <button
+                          onClick={onBack}
+                          className="flex-1 border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                          <span>Volver</span>
+                        </button>
+                      )}
+                      {isAdminBooking && (
+                        <button
+                          onClick={() => setStep(0)}
+                          className="flex-1 border-2 border-gray-200 text-gray-500 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                        >
+                          <ArrowLeft className="w-4 h-4" />
+                          <span>Cliente</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setStep(isAsistente ? 3 : 2)}
+                        className="flex-1 bg-gradient-brand text-white py-3 rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                      >
+                        <span>Continuar</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className={`py-10 text-center rounded-2xl border-2 border-dashed transition-colors ${
+                    isDragOver ? 'border-brand-periwinkle bg-brand-periwinkle/10' : 'bg-gray-50/50 border-gray-200'
+                  }`}>
+                    <ShoppingBag className={`w-8 h-8 mx-auto mb-3 ${isDragOver ? 'text-brand-periwinkle' : 'text-gray-300'}`} />
+                    <p className={`text-sm font-medium ${isDragOver ? 'text-brand-indigo' : 'text-gray-400'}`}>
+                      {isDragOver ? 'Suelta el servicio aquí' : 'Arrastra los servicios aquí o haz clic en ellos'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  } else if (step === 2 && !isAsistente) {
+    stepContent = (
+      <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} isAsistente={isAsistente} />
+
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold text-gray-800 mb-4">
+              Selecciona a tu Profesional
+            </h2>
+            <p className="text-xl text-gray-600">
+              Elige al estilista que te atenderá
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-xl p-8">
+            {isLoadingProfessionals ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <Loader2 className="w-12 h-12 text-brand-pink animate-spin mb-4" />
+                <p className="text-gray-600 font-semibold">Buscando profesionales disponibles...</p>
+              </div>
+            ) : (
+              <>
+                {/* Search Bar for Professionals */}
+                <div className="mb-8 relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o especialidad..."
+                    value={professionalSearchTerm}
+                    onChange={(e) => setProfessionalSearchTerm(e.target.value)}
+                    className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-periwinkle focus:bg-white transition-all text-lg"
+                  />
+                  {professionalSearchTerm && (
+                    <button 
+                      onClick={() => setProfessionalSearchTerm('')}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-pink"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+
+                {professionalsWithSchedules.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                      {professionalsWithSchedules.map((professional) => (
+                        <div
+                          key={professional.id}
+                          onClick={() => {
+                            setSelectedProfessional(professional);
+                            setStep(3);
+                          }}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md flex items-center space-x-4 group ${
+                            selectedProfessional?.id === professional.id
+                              ? 'border-pink-500 bg-gray-50 shadow-md scale-[1.02]'
+                              : 'border-gray-100 hover:border-brand-periwinkle bg-white'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-gray-800 text-base mb-0.5 truncate group-hover:text-brand-indigo transition-colors">
+                              {professional.name}
+                            </h4>
+                            <p className="text-gray-500 text-xs font-medium truncate">
+                              {professional.role}
+                            </p>
+                          </div>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                            selectedProfessional?.id === professional.id 
+                              ? 'bg-pink-500 text-white rotate-0' 
+                              : 'bg-gray-50 text-gray-400 -rotate-45 group-hover:rotate-0 group-hover:bg-gray-100 group-hover:text-brand-pink'
+                          }`}>
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pagination for Professionals */}
+                    {totalProfessionalPages > 1 && (
+                      <div className="flex items-center justify-center space-x-4 mb-8">
+                        <button
+                          onClick={() => {
+                            setProfessionalPage(p => Math.max(1, p - 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          disabled={professionalPage === 1}
+                          className={`p-2 rounded-xl transition-all ${
+                            professionalPage === 1 
+                              ? 'text-gray-300 cursor-not-allowed' 
+                              : 'text-brand-pink hover:bg-gray-100'
+                          }`}
+                        >
+                          <ChevronLeft className="w-8 h-8" />
+                        </button>
+                        
+                        <div className="flex items-center space-x-2">
+                          {[...Array(totalProfessionalPages)].map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                setProfessionalPage(i + 1);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                              }}
+                              className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                                professionalPage === i + 1
+                                  ? 'bg-pink-500 text-white shadow-md'
+                                  : 'text-gray-500 hover:bg-gray-100'
+                              }`}
+                            >
+                              {i + 1}
+                            </button>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setProfessionalPage(p => Math.min(totalProfessionalPages, p + 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          disabled={professionalPage === totalProfessionalPages}
+                          className={`p-2 rounded-xl transition-all ${
+                            professionalPage === totalProfessionalPages 
+                              ? 'text-gray-300 cursor-not-allowed' 
+                              : 'text-brand-pink hover:bg-gray-100'
+                          }`}
+                        >
+                          <ChevronRight className="w-8 h-8" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      {hasProfessionalPermissionError ? (
+                        <ShieldCheck className="w-10 h-10 text-brand-pink" />
+                      ) : (
+                        <Search className="w-10 h-10 text-gray-400" />
+                      )}
+                    </div>
+                    {hasProfessionalPermissionError ? (
+                      <>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Error de Permisos</h3>
+                        <p className="text-gray-600 max-w-md mx-auto">No tienes permisos para ver la lista de profesionales. Por favor, contacta con el administrador para habilitar el acceso de clientes a los empleados.</p>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">No se encontraron profesionales</h3>
+                        <p className="text-gray-600">Prueba con otro nombre o especialidad.</p>
+                        <button 
+                          onClick={() => setProfessionalSearchTerm('')}
+                          className="mt-6 text-brand-indigo font-bold hover:underline"
+                        >
+                          Ver todos los profesionales
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  } else if (step === 3) {
+    stepContent = (
+      <section className="py-12 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-[1024px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
+          <ProgressHeader currentStep={step + (isAdminBooking ? 1 : 0)} isAdminBooking={isAdminBooking} isAsistente={isAsistente} />
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-white/50 p-6 rounded-3xl border border-white shadow-sm backdrop-blur-sm">
+            <div className="text-center md:text-left">
+              <h2 className="text-3xl font-black text-gray-800 mb-1 tracking-tight">
+                Selecciona Fecha y Hora
+              </h2>
+              <p className="text-base text-gray-600 font-medium">
+                Disponibilidad para <span className="font-bold text-brand-indigo">{selectedProfessional?.name}</span>
+              </p>
+            </div>
+
+            {!isAsistente && (
+              <button
+                onClick={() => setStep(2)}
+                className="flex items-center space-x-2 px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 hover:border-brand-periwinkle hover:text-brand-indigo transition-all shadow-sm group shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-brand-indigo transition-colors" />
+                <span>Cambiar Profesional</span>
+              </button>
+            )}
+            {isAsistente && (
+              <button
+                onClick={() => setStep(1)}
+                className="flex items-center space-x-2 px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 hover:border-brand-periwinkle hover:text-brand-indigo transition-all shadow-sm group shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-brand-indigo transition-colors" />
+                <span>Volver a Servicios</span>
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-10">
+            {/* Calendar Section - Redesigned to Day Selector + Time Slots */}
+            {isAsistente && (!selectedProfessional || !asistenteHasSchedule) ? (
+              <div className="col-span-full py-10 text-center bg-red-50 rounded-2xl border-2 border-dashed border-red-200">
+                <p className="text-red-600 font-bold uppercase tracking-widest text-sm">No tienes un horario asignado</p>
+              </div>
+            ) : (
+            <div className="w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+              {/* Calendar Header */}
+              <div className="p-8 border-b border-gray-100 bg-gradient-to-br from-white to-pink-50/20">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-14 h-14 bg-pink-500 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                      <Calendar className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h3 className="text-3xl font-black text-gray-800 capitalize leading-none mb-1">
+                        {currentWeek.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                      </h3>
+                      <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Agenda Semanal</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={goToToday}
+                      className="px-6 py-2 bg-white border-2 border-brand-periwinkle text-brand-indigo rounded-xl font-bold hover:bg-gray-100 transition-all shadow-sm"
+                    >
+                      Hoy
+                    </button>
+                    <div className="flex items-center space-x-2 bg-gray-100/50 p-1.5 rounded-2xl">
+                      <button
+                        onClick={goToPreviousWeek}
+                        className="p-3 text-gray-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                      >
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                      <button
+                        onClick={goToNextWeek}
+                        className="p-3 text-gray-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                      >
+                        <ChevronRight className="w-6 h-6" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date Selector (Horizontal bubbles) */}
+                <div className="grid grid-cols-7 gap-3">
+                  {weekDates.map((date, index) => {
+                    const dateString = formatDateToYYYYMMDD(date);
+                    const isActive = selectedDate === dateString;
+                    const isToday = date.toDateString() === new Date().toDateString();
+                    const isPast = date < new Date(new Date().setHours(0, 0, 0, 0));
+                    const worksToday = selectedProfessional ? professionalWorksOn(selectedProfessional.id, parseLocalDate(dateString)) : true;
+                    const isDisabled = isPast || !worksToday;
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => !isDisabled && setSelectedDate(dateString)}
+                        disabled={isDisabled}
+                        className={`group relative p-4 text-center rounded-2xl transition-all duration-300 ${
+                          isDisabled 
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-transparent' 
+                            : isActive 
+                              ? 'bg-pink-500 text-white shadow-xl scale-110 z-10 cursor-pointer' 
+                              : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-brand-indigo cursor-pointer'
+                        }`}
+                      >
+                        <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-brand-pink'}`}>
+                          {date.toLocaleDateString('es-ES', { weekday: 'short' })}
+                        </div>
+                        <div className="text-2xl font-black">
+                          {date.getDate()}
+                        </div>
+                        {isToday && !isActive && (
+                          <div className="absolute top-2 right-2 w-2 h-2 bg-pink-500 rounded-full ring-4 ring-pink-100"></div>
+                        )}
+                        {isActive && (
+                          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1 bg-white rounded-full"></div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Time Slots Area for Selected Day */}
+              <div className="p-8 bg-gray-50/30">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h4 className="text-xl font-black text-gray-800 flex items-center">
+                      <Clock className="w-6 h-6 text-brand-pink mr-2" />
+                      Horarios para el {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </h4>
+                    <p className="text-gray-500 text-sm font-semibold">Selecciona la hora de inicio de tu cita</p>
+                  </div>
+                  <div className="hidden sm:flex items-center space-x-6 text-xs font-bold uppercase tracking-widest">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-white border-2 border-gray-200 rounded-sm"></div>
+                      <span className="text-gray-400">Disponible</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-gray-200 rounded-sm"></div>
+                      <span className="text-gray-400">Ocupado</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {(() => {
+                    console.log('Rendering time slots:', { selectedDate, selectedProfessional, totalDuration: getTotalDuration() });
+                    const currentSlots = selectedProfessional 
+                      ? getTimeSlotsForDate(selectedProfessional.id, parseLocalDate(selectedDate))
+                      : defaultTimeSlots;
+
+                    if (currentSlots.length === 0) {
+                      return (
+                        <div className="col-span-full py-10 text-center bg-white rounded-2xl border-2 border-dashed border-gray-100">
+                          <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No hay horarios disponibles para este día</p>
+                        </div>
+                      );
+                    }
+
+                    return currentSlots.map((time) => {
+                      const isToday = selectedDate === formatDateToYYYYMMDD(new Date());
+                      let isPastTime = false;
+                      
+                      if (isToday) {
+                        const [h, m] = time.split(':').map(Number);
+                        const now = new Date();
+                        if (h < now.getHours() || (h === now.getHours() && m <= now.getMinutes())) {
+                          isPastTime = true;
+                        }
+                      }
+
+                      const appointment = getAppointmentForSlot(selectedDate, time, selectedProfessional.id);
+                      const absence = getAbsenceForSlot(selectedDate, time, selectedProfessional.id);
+                      const isAvailable = !isPastTime && !appointment && !absence && isTimeSlotAvailable(selectedDate, time, selectedProfessional.id, getTotalDuration());
+
+                      return (
+                        <div key={time} className="relative group">
+                          {appointment ? (
+                            <div className="w-full h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 text-[10px] font-black uppercase cursor-not-allowed border border-dashed border-gray-200 opacity-60">
+                              Reservado
+                            </div>
+                          ) : absence ? (
+                            <div className="w-full h-16 bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-red-400 border-2 border-red-100 cursor-not-allowed opacity-60">
+                              <span className="text-lg font-black">{formatTo12Hour(time)}</span>
+                              <span className="text-[9px] font-black uppercase tracking-tighter">Ausente</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => isAvailable && handleTimeSlotClick(selectedDate, time)}
+                              disabled={!isAvailable}
+                              className={`w-full h-16 rounded-2xl text-lg font-black transition-all flex flex-col items-center justify-center border-2 ${
+                                isAvailable
+                                  ? 'bg-white border-gray-200 text-brand-indigo hover:border-pink-500 hover:bg-gray-100 hover:shadow-lg hover:-translate-y-1'
+                                  : 'bg-gray-100/50 text-gray-300 border-transparent cursor-not-allowed opacity-40'
+                              }`}
+                            >
+                              <span>{formatTo12Hour(time)}</span>
+                              {isAvailable ? (
+                                <span className="text-[9px] font-black opacity-60 uppercase tracking-tighter">Libre</span>
+                              ) : (
+                                <span className="text-[9px] font-black opacity-60 uppercase tracking-tighter">No disponible</span>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            </div>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  } else if (step === 4) {
+    stepContent = (
+      <section className="py-20 bg-gradient-to-br from-pink-50/30 to-purple-50/30 min-h-screen">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* X button to close */}
+          {onBack && (
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onBack}
+                className="w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
+          
+          <div className="bg-white rounded-3xl shadow-xl p-8 text-center animate-in zoom-in duration-500">
+            <div className="w-24 h-24 bg-gradient-to-r from-green-400 to-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-8 rotate-3 shadow-lg">
+              <CheckCircle className="w-14 h-14 text-white -rotate-3" />
+            </div>
+
+            <h2 className="text-4xl font-black text-gray-800 mb-4">
+              {appointmentToReschedule ? '¡Cita Reprogramada!' : '¡Todo Listo!'}
+            </h2>
+
+            <p className="text-xl text-gray-600 mb-10">
+              {appointmentToReschedule 
+                ? 'Tu cita ha sido actualizada con éxito. ' 
+                : 'Tu cita ha sido agendada con éxito. '}
+              <br/>
+              <span className="text-brand-pink font-bold">¡Te esperamos pronto!</span>
+            </p>
+
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-8 mb-10 text-left border border-gray-200/50">
+              <h4 className="font-black text-gray-800 mb-6 uppercase tracking-widest text-sm">Resumen de la Cita</h4>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
+                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Profesional</span>
+                  <span className="font-black text-gray-800">{selectedProfessional?.name}</span>
+                </div>
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
+                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Fecha</span>
+                  <span className="font-black text-gray-800 capitalize">
+                    {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', {
+                      weekday: 'long',
+                      day: 'numeric',
+                      month: 'long'
+                    })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
+                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Hora</span>
+                  <span className="font-black text-brand-indigo text-xl">{formatTo12Hour(selectedTime)}</span>
+                </div>
+                <div className="py-2">
+                  <span className="text-brand-indigo font-black text-[10px] uppercase tracking-widest mb-3 block">Servicios Agendados</span>
+                  <div className="space-y-2">
+                    {selectedServices.map(s => (
+                      <div key={s.id} className="flex justify-between items-center bg-white/50 p-2 rounded-xl border border-gray-200/30">
+                        <span className="text-sm font-bold text-gray-800">{s.name}</span>
+                        <span className="text-xs font-black text-brand-indigo">${s.price.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200 mt-2">
+                  <span className="text-brand-indigo font-black uppercase tracking-tighter">Total Pagado</span>
+                  <span className="font-black text-gray-900 text-3xl">${getTotalPrice().toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+              <button
+                onClick={resetBooking}
+                className="flex-1 bg-gradient-brand text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:shadow-2xl hover:scale-[1.02] transition-all"
+              >
+                Nueva Cita
+              </button>
+              {onBack && (
+                <button
+                  onClick={onBack}
+                  className="flex-1 border-2 border-gray-100 text-gray-500 px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-50 transition-all"
+                >
+                  Mis Citas
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  } else {
+    stepContent = null;
+  }
+
+  return (
+    <>
+      {stepContent}
+      {/* Booking Confirmation Modal */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all duration-500 ease-out animate-in fade-in zoom-in-95 slide-in-from-bottom-10">
+            <div className="bg-gradient-brand p-8 text-white">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-2xl font-bold">Confirmar Cita</h3>
+                <button
+                  onClick={() => !isBooking && setShowBookingModal(false)}
+                  className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-pink-100 text-sm">Verifica los detalles antes de confirmar</p>
+            </div>
+
+            <div className="p-8 flex-1 overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+                <div className="flex items-start space-x-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                  <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-brand-indigo" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fecha y Hora</p>
+                    <p className="font-bold text-gray-800 capitalize leading-tight">
+                      {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long'
+                      })}
+                    </p>
+                    <p className="text-brand-indigo font-black text-lg mt-0.5">a las {selectedTime}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                  <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                    <User className="w-5 h-5 text-brand-indigo" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Profesional</p>
+                    <p className="font-bold text-gray-800 text-base">{selectedProfessional?.name}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                  <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
+                    <ShoppingBag className="w-5 h-5 text-brand-indigo" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Método de Pago</p>
+                    <p className="font-bold text-gray-800 text-base">{selectedMetodoPago?.nombre || 'No seleccionado'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-100">
+                    <p className="text-[10px] font-black text-brand-indigo uppercase tracking-widest mb-4">Servicios a Realizar</p>
+                    <div className="space-y-3">
+                      {selectedServices.map((service) => (
+                        <div key={service.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-50 shadow-sm">
+                          <span className="text-sm font-bold text-gray-800">{service.name}</span>
+                          <span className="text-sm font-black text-brand-indigo">${service.price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                      <div className="pt-4 border-t-2 border-dashed border-gray-200 flex justify-between items-center mt-4">
+                        <span className="font-black text-brand-indigo uppercase tracking-tighter">Total</span>
+                        <span className="font-black text-brand-indigo text-3xl">${getTotalPrice().toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+              <div className="flex space-x-3 mt-8">
+                <button
+                  onClick={() => setShowBookingModal(false)}
+                  disabled={isBooking}
+                  className="flex-1 px-4 py-4 border-2 border-gray-100 text-gray-500 rounded-2xl font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleBookingConfirm}
+                  disabled={isBooking}
+                  className="flex-1 bg-gradient-brand text-white px-4 py-4 rounded-2xl font-bold hover:shadow-xl transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                >
+                  {isBooking ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Agendando...</span>
+                    </>
+                  ) : (
+                    <span>Confirmar Cita</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Schedule Modal */}
+      {showNoScheduleModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-500 ease-out animate-in fade-in zoom-in-95 slide-in-from-bottom-10">
+            <div className="p-8">
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertCircle className="w-10 h-10 text-red-600" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 text-center mb-4">No puedes agendar citas</h3>
+              <p className="text-gray-600 text-center mb-8">
+                No tienes un horario asignado. Por favor, contacta al administrador para que configure tu horario.
+              </p>
+              <div className="flex justify-center">
+                {onBack ? (
+                  <button 
+                    onClick={onBack}
+                    className="px-8 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors"
+                  >
+                    Volver
+                  </button>
+                ) : (
+                  <button 
+                    onClick={() => setShowNoScheduleModal(false)}
+                    className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition-colors"
+                  >
+                    Cerrar
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 // Custom Client Search and Select Component

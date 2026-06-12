@@ -226,8 +226,14 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
       try {
         showSectionLoading("Actualizando datos...");
         const userId = selectedUser.usuarioId;
+        
+        // Check if user is super admin (rolId 4 or role name includes "super")
+        const isSuperAdmin = 
+          selectedUser.rolId === 4 || 
+          (selectedUser.rol?.nombre || '').toLowerCase().includes('super');
+        
         const updatePayload = {
-          rolId: userData.rolId,
+          rolId: isSuperAdmin ? 4 : userData.rolId, // Preserve super admin role
           email: userData.email,
           estado: userData.estado !== undefined ? userData.estado : selectedUser.estado,
           documento: userData.documento,

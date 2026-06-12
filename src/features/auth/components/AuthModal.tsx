@@ -37,7 +37,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   const [resetToken, setResetToken] = useState('');
 
   const [formData, setFormData] = useState({
-    documentType: 'cedula',
+    documentType: 'CC',
     firstName: '',
     lastName: '',
     userDocument: '',
@@ -856,6 +856,18 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           placeholder="3001234567"
                         />
                         {fieldErrors.phone && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.phone}</p>}
+                      </div>
+                      <div className="col-span-2">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Dirección de Residencia</label>
+                        <input
+                          type="text"
+                          name="address"
+                          value={formData.address}
+                          onChange={handleInputChange}
+                          maxLength={100}
+                          className="w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium border-gray-100"
+                          placeholder="Calle 10 #20-30"
+                        />
                       </div>
                     </div>
                   </div>

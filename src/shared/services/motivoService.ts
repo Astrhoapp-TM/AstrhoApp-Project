@@ -19,6 +19,14 @@ export interface CreateMotivoData {
   descripcion: string;
 }
 
+export interface CreateAdminMotivoData {
+  documentoEmpleado: string;
+  fecha: string;
+  horaInicio: string;
+  horaFin: string;
+  descripcion: string;
+}
+
 export interface UpdateMotivoData {
   fecha?: string;
   horaInicio?: string;
@@ -39,6 +47,10 @@ export const motivoService = {
 
   async create(data: CreateMotivoData): Promise<Motivo> {
     return apiClient.post("/api/Motivo", data);
+  },
+
+  async createAdmin(data: CreateAdminMotivoData): Promise<Motivo> {
+    return apiClient.post("/api/Motivo/admin", data);
   },
 
   async update(id: number, data: UpdateMotivoData): Promise<Motivo | null> {

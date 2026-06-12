@@ -14,7 +14,7 @@ import {
 } from '../services/scheduleService';
 import { useLoading } from '@/shared/contexts/LoadingContext';
 import { SectionLoader } from '@/shared/components/GlobalLoader';
-import { motivoService, type Motivo, type CreateMotivoData, type UpdateMotivoData } from '@/shared/services/motivoService';
+import { motivoService, type Motivo, type CreateMotivoData, type UpdateMotivoData, type CreateAdminMotivoData } from '@/shared/services/motivoService';
 
 interface ScheduleManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -123,15 +123,29 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       setHorarioEmpleados(extractArray(asignacionesData));
       setEmpleados(extractArray(empleadosData));
 
-      // Process motivos to map estadoId to estado text
+      // Process motivos to map estadoId to estado text and include employee name
       const rawMotivos = extractArray(motivosData);
-      const processedMotivos = rawMotivos.map((motivo: any) => ({
-        ...motivo,
-        estado: motivo.estadoId === 1 ? 'pendiente' :
-                motivo.estadoId === 6 ? 'aprobado' :
-                motivo.estadoId === 7 ? 'rechazado' :
-                motivo.estado || 'pendiente'
-      }));
+      const empleadosList = extractArray(empleadosData); // Extract empleados array
+      const processedMotivos = rawMotivos.map((motivo: any) => {
+        // Find employee by documentoEmpleado
+        const matchingEmpleado = empleadosList.find(
+          (e: any) => String(e.documentoEmpleado) === String(motivo.documentoEmpleado) ||
+                      String(e.documento) === String(motivo.documentoEmpleado)
+        );
+        
+        return {
+          ...motivo,
+          nombreEmpleado: motivo.nombreEmpleado || matchingEmpleado?.nombre || 'Empleado sin nombre',
+          estado: motivo.estadoId === 1 ? 'pendiente' :
+                  motivo.estadoId === 6 ? 'aprobado' :
+                  motivo.estadoId === 7 ? 'rechazado' :
+                  motivo.estado || 'pendiente'
+        };
+      });
+      
+      // Order motivos from most recent to oldest
+      processedMotivos.sort((a: any, b: any) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+      
       console.log('Processed motivos:', processedMotivos); // Debug log
       setMotivos(processedMotivos);
 
@@ -267,11 +281,15 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
     }
   };
 
-  const handleSaveMotivo = async (data: CreateMotivoData) => {
+  const handleSaveMotivo = async (data: CreateMotivoData | CreateAdminMotivoData) => {
     setSaving(true);
     showSectionLoading("Registrando motivo...");
     try {
-      await motivoService.create(data);
+      if ('documentoEmpleado' in data && data.documentoEmpleado) {
+        await motivoService.createAdmin(data);
+      } else {
+        await motivoService.create(data);
+      }
       showAlert('success', 'Motivo registrado. Se han cancelado las citas del periodo y notificado a los empleados.');
       setShowMotivoModal(false);
       await loadData();
@@ -1075,6 +1093,8 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
           onClose={() => setShowMotivoModal(false)}
           onSave={handleSaveMotivo}
           saving={saving}
+          isAdmin={isAdmin}
+          empleados={empleados}
         />
       )}
 
@@ -1317,15 +1337,18 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
 
 interface MotivoModalProps {
   onClose: () => void;
-  onSave: (data: CreateMotivoData) => void;
+  onSave: (data: CreateMotivoData | CreateAdminMotivoData) => void;
   saving: boolean;
+  isAdmin: boolean;
+  empleados: Empleado[];
 }
 
-function MotivoModal({ onClose, onSave, saving }: MotivoModalProps) {
+function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModalProps) {
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [horaInicio, setHoraInicio] = useState('08:00');
   const [horaFin, setHoraFin] = useState('18:00');
   const [descripcion, setDescripcion] = useState('');
+  const [selectedEmpleado, setSelectedEmpleado] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1334,6 +1357,11 @@ function MotivoModal({ onClose, onSave, saving }: MotivoModalProps) {
 
     if (!fecha || !horaInicio || !horaFin || !descripcion.trim()) {
       setError('Todos los campos son obligatorios');
+      return;
+    }
+
+    if (isAdmin && !selectedEmpleado) {
+      setError('Debes seleccionar un empleado');
       return;
     }
 
@@ -1357,12 +1385,22 @@ function MotivoModal({ onClose, onSave, saving }: MotivoModalProps) {
       return `${timeStr}:00:00`.substring(0, 8);
     };
 
-    onSave({
-      fecha,
-      horaInicio: formatTimeWithSeconds(horaInicio),
-      horaFin: formatTimeWithSeconds(horaFin),
-      descripcion: descripcion.trim()
-    });
+    if (isAdmin && selectedEmpleado) {
+      onSave({
+        documentoEmpleado: selectedEmpleado,
+        fecha,
+        horaInicio: formatTimeWithSeconds(horaInicio),
+        horaFin: formatTimeWithSeconds(horaFin),
+        descripcion: descripcion.trim()
+      });
+    } else {
+      onSave({
+        fecha,
+        horaInicio: formatTimeWithSeconds(horaInicio),
+        horaFin: formatTimeWithSeconds(horaFin),
+        descripcion: descripcion.trim()
+      });
+    }
   };
 
   return (
@@ -1391,6 +1429,25 @@ function MotivoModal({ onClose, onSave, saving }: MotivoModalProps) {
             <div className="bg-gray-50 border border-red-100 text-brand-pink px-4 py-2 rounded-xl text-sm font-medium flex items-center space-x-2">
               <AlertCircle className="w-4 h-4" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {isAdmin && (
+            <div>
+              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Empleado</label>
+              <select
+                value={selectedEmpleado}
+                onChange={(e) => setSelectedEmpleado(e.target.value)}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium"
+                required
+              >
+                <option value="">Selecciona un empleado</option>
+                {empleados.map((empleado) => (
+                  <option key={empleado.documentoEmpleado} value={empleado.documentoEmpleado}>
+                    {empleado.nombre}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 

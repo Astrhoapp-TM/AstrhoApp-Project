@@ -125,9 +125,26 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
       const isClient = personData.type === 'Cliente';
 
       // 1. Update User (Email and other basics if needed)
+      // Determine correct rolId: prioritize user.rolId, then use role name
+      let rolIdToUse = user.rolId;
+      if (!rolIdToUse) {
+        const roleName = (user.role || user.rol?.nombre || '').toLowerCase();
+        if (roleName.includes('super')) {
+          rolIdToUse = 4;
+        } else if (roleName.includes('admin')) {
+          rolIdToUse = 1;
+        } else if (roleName.includes('asistente')) {
+          rolIdToUse = 3;
+        } else if (roleName.includes('cliente') || roleName.includes('customer')) {
+          rolIdToUse = 2;
+        } else {
+          rolIdToUse = user.role === 'customer' ? 2 : 1;
+        }
+      }
+
       const userUpdatePayload = {
         email: userForm.email,
-        rolId: user.rolId || (user.role === 'customer' ? 2 : 1),
+        rolId: rolIdToUse,
         estado: true,
       };
 

@@ -221,7 +221,9 @@ export const authService = {
             usuarioId: usuarioId,
             tipoDocumento: data.documentType || 'CC',
             nombre: `${data.firstName} ${data.lastName}`.trim(),
-            telefono: data.phone
+            telefono: data.phone,
+            direccionCliente: data.address || '',
+            direccion: data.address || ''
         };
 
         try {

@@ -28,6 +28,35 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [codeError, setCodeError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [newPasswordErrors, setNewPasswordErrors] = useState<{ password?: string; confirm?: string }>({});
+
+  // Validate temp/reset password fields
+  const validateNewPasswords = (pwd: string, confirm: string) => {
+    const errors: { password?: string; confirm?: string } = {};
+    
+    if (pwd) {
+      if (pwd.length < 7) {
+        errors.password = 'La contraseña debe tener al menos 7 caracteres';
+      } else if (pwd.length > 15) {
+        errors.password = 'La contraseña no puede superar 15 caracteres';
+      } else if (!/[A-Z]/.test(pwd)) {
+        errors.password = 'La contraseña debe contener al menos una letra mayúscula';
+      } else if ((pwd.match(/\d/g) || []).length < 2) {
+        errors.password = 'La contraseña debe contener al menos 2 números';
+      }
+    }
+
+    if (confirm && pwd !== confirm) {
+      errors.confirm = 'Las contraseñas no coinciden';
+    }
+
+    setNewPasswordErrors(errors);
+  };
+
+  // Real-time validation for newPassword and confirmNewPassword
+  useEffect(() => {
+    validateNewPasswords(newPassword, confirmNewPassword);
+  }, [newPassword, confirmNewPassword]);
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
   const { showLoading, hideLoading } = useLoading();
@@ -109,8 +138,10 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
         return '';
       case 'password':
         if (!value) return 'La contraseña es obligatoria';
-        if (value.length < 6) return 'La contraseña debe tener entre 6 y 15 caracteres';
-        if (value.length > 15) return 'La contraseña debe tener entre 6 y 15 caracteres';
+        if (value.length < 7) return 'La contraseña debe tener entre 7 y 15 caracteres';
+        if (value.length > 15) return 'La contraseña debe tener entre 7 y 15 caracteres';
+        if (!/[A-Z]/.test(value)) return 'La contraseña debe contener al menos una letra mayúscula';
+        if ((value.match(/\d/g) || []).length < 2) return 'La contraseña debe contener al menos 2 números';
         return '';
       case 'confirmPassword':
         if (!value) return 'Confirmar la contraseña es obligatorio';
@@ -224,8 +255,16 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   // ── CHANGE TEMP PASSWORD ──
   const handleChangeTempPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 6) {
-      setPasswordError('La contraseña debe tener al menos 6 caracteres');
+    
+    // Re-validate to make sure we have the latest errors
+    validateNewPasswords(newPassword, confirmNewPassword);
+    
+    // Check if there are any errors
+    if (Object.keys(newPasswordErrors).length > 0 || !newPassword) {
+      if (!newPassword) {
+        setPasswordError('La contraseña es obligatoria');
+      }
+      setLoading(false);
       return;
     }
 
@@ -343,15 +382,25 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
       sanitized = value.slice(0, 15);
     }
 
-    // Real-time validation
-    const error = validateField(name, sanitized);
-    setFieldErrors(prev => ({ ...prev, [name]: error }));
-
-    // Update form data
-    setFormData({
+    // Update form data first so we have the latest values
+    const newFormData = {
       ...formData,
       [name]: sanitized
-    });
+    };
+    setFormData(newFormData);
+
+    // Real-time validation
+    const errors = { ...fieldErrors };
+    
+    // Validate current field
+    errors[name] = validateField(name, sanitized);
+    
+    // If password changed and confirmPassword is not empty, re-validate confirmPassword
+    if (name === 'password' && newFormData.confirmPassword) {
+      errors.confirmPassword = validateField('confirmPassword', newFormData.confirmPassword);
+    }
+    
+    setFieldErrors(errors);
 
     setApiError(''); // Clear error on input change
   };
@@ -419,12 +468,18 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (newPassword !== confirmNewPassword) {
-      setPasswordError('Las contraseñas no coinciden');
-      return;
-    }
-    if (newPassword.length < 6) {
-      setPasswordError('La contraseña debe tener al menos 6 caracteres');
+    // Re-validate to make sure we have the latest errors
+    validateNewPasswords(newPassword, confirmNewPassword);
+    
+    // Check if there are any errors
+    if (Object.keys(newPasswordErrors).length > 0 || !newPassword || !confirmNewPassword) {
+      if (!newPassword) {
+        setPasswordError('La contraseña es obligatoria');
+      }
+      if (!confirmNewPassword) {
+        setNewPasswordErrors(prev => ({ ...prev, confirm: 'Debe confirmar la contraseña' }));
+      }
+      setLoading(false);
       return;
     }
 
@@ -471,6 +526,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
     setConfirmNewPassword('');
     setCodeError('');
     setPasswordError('');
+    setNewPasswordErrors({});
     setApiError('');
     setRecoveryToken('');
     setResetToken('');
@@ -706,6 +762,9 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                         {showResetPasswordVisible || showTempPasswordVisible ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
+                    {newPasswordErrors.password && (
+                      <p className="text-[10px] text-brand-pink font-bold mt-2">{newPasswordErrors.password}</p>
+                    )}
                   </div>
 
                   {showResetPasswordForm && (
@@ -722,6 +781,9 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           placeholder="••••••••"
                         />
                       </div>
+                      {newPasswordErrors.confirm && (
+                        <p className="text-[10px] text-brand-pink font-bold mt-2">{newPasswordErrors.confirm}</p>
+                      )}
                     </div>
                   )}
                 </div>

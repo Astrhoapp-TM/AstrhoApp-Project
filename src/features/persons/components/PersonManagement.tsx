@@ -744,7 +744,7 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                                 </span>
                             </div>
                             <h4 className="text-2xl font-bold text-gray-800 mb-1">{person.name}</h4>
-                            <p className="text-gray-500 text-sm mb-4">{person.documentType || 'CC'}: {person.documentId}</p>
+                            <p className="text-gray-500 text-sm mb-4">{person.documentType || 'CC'}: {person.userDocument || person.documentId || 'N/A'}</p>
                             <div className="flex justify-center">
                                 
                             </div>

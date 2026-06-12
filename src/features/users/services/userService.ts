@@ -123,35 +123,17 @@ export const userService = {
             const targetId = Number(userId);
             console.log('🔍 [getPersonForUser] targetId:', targetId);
 
-            // 1. Try to find the document ID from the user object if present
-            const documentId = user.documentoCliente || user.documentoEmpleado || user.documento || user.documentoIdentidad || user.documentId;
-            console.log('🔍 [getPersonForUser] documentId from user:', documentId);
-
-            if (documentId) {
-                try {
-                    const endpoint = isClient ? `/api/Clientes/${documentId}` : `/api/Empleados/${documentId}`;
-                    console.log('🔍 [getPersonForUser] Trying direct fetch to:', endpoint);
-                    const data = await apiClient.get<any>(endpoint);
-                    console.log('🔍 [getPersonForUser] Direct fetch response:', data);
-                    
-                    if (data && (data.documentoCliente || data.documentoEmpleado || data.nombre)) {
-                        console.log('✅ [getPersonForUser] Direct fetch successful, returning data');
-                        return {
-                            documentId: isClient ? (data.documentoCliente || documentId) : (data.documentoEmpleado || documentId),
-                            documentType: data.tipoDocumento || 'CC',
-                            name: data.nombre || (isClient ? 'Cliente' : 'Empleado'),
-                            phone: data.telefono || '',
-                            address: data.dirección || data.direccion || '',
-                            type: isClient ? 'client' : 'employee'
-                        };
-                    }
-                } catch (e) {
-                    console.warn(`⚠️ [getPersonForUser] Direct fetch failed for ${documentId}`, e);
+            // Helper function to get address from data
+            const getAddress = (data: any, type: 'client' | 'employee') => {
+                const common = data.direccion || data.address || data.Direccion || data['dirección'] || data['Dirección'] || '';
+                if (type === 'client') {
+                    return data.direccionCliente || data.direccion_cliente || data['direcciónCliente'] || common;
+                } else {
+                    return data.direccionEmpleado || data.direccion_empleado || data['direcciónEmpleado'] || common;
                 }
-            }
+            };
 
-            // 2. Exhaustive Fallback: Search by usuarioId in the corresponding table
-            // Search in the table that SHOULD contain the user
+            // 1. First priority: Search by usuarioId in the corresponding table
             if (isClient) {
                 console.log('🔍 [getPersonForUser] Searching in /api/Clientes by usuarioId');
                 // Search in /Clientes
@@ -164,13 +146,15 @@ export const userService = {
                 console.log('🔍 [getPersonForUser] Found client:', client);
                 
                 if (client) {
-                    console.log('✅ [getPersonForUser] Found client, returning data');
+                    console.log('✅ [getPersonForUser] Found client, client keys:', Object.keys(client));
+                    const address = getAddress(client, 'client');
+                    console.log('✅ [getPersonForUser] Client address:', address);
                     return {
                         documentId: client.documentoCliente,
                         documentType: client.tipoDocumento || 'CC',
                         name: client.nombre || 'Cliente',
                         phone: client.telefono || '',
-                        address: client.dirección || client.direccion || '',
+                        address: address,
                         type: 'client'
                     };
                 }
@@ -186,20 +170,22 @@ export const userService = {
                 console.log('🔍 [getPersonForUser] Found employee:', employee);
                 
                 if (employee) {
-                    console.log('✅ [getPersonForUser] Found employee, returning data');
+                    console.log('✅ [getPersonForUser] Found employee, employee keys:', Object.keys(employee));
+                    const address = getAddress(employee, 'employee');
+                    console.log('✅ [getPersonForUser] Employee address:', address);
                     return {
                         documentId: employee.documentoEmpleado,
                         documentType: employee.tipoDocumento || 'CC',
                         name: employee.nombre || 'Empleado',
                         phone: employee.telefono || '',
-                        address: employee.dirección || employee.direccion || '',
+                        address: address,
                         type: 'employee'
                     };
                 }
             }
 
-            // 3. Final Fallback: Cross-search in BOTH tables just in case
-            console.log('🔍 [getPersonForUser] Final fallback: searching both tables');
+            // 2. Cross-search in BOTH tables just in case
+            console.log('🔍 [getPersonForUser] Cross-searching both tables');
             const [allClients, allEmployees] = await Promise.all([
                 apiClient.getAllPages<any>('/api/Clientes').catch(() => []),
                 apiClient.getAllPages<any>('/api/Empleados').catch(() => [])
@@ -208,13 +194,15 @@ export const userService = {
             const foundClient = allClients.find((x: any) => Number(x.usuarioId) === targetId);
             console.log('🔍 [getPersonForUser] Cross-search found client:', foundClient);
             if (foundClient) {
-                console.log('✅ [getPersonForUser] Cross-search found client, returning data');
+                console.log('✅ [getPersonForUser] Cross-search found client, client keys:', Object.keys(foundClient));
+                const address = getAddress(foundClient, 'client');
+                console.log('✅ [getPersonForUser] Cross-search client address:', address);
                 return {
                     documentId: foundClient.documentoCliente,
                     documentType: foundClient.tipoDocumento || 'CC',
                     name: foundClient.nombre || 'Cliente',
                     phone: foundClient.telefono || '',
-                    address: foundClient.dirección || foundClient.direccion || '',
+                    address: address,
                     type: 'client'
                 };
             }
@@ -222,13 +210,15 @@ export const userService = {
             const foundEmployee = allEmployees.find((x: any) => Number(x.usuarioId) === targetId);
             console.log('🔍 [getPersonForUser] Cross-search found employee:', foundEmployee);
             if (foundEmployee) {
-                console.log('✅ [getPersonForUser] Cross-search found employee, returning data');
+                console.log('✅ [getPersonForUser] Cross-search found employee, employee keys:', Object.keys(foundEmployee));
+                const address = getAddress(foundEmployee, 'employee');
+                console.log('✅ [getPersonForUser] Cross-search employee address:', address);
                 return {
                     documentId: foundEmployee.documentoEmpleado,
                     documentType: foundEmployee.tipoDocumento || 'CC',
                     name: foundEmployee.nombre || 'Empleado',
                     phone: foundEmployee.telefono || '',
-                    address: foundEmployee.dirección || foundEmployee.direccion || '',
+                    address: address,
                     type: 'employee'
                 };
             }

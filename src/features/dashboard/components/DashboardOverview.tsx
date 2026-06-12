@@ -185,6 +185,14 @@ const HOUR_MAP: Record<string, string> = {
   "23": "7pm",
 };
 
+function getAppointmentRevenue(apt: AgendaItem, servicesMap: Map<string, Service>): number {
+  if (apt.estado.toLowerCase() !== "completado") return 0;
+  return apt.servicios.reduce((sum, sName) => {
+    const service = servicesMap.get(sName);
+    return sum + (service?.precio || 0);
+  }, 0);
+}
+
 function groupAgendaByHour(items: AgendaItem[]): ChartPoint[] {
   const map: Record<string, number> = {};
   HOUR_LABELS.forEach((h) => (map[h] = 0));
@@ -236,18 +244,25 @@ function groupAgendaByWeek(items: AgendaItem[]): ChartPoint[] {
     .map(([name, value]) => ({ name, value }));
 }
 
-function groupSalesByHour(items: SaleView[]): ChartPoint[] {
+function groupSalesByHour(items: SaleView[], agenda: AgendaItem[], servicesMap: Map<string, Service>): ChartPoint[] {
   const map: Record<string, number> = {};
   HOUR_LABELS.forEach((h) => (map[h] = 0));
+  // Add sales
   items.forEach((i) => {
     const h = (i.time || "").slice(0, 2);
     const label = HOUR_MAP[h];
     if (label) map[label] = (map[label] || 0) + i.total;
   });
+  // Add appointments
+  agenda.forEach((i) => {
+    const h = (i.horaInicio || "").slice(0, 2);
+    const label = HOUR_MAP[h];
+    if (label) map[label] = (map[label] || 0) + getAppointmentRevenue(i, servicesMap);
+  });
   return HOUR_LABELS.map((h) => ({ name: h, value: map[h] }));
 }
 
-function groupSalesByDay(items: SaleView[]): ChartPoint[] {
+function groupSalesByDay(items: SaleView[], agenda: AgendaItem[], servicesMap: Map<string, Service>): ChartPoint[] {
   const map: Record<string, number> = {
     Lun: 0,
     Mar: 0,
@@ -257,11 +272,19 @@ function groupSalesByDay(items: SaleView[]): ChartPoint[] {
     Sáb: 0,
     Dom: 0,
   };
+  // Add sales
   items.forEach((i) => {
     if (!i.date) return;
     const d = new Date(i.date + "T00:00:00");
     const label = DAY_NAMES[d.getDay()];
     if (label) map[label] = (map[label] || 0) + i.total;
+  });
+  // Add appointments
+  agenda.forEach((i) => {
+    if (!i.fechaCita) return;
+    const d = new Date(i.fechaCita + "T00:00:00");
+    const label = DAY_NAMES[d.getDay()];
+    if (label) map[label] = (map[label] || 0) + getAppointmentRevenue(i, servicesMap);
   });
   return ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => ({
     name: d,
@@ -269,7 +292,7 @@ function groupSalesByDay(items: SaleView[]): ChartPoint[] {
   }));
 }
 
-function groupSalesByWeek(sales: SaleView[]): ChartPoint[] {
+function groupSalesByWeek(sales: SaleView[], agenda: AgendaItem[], servicesMap: Map<string, Service>): ChartPoint[] {
   const map: Record<string, number> = {
     "Sem 1": 0,
     "Sem 2": 0,
@@ -277,6 +300,7 @@ function groupSalesByWeek(sales: SaleView[]): ChartPoint[] {
     "Sem 4": 0,
     "Sem 5": 0,
   };
+  // Add sales
   sales.forEach((s) => {
     if (!s.date) return;
     const day = new Date(s.date + "T00:00:00").getDate();
@@ -284,20 +308,36 @@ function groupSalesByWeek(sales: SaleView[]): ChartPoint[] {
     const label = `Sem ${week}`;
     if (map[label] !== undefined) map[label] += s.total;
   });
+  // Add appointments
+  agenda.forEach((i) => {
+    if (!i.fechaCita) return;
+    const day = new Date(i.fechaCita + "T00:00:00").getDate();
+    const week = Math.ceil(day / 7);
+    const label = `Sem ${week}`;
+    if (map[label] !== undefined) map[label] += getAppointmentRevenue(i, servicesMap);
+  });
   return Object.entries(map)
     .map(([name, value]) => ({ name, value }));
 }
 
 const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-function groupSalesByMonth(sales: SaleView[]): ChartPoint[] {
+function groupSalesByMonth(sales: SaleView[], agenda: AgendaItem[], servicesMap: Map<string, Service>): ChartPoint[] {
   const map: Record<string, number> = {};
   MONTH_NAMES.forEach((m) => (map[m] = 0));
+  // Add sales
   sales.forEach((s) => {
     if (!s.date) return;
     const monthIdx = new Date(s.date + "T00:00:00").getMonth();
     const label = MONTH_NAMES[monthIdx];
     if (label !== undefined) map[label] = (map[label] || 0) + s.total;
+  });
+  // Add appointments
+  agenda.forEach((i) => {
+    if (!i.fechaCita) return;
+    const monthIdx = new Date(i.fechaCita + "T00:00:00").getMonth();
+    const label = MONTH_NAMES[monthIdx];
+    if (label !== undefined) map[label] = (map[label] || 0) + getAppointmentRevenue(i, servicesMap);
   });
   return MONTH_NAMES.map((m) => ({ name: m, value: map[m] }));
 }
@@ -519,15 +559,20 @@ export function DashboardOverview({
 
   // ── Charts ──
 
+  // Get completed appointments for revenue
+  const filteredCompletedAppointments = filteredAgenda.filter(
+    (a) => a.estado.toLowerCase() === "completado"
+  );
+
   // Revenue chart
   const incomeChartData: ChartPoint[] =
     selectedPeriod === "today"
-      ? groupSalesByHour(filteredSales)
+      ? groupSalesByHour(filteredSales, filteredCompletedAppointments, servicesMap)
       : selectedPeriod === "week"
-        ? groupSalesByDay(filteredSales)
+        ? groupSalesByDay(filteredSales, filteredCompletedAppointments, servicesMap)
         : selectedPeriod === "month"
-          ? groupSalesByWeek(filteredSales)
-          : groupSalesByMonth(filteredSales);
+          ? groupSalesByWeek(filteredSales, filteredCompletedAppointments, servicesMap)
+          : groupSalesByMonth(filteredSales, filteredCompletedAppointments, servicesMap);
 
   // Appointments chart
   const appointmentsChartData: ChartPoint[] =
@@ -541,7 +586,12 @@ export function DashboardOverview({
 
   // ── Compute Stats ──
   const appointmentsCount = filteredAgenda.length;
-  const totalIncome = filteredSales.reduce((sum, s) => sum + (s.total || 0), 0);
+  const salesIncome = filteredSales.reduce((sum, s) => sum + (s.total || 0), 0);
+  const appointmentIncome = filteredCompletedAppointments.reduce(
+    (sum, apt) => sum + getAppointmentRevenue(apt, servicesMap),
+    0
+  );
+  const totalIncome = salesIncome + appointmentIncome;
 
   const uniqueClientIds = new Set(
     filteredAgenda.map((a) => a.documentoCliente).filter(Boolean),
@@ -610,11 +660,13 @@ export function DashboardOverview({
     })
     .slice(0, 5);
 
-  const servicioFreq: Record<string, { count: number }> = {};
+  const servicioFreq: Record<string, { count: number; revenue: number }> = {};
   completedAppointments.forEach((apt) => {
     apt.servicios.forEach((sName) => {
-      if (!servicioFreq[sName]) servicioFreq[sName] = { count: 0 };
+      if (!servicioFreq[sName]) servicioFreq[sName] = { count: 0, revenue: 0 };
       servicioFreq[sName].count += 1;
+      const service = servicesMap.get(sName);
+      servicioFreq[sName].revenue += service?.precio || 0;
     });
   });
 
@@ -626,7 +678,7 @@ export function DashboardOverview({
     .map(([name, data]) => ({
       name,
       count: data.count,
-      revenue: 0,
+      revenue: data.revenue,
       percentage: Math.round((data.count / totalServiceCount) * 100),
     }));
 

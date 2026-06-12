@@ -367,6 +367,7 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-4 text-left font-semibold text-gray-800">Fecha</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-800">Documento</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-800">Cliente</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-800">Servicios</th>
@@ -378,78 +379,83 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
             <tbody className="divide-y divide-gray-100">
               {paginatedSales.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-gray-600">
+                  <td colSpan={7} className="px-6 py-10 text-center text-gray-600">
                     No hay ventas para mostrar. Ajusta filtros o intenta nuevamente más tarde.
                   </td>
                 </tr>
               ) : (
-                paginatedSales.map((sale) => {
-                  return (
-                    <tr key={sale.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div className="text-gray-800">{sale.customerId || '---'}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-gray-800">{sale.customerName || 'Cliente'}</div>
-                      </td>
+                paginatedSales
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .map((sale) => {
+                    return (
+                      <tr key={sale.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <div className="text-gray-800">{sale.date}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-gray-800">{sale.customerId || '---'}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-gray-800">{sale.customerName || 'Cliente'}</div>
+                        </td>
 
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-1">
-                          <Scissors className="w-4 h-4 text-brand-pink" />
-                          <span className="text-sm font-bold text-gradient-brand">
-                            {sale.services?.length || 0} items
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-1">
+                            <Scissors className="w-4 h-4 text-brand-pink" />
+                            <span className="text-sm font-bold text-gradient-brand">
+                              {sale.services?.length || 0} items
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-green-600">
+                            ${(sale.total || 0).toLocaleString()}
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(sale.status)}`}>
+                            {getStatusLabel(sale.status)}
                           </span>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-6 py-4">
-                        <div className="font-bold text-green-600">
-                          ${(sale.total || 0).toLocaleString()}
-                        </div>
-                      </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleViewSale(sale)}
+                              className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                              title="Ver detalle"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
 
-                      <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(sale.status)}`}>
-                          {getStatusLabel(sale.status)}
-                        </span>
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleViewSale(sale)}
-                            className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                            title="Ver detalle"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-
-                          {hasPermission('manage_sales') && (
-                            <>
-                              <button
-                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                                title="Imprimir recibo"
-                                onClick={() => handlePrintReceipt(sale)}
-                              >
-                                <FileText className="w-4 h-4" />
-                              </button>
-
-                              {sale.status === 'completed' && (currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
+                            {hasPermission('manage_sales') && (
+                              <>
                                 <button
-                                  onClick={() => handleCancelSale(sale)}
-                                  className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                                  title="Anular venta"
+                                  className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                  title="Imprimir recibo"
+                                  onClick={() => handlePrintReceipt(sale)}
                                 >
-                                  <Ban className="w-4 h-4" />
+                                  <FileText className="w-4 h-4" />
                                 </button>
-                              )}
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+
+                                {sale.status === 'completed' && (currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && (
+                                  <button
+                                    onClick={() => handleCancelSale(sale)}
+                                    className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
+                                    title="Anular venta"
+                                  >
+                                    <Ban className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
               )}
             </tbody>
           </table>

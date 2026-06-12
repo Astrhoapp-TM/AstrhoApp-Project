@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/shared/services/apiClient';
 import { userService } from '@/features/users/services/userService';
+import { personService } from '@/features/persons/services/personService';
 
 interface UserProfileProps {
   user: any;
@@ -40,6 +41,34 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Validate password fields in real-time
+  const validatePasswords = (nueva: string, confirmar: string) => {
+    const errors: { nueva?: string; confirmar?: string } = {};
+    
+    if (nueva) {
+      if (nueva.length < 7) {
+        errors.nueva = 'La contraseña debe tener al menos 7 caracteres';
+      } else if (nueva.length > 15) {
+        errors.nueva = 'La contraseña no puede superar 15 caracteres';
+      } else if (!/[A-Z]/.test(nueva)) {
+        errors.nueva = 'La contraseña debe contener al menos una letra mayúscula';
+      } else if ((nueva.match(/\d/g) || []).length < 2) {
+        errors.nueva = 'La contraseña debe contener al menos 2 números';
+      }
+    }
+
+    if (confirmar && nueva !== confirmar) {
+      errors.confirmar = 'Las contraseñas no coinciden';
+    }
+
+    setPasswordErrors(errors);
+  };
+
+  // Trigger validation whenever password fields change
+  useEffect(() => {
+    validatePasswords(passwordForm.nuevaContrasena, passwordForm.confirmarContrasena);
+  }, [passwordForm.nuevaContrasena, passwordForm.confirmarContrasena]);
+
   useEffect(() => {
     if (user?.email) {
       setUserForm(prev => ({ ...prev, email: user.email }));
@@ -50,18 +79,45 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
     const fetchPersonData = async () => {
       try {
         setLoading(true);
+        console.log('🔵 UserProfile: user object:', user);
         const data = await userService.getPersonForUser(user);
+        console.log('🔵 UserProfile: data from getPersonForUser:', data);
 
-        if (data) {
+        let personDataToUse = data;
+
+        if (data && data.documentId && data.type) {
+          try {
+            console.log('🔵 UserProfile: trying to get person via personService with docId:', data.documentId, 'and type:', data.type);
+            const fullPerson = await personService.getPersonByDocument(data.documentId, data.type);
+            console.log('🔵 UserProfile: fullPerson from personService:', fullPerson);
+            personDataToUse = {
+              documentId: fullPerson.documentId,
+              documentType: fullPerson.documentType,
+              name: fullPerson.name,
+              phone: fullPerson.phone,
+              address: fullPerson.address,
+              type: data.type, // keep the type from getPersonForUser
+            };
+          } catch (err) {
+            console.warn('🔵 UserProfile: failed to get person via personService, using original data:', err);
+          }
+        }
+
+        if (personDataToUse) {
           setPersonData({
-            ...data,
-            type: data.type === 'client' ? 'Cliente' : 'Empleado'
+            ...personDataToUse,
+            type: personDataToUse.type === 'client' ? 'Cliente' : 'Empleado'
           });
 
           setPersonForm({
-            nombre: data.name || '',
-            telefono: data.phone || '',
-            direccion: data.address || '',
+            nombre: personDataToUse.name || '',
+            telefono: personDataToUse.phone || '',
+            direccion: personDataToUse.address || '',
+          });
+          console.log('🔵 UserProfile: personForm set to:', {
+            nombre: personDataToUse.name || '',
+            telefono: personDataToUse.phone || '',
+            direccion: personDataToUse.address || '',
           });
 
           // Also ensure userForm is updated if user object had missing info
@@ -88,6 +144,12 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!personData) {
+      setError("No se puede actualizar el perfil porque no se encontraron datos de la persona asociada.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSuccess(false);
@@ -95,28 +157,23 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
     // Password validation (only if user filled in at least one field)
     const hasPasswordInput = passwordForm.nuevaContrasena || passwordForm.confirmarContrasena;
     if (hasPasswordInput) {
-      const pwErrors: { nueva?: string; confirmar?: string } = {};
-
+      // Re-validate to make sure we have the latest errors
+      validatePasswords(passwordForm.nuevaContrasena, passwordForm.confirmarContrasena);
+      
+      const pwErrors = {};
+      
       if (!passwordForm.nuevaContrasena) {
         pwErrors.nueva = 'La nueva contraseña es obligatoria';
-      } else if (passwordForm.nuevaContrasena.length < 6) {
-        pwErrors.nueva = 'La contraseña debe tener al menos 6 caracteres';
-      } else if (passwordForm.nuevaContrasena.length > 15) {
-        pwErrors.nueva = 'La contraseña no puede superar 15 caracteres';
       }
-
       if (!passwordForm.confirmarContrasena) {
         pwErrors.confirmar = 'Debe confirmar la contraseña';
-      } else if (passwordForm.nuevaContrasena !== passwordForm.confirmarContrasena) {
-        pwErrors.confirmar = 'Las contraseñas no coinciden';
       }
-
-      if (Object.keys(pwErrors).length > 0) {
-        setPasswordErrors(pwErrors);
+      
+      if (Object.keys(pwErrors).length > 0 || Object.keys(passwordErrors).length > 0) {
+        setPasswordErrors({ ...passwordErrors, ...pwErrors });
         setSaving(false);
         return;
       }
-      setPasswordErrors({});
     }
 
     try {
@@ -158,7 +215,10 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
           tipoDocumento: personData.documentType,
           nombre: personForm.nombre,
           telefono: personForm.telefono,
+          direccion: personForm.direccion,
           dirección: personForm.direccion,
+          direccionCliente: personForm.direccion,
+          direcciónCliente: personForm.direccion,
         });
       } else {
         await apiClient.put(`/api/Empleados/${docId}`, {
@@ -167,7 +227,10 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
           tipoDocumento: personData.documentType,
           nombre: personForm.nombre,
           telefono: personForm.telefono,
+          direccion: personForm.direccion,
           dirección: personForm.direccion,
+          direccionEmpleado: personForm.direccion,
+          direcciónEmpleado: personForm.direccion,
         });
       }
 
@@ -308,12 +371,11 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                       </div>
                     </div>
                   </div>
-                  {personData && (
-                    <div className="text-right border-l border-gray-100 pl-4 shrink-0">
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Documento</p>
-                      <p className="font-bold text-gray-700 text-xs">{personData.documentType} {personData.documentId || 'N/A'}</p>
-                    </div>
-                  )}
+                  {/* Always show document, even if personData is null */}
+                  <div className="text-right border-l border-gray-100 pl-4 shrink-0">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Documento</p>
+                    <p className="font-bold text-gray-700 text-xs">{personData?.documentType || 'CC'} {user.documento || 'N/A'}</p>
+                  </div>
                 </div>
 
                 {/* Personal Information Card */}
@@ -450,7 +512,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                     <div className="pt-4 border-t border-gray-100 flex items-start space-x-2">
                       <Lock className="w-3.5 h-3.5 text-brand-pink shrink-0 mt-0.5" />
                       <p className="text-[10px] text-gray-400 italic">
-                        Cambio de contraseña (opcional): Deje los campos vacíos si solo desea actualizar sus datos personales. La contraseña debe tener entre 6 y 15 caracteres.
+                        Cambio de contraseña (opcional): Deje los campos vacíos si solo desea actualizar sus datos personales. La contraseña debe tener entre 7 y 15 caracteres, al menos una letra mayúscula y al menos 2 números.
                       </p>
                     </div>
                   </div>
@@ -473,7 +535,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
           <button
             type="submit"
             form="profile-form"
-            disabled={saving || loading}
+            disabled={saving || loading || !personData}
             className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand hover:opacity-90 shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest flex items-center space-x-2 disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}

@@ -52,31 +52,32 @@ function App() {
   }, [currentUser]);
 
   // Fetch full user person data when logged in
-  useEffect(() => {
-    const fetchFullUserData = async () => {
-      if (currentUser && !currentUser.documentId) {
-        try {
-          showLoading("Sincronizando tu perfil...");
-          const person = await userService.getPersonForUser(currentUser);
-          if (person && person.documentId) {
-            setCurrentUser(prev => ({
-              ...prev,
-              documentId: person.documentId,
-              name: person.name || prev.name,
-              firstName: person.name ? person.name.split(' ')[0] : prev.firstName,
-              lastName: person.name ? person.name.split(' ').slice(1).join(' ') : prev.lastName,
-              phone: person.phone || prev.phone
-            }));
-          }
-        } catch (error) {
-          console.error("Error fetching full user data in App:", error);
-        } finally {
-          hideLoading();
-        }
-      }
-    };
-    fetchFullUserData();
-  }, [currentUser, showLoading, hideLoading]);
+    useEffect(() => {
+        const fetchFullUserData = async () => {
+            if (currentUser && (!currentUser.documentId || !currentUser.documento)) {
+                try {
+                    showLoading("Sincronizando tu perfil...");
+                    const person = await userService.getPersonForUser(currentUser);
+                    const userDetail = await userService.getById(currentUser.usuarioId || currentUser.id);
+                    
+                    setCurrentUser(prev => ({
+                        ...prev,
+                        documentId: person?.documentId || prev.documentId,
+                        documento: userDetail?.documento || prev.documento,
+                        name: person?.name || prev.name,
+                        firstName: person?.name ? person.name.split(' ')[0] : prev.firstName,
+                        lastName: person?.name ? person.name.split(' ').slice(1).join(' ') : prev.lastName,
+                        phone: person?.phone || prev.phone
+                    }));
+                } catch (error) {
+                    console.error("Error fetching full user data in App:", error);
+                } finally {
+                    hideLoading();
+                }
+            }
+        };
+        fetchFullUserData();
+    }, [currentUser, showLoading, hideLoading]);
 
   // Redirect admin/assistant users to admin panel automatically
   useEffect(() => {

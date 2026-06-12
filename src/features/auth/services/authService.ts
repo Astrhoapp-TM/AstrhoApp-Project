@@ -335,6 +335,7 @@ export const authService = {
             firstName: derivedName,
             lastName: '',
             documentId: data.documentId || '', // Check if documentId is present
+            documento: data.documento || data.Documento || '', // Add documento field
             email: data.email || '',
             phone: '',
             role,

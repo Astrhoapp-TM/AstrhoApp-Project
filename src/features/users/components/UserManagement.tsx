@@ -1596,11 +1596,7 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
                   </div>
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Documento Usuario</span>
-                    <p className="font-bold text-gray-700">{user.documento || 'N/A'}</p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Documento</span>
-                    <p className="font-bold text-gray-700">{personData?.documentType || 'CC'} {personData?.documentId || 'N/A'}</p>
+                    <p className="font-bold text-gray-700">{personData?.documentType || 'CC'} {user.documento || 'N/A'}</p>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Teléfono</span>

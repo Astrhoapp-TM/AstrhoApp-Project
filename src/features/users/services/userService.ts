@@ -40,17 +40,32 @@ export const userService = {
     getAll: async (params?: { page?: number; pageSize?: number; search?: string }): Promise<PaginatedResponse<UsuarioListItem>> => {
         const response = await apiClient.get<any>('/api/Usuarios', params);
         
+        let processedData: UsuarioListItem[] = [];
+        
         if (response && response.data && Array.isArray(response.data)) {
-            return response;
+            processedData = response.data.map((user: UsuarioListItem) => {
+                // Force Super Admin to always be active
+                if ((user.rolNombre || '').toLowerCase().includes('super admin')) {
+                    return { ...user, estado: true };
+                }
+                return user;
+            });
+            return { ...response, data: processedData };
         }
 
         // Fallback for simple array response
         if (Array.isArray(response)) {
+            processedData = response.map((user: UsuarioListItem) => {
+                if ((user.rolNombre || '').toLowerCase().includes('super admin')) {
+                    return { ...user, estado: true };
+                }
+                return user;
+            });
             return {
-                data: response,
-                totalCount: response.length,
+                data: processedData,
+                totalCount: processedData.length,
                 page: params?.page || 1,
-                pageSize: params?.pageSize || response.length,
+                pageSize: params?.pageSize || processedData.length,
                 totalPages: 1
             };
         }
@@ -59,7 +74,12 @@ export const userService = {
     },
 
     getById: async (id: number): Promise<UsuarioDetail> => {
-        return apiClient.get<UsuarioDetail>(`/api/Usuarios/${id}`);
+        const user = await apiClient.get<UsuarioDetail>(`/api/Usuarios/${id}`);
+        // Force Super Admin to always be active
+        if ((user.rol?.nombre || '').toLowerCase().includes('super admin')) {
+            return { ...user, estado: true };
+        }
+        return user;
     },
 
     update: async (id: number, data: UpdateUsuarioDto): Promise<void> => {

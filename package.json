@@ -50,6 +50,8 @@
       "devDependencies": {
             "@tailwindcss/vite": "^4.2.4",
             "@types/node": "^20.19.39",
+            "@types/react": "^19.2.17",
+            "@types/react-dom": "^19.2.3",
             "@vitejs/plugin-react-swc": "^3.10.2",
             "vite": "6.3.5"
       },

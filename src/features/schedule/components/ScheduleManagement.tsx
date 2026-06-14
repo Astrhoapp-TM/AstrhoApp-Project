@@ -15,6 +15,7 @@ import {
 import { useLoading } from '@/shared/contexts/LoadingContext';
 import { SectionLoader } from '@/shared/components/GlobalLoader';
 import { motivoService, type Motivo, type CreateMotivoData, type UpdateMotivoData, type CreateAdminMotivoData } from '@/shared/services/motivoService';
+import { agendaService, servicioAgendaService, metodoPagoService, type AgendaItem, type ServicioAPI, type MetodoPago } from '@/features/appointments/services/agendaService';
 
 interface ScheduleManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -86,6 +87,8 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showMotivoModal, setShowMotivoModal] = useState(false);
+  const [showMotivoConfirmModal, setShowMotivoConfirmModal] = useState(false);
+  const [pendingMotivoData, setPendingMotivoData] = useState<CreateMotivoData | CreateAdminMotivoData | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<ScheduleGroup | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -103,6 +106,101 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
   const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
     setAlert({ type, message });
     setTimeout(() => setAlert(null), 4000);
+  };
+
+  // Helper to convert time string to minutes
+  const timeToMinutes = (time: string): number => {
+    const parts = time.split(":");
+    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+  };
+
+  // Helper to cancel overlapping appointments
+  const cancelOverlappingAppointments = async (
+    documentoEmpleado: string,
+    fecha: string,
+    horaInicio: string,
+    horaFin: string,
+    descripcionMotivo: string
+  ) => {
+    try {
+      // 1. Get all appointments
+      const appointmentsResponse = await agendaService.getAll();
+      const allAppointments = appointmentsResponse.data;
+
+      // 2. Get all services to calculate appointment durations
+      const allServicios = await servicioAgendaService.getAll();
+      const serviciosMap = new Map<string, number>();
+      allServicios.forEach((s) => serviciosMap.set(s.nombre, s.duracion));
+
+      // 3. Get all payment methods
+      const allMetodosPago = await metodoPagoService.getAll();
+
+      // 4. Calculate motivo start and end in minutes
+      const motivoStart = timeToMinutes(horaInicio);
+      const motivoEnd = timeToMinutes(horaFin);
+
+      // 5. Find overlapping appointments
+      const overlappingAppointments = allAppointments.filter((apt) => {
+        // Check if same employee and same date
+        if (String(apt.documentoEmpleado) !== String(documentoEmpleado)) return false;
+        if (apt.fechaCita !== fecha) return false;
+
+        // Skip already cancelled appointments
+        const estadoLower = (apt.estado || "").toLowerCase().trim();
+        if (["cancelado", "cancelled", "canceled"].includes(estadoLower)) return false;
+
+        // Calculate appointment duration
+        let appointmentDuration = 0;
+        for (const svcName of apt.servicios) {
+          appointmentDuration += serviciosMap.get(svcName) ?? 30;
+        }
+        if (appointmentDuration <= 0) appointmentDuration = 30;
+
+        const aptStart = timeToMinutes(apt.horaInicio);
+        const aptEnd = aptStart + appointmentDuration;
+
+        // Check overlap: [a, b) and [c, d) overlap if a < d && c < b
+        return aptStart < motivoEnd && motivoStart < aptEnd;
+      });
+
+      // 6. Cancel each overlapping appointment
+      let cancelledCount = 0;
+      for (const apt of overlappingAppointments) {
+        try {
+          // Map service names to IDs
+          const serviciosIds = apt.servicios.map((svcName) => {
+            const normalizedName = svcName.trim().toLowerCase();
+            const svc = allServicios.find((s) => s.nombre.trim().toLowerCase() === normalizedName);
+            return svc ? svc.servicioId : 0;
+          }).filter((id) => id > 0);
+
+          // Find metodoPagoId
+          const mpName = (apt.metodoPago || "").trim().toLowerCase();
+          const mp = allMetodosPago.find((m) => m.nombre.trim().toLowerCase() === mpName);
+          const metodoPagoId = mp ? mp.metodopagoId : (allMetodosPago[0]?.metodopagoId || 1);
+
+          await agendaService.update(apt.agendaId, {
+            documentoCliente: apt.documentoCliente,
+            documentoEmpleado: apt.documentoEmpleado,
+            fechaCita: apt.fechaCita,
+            horaInicio: apt.horaInicio,
+            metodoPagoId: Number(metodoPagoId),
+            observaciones: `Cancelado automáticamente por motivo de ausencia: ${descripcionMotivo}`,
+            serviciosIds: serviciosIds.length > 0 ? serviciosIds : [1],
+            estadoId: 3
+          });
+          cancelledCount++;
+        } catch (err) {
+          console.error(`Error cancelando cita ${apt.agendaId}:`, err);
+        }
+      }
+
+      if (cancelledCount > 0) {
+        console.log(`${cancelledCount} citas canceladas automáticamente`);
+      }
+    } catch (err) {
+      console.error("Error al cancelar citas superpuestas:", err);
+    }
   };
 
   // ── Data Loading ──
@@ -248,6 +346,16 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
         estado: "aprobado",
         estadoId: 6
       });
+
+      // Cancel overlapping appointments
+      await cancelOverlappingAppointments(
+        selectedMotivo.documentoEmpleado,
+        selectedMotivo.fecha,
+        selectedMotivo.horaInicio,
+        selectedMotivo.horaFin,
+        selectedMotivo.descripcion
+      );
+
       showAlert("success", "Motivo aceptado correctamente");
       setShowAcceptMotivoModal(false);
       await loadData();
@@ -281,17 +389,41 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
     }
   };
 
-  const handleSaveMotivo = async (data: CreateMotivoData | CreateAdminMotivoData) => {
+  // New function for MotivoModal's onSave: shows confirmation modal
+  const handleMotivoModalSave = (data: CreateMotivoData | CreateAdminMotivoData) => {
+    setPendingMotivoData(data);
+    setShowMotivoConfirmModal(true);
+  };
+
+  // Renamed function to actually save the motivo after confirmation
+  const confirmSaveMotivo = async () => {
+    if (!pendingMotivoData) return;
     setSaving(true);
     showSectionLoading("Registrando motivo...");
     try {
-      if ('documentoEmpleado' in data && data.documentoEmpleado) {
-        await motivoService.createAdmin(data);
+      let documentoEmpleado: string;
+      if ('documentoEmpleado' in pendingMotivoData && pendingMotivoData.documentoEmpleado) {
+        documentoEmpleado = pendingMotivoData.documentoEmpleado;
+        await motivoService.createAdmin(pendingMotivoData);
       } else {
-        await motivoService.create(data);
+        // For non-admin, use current user's document
+        documentoEmpleado = String(currentUser?.documentoEmpleado || currentUser?.documento || currentUser?.documentId || '');
+        await motivoService.create(pendingMotivoData);
       }
+
+      // Cancel overlapping appointments
+      await cancelOverlappingAppointments(
+        documentoEmpleado,
+        pendingMotivoData.fecha,
+        pendingMotivoData.horaInicio,
+        pendingMotivoData.horaFin,
+        pendingMotivoData.descripcion
+      );
+
       showAlert('success', 'Motivo registrado. Se han cancelado las citas del periodo y notificado a los empleados.');
       setShowMotivoModal(false);
+      setShowMotivoConfirmModal(false);
+      setPendingMotivoData(null);
       await loadData();
     } catch (error) {
       console.error('Error saving motivo:', error);
@@ -1091,11 +1223,82 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       {showMotivoModal && (
         <MotivoModal
           onClose={() => setShowMotivoModal(false)}
-          onSave={handleSaveMotivo}
+          onSave={handleMotivoModalSave}
           saving={saving}
           isAdmin={isAdmin}
           empleados={empleados}
         />
+      )}
+
+      {/* Motivo Confirmation Modal */}
+      {showMotivoConfirmModal && pendingMotivoData && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Confirmar Registro</h3>
+              </div>
+            </div>
+            
+            <div className="space-y-4 mb-6">
+              <p className="text-gray-600">
+                Al registrar este motivo, <span className="font-semibold text-gray-800">se cancelarán automáticamente todas las citas programadas dentro del horario especificado</span>.
+              </p>
+              
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-3">
+                <div>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fecha</span>
+                  <p className="text-gray-800 font-semibold">
+                    {new Date(pendingMotivoData.fecha + 'T00:00:00').toLocaleDateString('es-ES')}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Hora Inicio</span>
+                    <p className="text-gray-800 font-semibold">{formatTo12Hour(pendingMotivoData.horaInicio)}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Hora Fin</span>
+                    <p className="text-gray-800 font-semibold">{formatTo12Hour(pendingMotivoData.horaFin)}</p>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Descripción</span>
+                  <p className="text-gray-800">{pendingMotivoData.descripcion}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex space-x-3">
+              <button
+                onClick={() => {
+                  setShowMotivoConfirmModal(false);
+                  setPendingMotivoData(null);
+                }}
+                className="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmSaveMotivo}
+                disabled={saving}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Guardando...</span>
+                  </>
+                ) : (
+                  <span>Confirmar</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Motivo Detail Modal */}

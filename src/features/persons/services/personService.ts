@@ -90,6 +90,10 @@ export const personService = {
                 ...response,
                 data: response.data.map(item => {
                     const person = mapBackendToPerson(item, type);
+                    // Force specific employee to always be active
+                    if (person.documentId === '8729451090') {
+                        person.status = 'active';
+                    }
                     // Enrich with user document from users API
                     if (person.usuarioId) {
                         const user = users.find((u: any) => Number(u.usuarioId) === Number(person.usuarioId));
@@ -107,6 +111,10 @@ export const personService = {
             return {
                 data: response.map(item => {
                     const person = mapBackendToPerson(item, type);
+                    // Force specific employee to always be active
+                    if (person.documentId === '8729451090') {
+                        person.status = 'active';
+                    }
                     if (person.usuarioId) {
                         const user = users.find((u: any) => Number(u.usuarioId) === Number(person.usuarioId));
                         if (user?.documento) {
@@ -130,6 +138,11 @@ export const personService = {
         const endpoint = type === 'client' ? `/api/Clientes/${documentId}` : `/api/Empleados/${documentId}`;
         const response = await apiClient.get(endpoint);
         const person = mapBackendToPerson(response, type);
+        
+        // Force specific employee to always be active
+        if (person.documentId === '8729451090') {
+            person.status = 'active';
+        }
         
         // Fetch user to get document field
         if (person.usuarioId) {

@@ -579,13 +579,10 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                       <div className="flex items-center space-x-3">
                         {(user.rolNombre || '').toLowerCase() === 'super admin' ? (
                           // Super admin siempre activo, sin switch
-                          <div className="flex items-center space-x-2 cursor-not-allowed" title="El Super Administrador no puede ser desactivado">
-                            <div className="w-11 h-6 bg-gradient-brand rounded-full relative opacity-80">
-                              <div className="absolute top-[2px] right-[2px] bg-white border-white border rounded-full h-5 w-5"></div>
+                          <div className="flex items-center space-x-2 cursor-not-allowed opacity-60" title="El Super Administrador no puede ser desactivado">
+                            <div className="w-11 h-6 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full relative">
+                              <div className="absolute top-[2px] right-[2px] bg-white border-white border rounded-full h-5 w-5 shadow-sm"></div>
                             </div>
-                            <span className="ml-1 text-sm font-medium text-green-600">
-                              Activo
-                            </span>
                           </div>
                         ) : (
                           // Otros usuarios con switch

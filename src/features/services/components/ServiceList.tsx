@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Scissors, Droplets, Sparkles, Heart, Clock, Search,
-  Eye, ChevronLeft, ChevronRight, Filter, Calendar, X,
+  ChevronLeft, ChevronRight, Filter, Calendar, X,
   Star, FileText, CheckCircle, DollarSign
 } from 'lucide-react';
 
@@ -27,6 +27,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(3); // Cambiado de 6 a 3 para forzar la paginación si hay pocos servicios
   const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const mapAPIServiceToUI = (service: any) => {
     return {
@@ -71,6 +72,9 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
       console.log('Services API Data (Processed):', servicesArray, 'Total:', total);
       setServices(servicesArray.map(mapAPIServiceToUI));
       setTotalRecords(total);
+      // Usar totalPages directamente de la respuesta de la API para evitar páginas vacías
+      const apiTotalPages = (data as any).totalPages || Math.ceil(total / itemsPerPage) || 1;
+      setTotalPages(apiTotalPages);
     } catch (error) {
       console.error('Error fetching services:', error);
       toast.error('Error al cargar servicios');
@@ -103,11 +107,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
     return matchesCategory && isActive;
   });
 
-  // Paginación lógica (Ahora usamos directamente los servicios devueltos por la API)
-  const totalPages = Math.ceil(totalRecords / itemsPerPage);
-  // NOTA: No filtramos de nuevo paginatedServices aquí porque ya vienen paginados de la API
-  // pero si el usuario tiene menos servicios que itemsPerPage, totalPages será 1 y la paginación no se verá.
-  // Forzamos al menos 2 páginas para testear si hay datos suficientes o ajustamos itemsPerPage
+  // Paginación lógica (Usamos totalPages de la API directamente)
   const paginatedServices = services;
 
   const handleServiceBooking = (service: any) => {
@@ -196,8 +196,11 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                     </div>
                   </div>
 
-                  {/* Price and Duration Row */}
-                  <div>
+                  {/* Description */}
+                    <p className="text-gray-500 text-xs mb-3 line-clamp-2">{service.description}</p>
+
+                    {/* Price and Duration Row */}
+                    <div>
                     <div className="border-t border-gray-100 pt-3 mb-3 flex items-center justify-between">
                       <div className="flex items-center space-x-1.5 text-gray-500">
                         <Clock className="w-4 h-4 text-brand-indigo" />
@@ -208,15 +211,8 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
                       </div>
                     </div>
 
-                    {/* Buttons */}
+                    {/* Button */}
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleViewDetails(service)}
-                        className="flex-1 py-2.5 border border-brand-periwinkle text-brand-indigo rounded-lg font-bold hover:bg-gray-50 transition-all flex items-center justify-center space-x-1.5 active:scale-95 text-xs"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Ver Más</span>
-                      </button>
                       <button
                         onClick={() => handleServiceBooking(service)}
                         className={`flex-1 py-2.5 bg-gradient-to-r ${service.color} text-white rounded-lg font-bold hover:shadow-md transition-all flex items-center justify-center space-x-1.5 active:scale-95 text-xs`}

@@ -216,6 +216,16 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
     return diffHours < 24;
   };
 
+  const isPurchaseCancellable = (purchase: PurchaseAPI) => {
+    if (!purchase.estado) return false;
+    if (!purchase.fechaRegistro) return false;
+    const regDate = new Date(purchase.fechaRegistro);
+    const now = new Date();
+    const diffMs = now.getTime() - regDate.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    return diffDays < 7;
+  };
+
   const handleEditPurchase = async (purchase: PurchaseAPI) => {
     try {
       showSectionLoading("Cargando detalle de compra...");
@@ -232,12 +242,22 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   };
 
   const handleCancelPurchase = (purchase: PurchaseAPI) => {
+    if (!isPurchaseCancellable(purchase)) {
+      toast.error('No se puede anular una compra después de 1 semana');
+      return;
+    }
     setSelectedPurchase(purchase);
     setShowCancelModal(true);
   };
 
   const confirmCancelPurchase = async (observation: string) => {
     if (!selectedPurchase) return;
+    if (!isPurchaseCancellable(selectedPurchase)) {
+      toast.error('No se puede anular una compra después de 1 semana');
+      setShowCancelModal(false);
+      setSelectedPurchase(null);
+      return;
+    }
 
     try {
       showSectionLoading("Anulando compra...");
@@ -570,11 +590,16 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
                           </button>
                         )}
 
-                        {hasPermission('manage_purchases') && purchase.estado && (
+                        {hasPermission('manage_purchases') && (
                           <button
                             onClick={() => handleCancelPurchase(purchase)}
-                            className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                            title="Anular Compra"
+                            disabled={!isPurchaseCancellable(purchase)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              isPurchaseCancellable(purchase)
+                                ? 'bg-gray-100 text-brand-pink hover:bg-red-200'
+                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            }`}
+                            title={isPurchaseCancellable(purchase) ? 'Anular Compra' : 'No se puede anular después de 1 semana'}
                           >
                             <Ban className="w-4 h-4" />
                           </button>
@@ -1178,7 +1203,22 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    
+    // Prevent negative numbers for IVA
+    if (name === 'iva') {
+      value = value.replace(/[^0-9.]/g, ''); // Allow only digits and decimal point
+      // Ensure only one decimal point
+      const decimalPoints = value.split('.');
+      if (decimalPoints.length > 2) {
+        value = decimalPoints[0] + '.' + decimalPoints.slice(1).join('');
+      }
+      // Prevent negative values
+      if (value.startsWith('-')) {
+        value = value.slice(1);
+      }
+    }
+    
     setFormData({
       ...formData,
       [name]: value
@@ -1602,6 +1642,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                       <input
                         type="number"
                         name="iva"
+                        min="0"
                         value={formData.iva}
                         onChange={handleInputChange}
                         className="w-14 bg-white border border-purple-200 rounded-lg px-2 py-0.5 text-center font-bold text-brand-indigo text-sm focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-indigo transition-all"

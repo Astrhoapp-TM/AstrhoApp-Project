@@ -528,86 +528,98 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {purchases.map((purchase) => (
-                  <tr key={purchase.compraId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-800">#{purchase.compraId}</div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="text-gray-800">{formatDate(purchase.fechaRegistro)}</div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-800">
-                        {purchase.proveedorNombre}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="text-gray-800">{purchase.detalles?.length || 0}</div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="text-lg font-bold text-gray-800">
-                        ${(purchase.total ?? 0).toLocaleString()}
-                      </div>
-                    </td>
-
-                    <td className="py-4 px-4">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <span className={`px-3 py-1 rounded-full font-semibold ${getStatusColor(purchase.estado)}`}>
-                          {getStatusLabel(purchase.estado)}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleViewDetail(purchase)}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                          title="Ver Detalle"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => handleGeneratePDF(purchase)}
-                          className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                          title="Generar PDF"
-                        >
-                          <File className="w-4 h-4" />
-                        </button>
-
-                        {hasPermission('manage_purchases') && isPurchaseEditable(purchase) && (
-                          <button
-                            onClick={() => handleEditPurchase(purchase)}
-                            className="p-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
-                            title="Editar Compra"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                        )}
-
-                        {hasPermission('manage_purchases') && (
-                          <button
-                            onClick={() => handleCancelPurchase(purchase)}
-                            disabled={!isPurchaseCancellable(purchase)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isPurchaseCancellable(purchase)
-                                ? 'bg-gray-100 text-brand-pink hover:bg-red-200'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            }`}
-                            title={isPurchaseCancellable(purchase) ? 'Anular Compra' : 'No se puede anular después de 1 semana'}
-                          >
-                            <Ban className="w-4 h-4" />
-                          </button>
-                        )}
+                {purchases.length === 0 && !loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center">
+                        <ShoppingCart className="w-16 h-16 text-gray-300 mb-4" />
+                        <p className="text-gray-600 font-semibold text-lg">No hay compras registradas</p>
+                        <p className="text-gray-400 text-sm mt-2">Comienza a registrar compras para verlas aquí</p>
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  purchases.map((purchase) => (
+                    <tr key={purchase.compraId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-gray-800">#{purchase.compraId}</div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="text-gray-800">{formatDate(purchase.fechaRegistro)}</div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-800">
+                          {purchase.proveedorNombre}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="text-gray-800">{purchase.detalles?.length || 0}</div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="text-lg font-bold text-gray-800">
+                          ${(purchase.total ?? 0).toLocaleString()}
+                        </div>
+                      </td>
+
+                      <td className="py-4 px-4">
+                        <div className="flex items-center space-x-2 text-sm">
+                          <span className={`px-3 py-1 rounded-full font-semibold ${getStatusColor(purchase.estado)}`}>
+                            {getStatusLabel(purchase.estado)}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleViewDetail(purchase)}
+                            className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            title="Ver Detalle"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => handleGeneratePDF(purchase)}
+                            className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                            title="Generar PDF"
+                          >
+                            <File className="w-4 h-4" />
+                          </button>
+
+                          {hasPermission('manage_purchases') && isPurchaseEditable(purchase) && (
+                            <button
+                              onClick={() => handleEditPurchase(purchase)}
+                              className="p-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+                              title="Editar Compra"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          )}
+
+                          {hasPermission('manage_purchases') && (
+                            <button
+                              onClick={() => handleCancelPurchase(purchase)}
+                              disabled={!isPurchaseCancellable(purchase)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isPurchaseCancellable(purchase)
+                                  ? 'bg-gray-100 text-brand-pink hover:bg-red-200'
+                                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              }`}
+                              title={isPurchaseCancellable(purchase) ? 'Anular Compra' : 'No se puede anular después de 1 semana'}
+                            >
+                              <Ban className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

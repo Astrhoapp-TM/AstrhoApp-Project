@@ -505,69 +505,81 @@ export function SupplyDeliveryManagement({ hasPermission, currentUser }: SupplyD
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {paginatedDeliveries.map((delivery) => {
-                const responsible = getUserInfo(delivery.documentoEmpleado);
+              {paginatedDeliveries.length === 0 && !loading ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center">
+                      <Package className="w-16 h-16 text-gray-300 mb-4" />
+                      <p className="text-gray-600 font-semibold text-lg">No hay entregas registradas</p>
+                      <p className="text-gray-400 text-sm mt-2">Comienza a registrar entregas para verlas aquí</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedDeliveries.map((delivery) => {
+                  const responsible = getUserInfo(delivery.documentoEmpleado);
 
-                return (
-                  <tr key={delivery.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-brand rounded-full flex items-center justify-center">
-                          <User className="w-5 h-5 text-white" />
+                  return (
+                    <tr key={delivery.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-brand rounded-full flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-800">{responsible?.name}</div>
+                            <div className="text-sm text-gray-600">{responsible?.role === 'admin' ? 'Administrador' : 'Asistente'}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-semibold text-gray-800">{responsible?.name}</div>
-                          <div className="text-sm text-gray-600">{responsible?.role === 'admin' ? 'Administrador' : 'Asistente'}</div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <DeliveryItemsPreview deliveryId={delivery.id} getSupplyInfo={getSupplyInfo} />
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="text-gray-800">{delivery.fechaEntrega.split('T')[0]}</div>
+                        {delivery.fechaCompletado && (
+                          <div className="text-sm text-green-600">
+                            Completado: {delivery.fechaCompletado.split('T')[0]}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-bold border-2",
+                          delivery.estado 
+                            ? "bg-green-100 text-green-700 border-green-200" 
+                            : "bg-gray-100 text-gray-700 border-gray-200"
+                        )}>
+                          {delivery.estado ? 'Entregado' : 'Pendiente'}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => handleViewDetail(delivery)}
+                            className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            title="Ver detalle"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => handlePrintDeliveryPDF(delivery)}
+                            className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                            title="Imprimir PDF"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <DeliveryItemsPreview deliveryId={delivery.id} getSupplyInfo={getSupplyInfo} />
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="text-gray-800">{delivery.fechaEntrega.split('T')[0]}</div>
-                      {delivery.fechaCompletado && (
-                        <div className="text-sm text-green-600">
-                          Completado: {delivery.fechaCompletado.split('T')[0]}
-                        </div>
-                      )}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className={cn(
-                        "px-3 py-1 rounded-full text-xs font-bold border-2",
-                        delivery.estado 
-                          ? "bg-green-100 text-green-700 border-green-200" 
-                          : "bg-gray-100 text-gray-700 border-gray-200"
-                      )}>
-                        {delivery.estado ? 'Entregado' : 'Pendiente'}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button
-                          onClick={() => handleViewDetail(delivery)}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                          title="Ver detalle"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => handlePrintDeliveryPDF(delivery)}
-                          className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                          title="Imprimir PDF"
-                        >
-                          <FileText className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

@@ -312,61 +312,73 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {paginatedSupplies.map((supply) => (
-                  <tr key={supply.insumoId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-semibold text-gray-800">{supply.nombre}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{supply.sku}</td>
-                    <td className="px-6 py-4 text-sm text-gray-700">{supply.categoriaNombre || 'N/A'}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-sm font-semibold ${(supply.stock ?? 0) <= 0
-                        ? 'bg-gray-100 text-red-800'
-                        : (supply.stock ?? 0) <= 5
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-green-100 text-green-800'
-                        }`}>
-                        {supply.stock ?? 0}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      
-                    </td>
-                    <td className="px-6 py-4 flex space-x-2">
-                      <button onClick={() => handleViewDetail(supply)} className="p-2 bg-brand-lavender text-brand-indigo rounded-lg hover:brightness-105 transition-colors" title="Ver Detalle">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      {hasPermission('manage_supplies') && (
-                        <>
-                          <button
-                            onClick={() => handleEditSupply(supply)}
-                            disabled={supply.estado !== true}
-                            className={cn(
-                              "p-2 rounded-lg transition-colors",
-                              supply.estado !== true
-                                ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
-                                : "bg-green-100 text-green-700 hover:bg-green-200"
-                            )}
-                            title={supply.estado !== true ? "No se puede editar un insumo inactivo" : "Editar"}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSupply(supply.insumoId)}
-                            disabled={supply.estado !== true}
-                            className={cn(
-                              "p-2 rounded-lg transition-colors",
-                              supply.estado !== true
-                                ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
-                                : "bg-gray-100 text-brand-pink hover:bg-red-200"
-                            )}
-                            title={supply.estado !== true ? "No se puede eliminar un insumo inactivo" : "Eliminar"}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
+                {paginatedSupplies.length === 0 && !loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center">
+                        <Package className="w-16 h-16 text-gray-300 mb-4" />
+                        <p className="text-gray-600 font-semibold text-lg">No hay insumos registrados</p>
+                        <p className="text-gray-400 text-sm mt-2">Comienza a registrar insumos para verlos aquí</p>
+                      </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  paginatedSupplies.map((supply) => (
+                    <tr key={supply.insumoId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 font-semibold text-gray-800">{supply.nombre}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{supply.sku}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{supply.categoriaNombre || 'N/A'}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${(supply.stock ?? 0) <= 0
+                          ? 'bg-gray-100 text-red-800'
+                          : (supply.stock ?? 0) <= 5
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-green-100 text-green-800'
+                          }`}>
+                          {supply.stock ?? 0}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        
+                      </td>
+                      <td className="px-6 py-4 flex space-x-2">
+                        <button onClick={() => handleViewDetail(supply)} className="p-2 bg-brand-lavender text-brand-indigo rounded-lg hover:brightness-105 transition-colors" title="Ver Detalle">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {hasPermission('manage_supplies') && (
+                          <>
+                            <button
+                              onClick={() => handleEditSupply(supply)}
+                              disabled={supply.estado !== true}
+                              className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                supply.estado !== true
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                  : "bg-green-100 text-green-700 hover:bg-green-200"
+                              )}
+                              title={supply.estado !== true ? "No se puede editar un insumo inactivo" : "Editar"}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSupply(supply.insumoId)}
+                              disabled={supply.estado !== true}
+                              className={cn(
+                                "p-2 rounded-lg transition-colors",
+                                supply.estado !== true
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                  : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                              )}
+                              title={supply.estado !== true ? "No se puede eliminar un insumo inactivo" : "Eliminar"}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

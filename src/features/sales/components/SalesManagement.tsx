@@ -379,8 +379,12 @@ export function SalesManagement({ hasPermission, currentUser }: SalesManagementP
             <tbody className="divide-y divide-gray-100">
               {paginatedSales.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-gray-600">
-                    No hay ventas para mostrar. Ajusta filtros o intenta nuevamente más tarde.
+                  <td colSpan={7} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center">
+                      <ShoppingBag className="w-16 h-16 text-gray-300 mb-4" />
+                      <p className="text-gray-600 font-semibold text-lg">No hay ventas registradas</p>
+                      <p className="text-gray-400 text-sm mt-2">Comienza a registrar ventas para verlas aquí</p>
+                    </div>
                   </td>
                 </tr>
               ) : (

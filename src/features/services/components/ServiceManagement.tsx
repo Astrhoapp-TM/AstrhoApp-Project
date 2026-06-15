@@ -352,87 +352,99 @@ export function ServiceManagement({ hasPermission }: ServiceManagementProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {paginatedServices.map((service) => (
-                  <tr key={service.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-800">{service.name}</div>
-                      <div className="text-sm text-gray-600">{service.updatedAt}</div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-800">{service.duration} min</span>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-green-600">
-                        ${service.price.toLocaleString()}
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={service.status === 'active'}
-                            onChange={() => handleToggleServiceStatus(service.id)}
-                            className="sr-only peer"
-                            disabled={!hasPermission('manage_services')}
-                          />
-                          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-
-                        </label>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleViewDetail(service)}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                          title="Ver detalle"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-
-                        {hasPermission('manage_services') && (
-                          <>
-                            <button
-                              onClick={() => handleEditService(service)}
-                              disabled={service.status === 'inactive'}
-                              className={cn(
-                                "p-2 rounded-lg transition-colors",
-                                service.status === 'inactive'
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
-                                  : "bg-green-100 text-green-700 hover:bg-green-200"
-                              )}
-                              title={service.status === 'inactive' ? "No se puede editar un servicio inactivo" : "Editar"}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-
-                            <button
-                              onClick={() => handleDeleteService(service)}
-                              disabled={service.status === 'inactive'}
-                              className={cn(
-                                "p-2 rounded-lg transition-colors",
-                                service.status === 'inactive'
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
-                                  : "bg-gray-100 text-brand-pink hover:bg-red-200"
-                              )}
-                              title={service.status === 'inactive' ? "No se puede eliminar un servicio inactivo" : "Eliminar"}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
+                {paginatedServices.length === 0 && !isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center">
+                        <Scissors className="w-16 h-16 text-gray-300 mb-4" />
+                        <p className="text-gray-600 font-semibold text-lg">No hay servicios registrados</p>
+                        <p className="text-gray-400 text-sm mt-2">Comienza a registrar servicios para verlos aquí</p>
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  paginatedServices.map((service) => (
+                    <tr key={service.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-gray-800">{service.name}</div>
+                        <div className="text-sm text-gray-600">{service.updatedAt}</div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-800">{service.duration} min</span>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-green-600">
+                          ${service.price.toLocaleString()}
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={service.status === 'active'}
+                              onChange={() => handleToggleServiceStatus(service.id)}
+                              className="sr-only peer"
+                              disabled={!hasPermission('manage_services')}
+                            />
+                            <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+
+                          </label>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleViewDetail(service)}
+                            className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            title="Ver detalle"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          {hasPermission('manage_services') && (
+                            <>
+                              <button
+                                onClick={() => handleEditService(service)}
+                                disabled={service.status === 'inactive'}
+                                className={cn(
+                                  "p-2 rounded-lg transition-colors",
+                                  service.status === 'inactive'
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                    : "bg-green-100 text-green-700 hover:bg-green-200"
+                                )}
+                                title={service.status === 'inactive' ? "No se puede editar un servicio inactivo" : "Editar"}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+
+                              <button
+                                onClick={() => handleDeleteService(service)}
+                                disabled={service.status === 'inactive'}
+                                className={cn(
+                                  "p-2 rounded-lg transition-colors",
+                                  service.status === 'inactive'
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                                    : "bg-gray-100 text-brand-pink hover:bg-red-200"
+                                )}
+                                title={service.status === 'inactive' ? "No se puede eliminar un servicio inactivo" : "Eliminar"}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

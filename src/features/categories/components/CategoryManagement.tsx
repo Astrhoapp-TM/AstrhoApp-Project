@@ -190,7 +190,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
           : c
       ));
 
-      showAlert('success', `Estado de "${category.name}" actualizado a $`);
+      showAlert('success', `Estado de "${category.name}" actualizado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
     } catch (err) {
       console.error('Error toggling category status:', err);
       setErrorModalMessage('No se pudo actualizar el estado de la categoría. Verifique su conexión e intente de nuevo.');
@@ -435,21 +435,31 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
                           <Eye className="w-4 h-4" />
                         </button>
 
-                        {hasPermission('manage_categories') && category.status === 'active' && (
+                        {hasPermission('manage_categories') && (
                           <>
-                              <button
-                                onClick={() => handleEditCategory(category)}
-                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                                title="Editar"
-                              >
+                            <button
+                              onClick={() => handleEditCategory(category)}
+                              disabled={category.status === 'inactive'}
+                              className={`p-2 rounded-lg transition-colors ${
+                                category.status === 'inactive'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+                              }`}
+                              title={category.status === 'inactive' ? 'No se puede editar una categoría inactiva' : 'Editar'}
+                            >
                               <Edit className="w-4 h-4" />
                             </button>
 
-                              <button
-                                onClick={() => handleDeleteCategory(category)}
-                                className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200 transition-colors"
-                                title="Eliminar"
-                              >
+                            <button
+                              onClick={() => handleDeleteCategory(category)}
+                              disabled={category.status === 'inactive'}
+                              className={`p-2 rounded-lg transition-colors ${
+                                category.status === 'inactive'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                                  : 'bg-gray-100 text-brand-pink hover:bg-red-200'
+                              }`}
+                              title={category.status === 'inactive' ? 'No se puede eliminar una categoría inactiva' : 'Eliminar'}
+                            >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </>

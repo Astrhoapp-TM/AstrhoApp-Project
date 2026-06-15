@@ -105,7 +105,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
       showSectionLoading("Preparando inventario...");
       const response = await supplyCategoryService.getCategories({ pageSize: 100 });
       const categoriesData = response.data || [];
-      setCategories(unwrapValues(categoriesData));
+      setCategories(unwrapValues(categoriesData).filter((c: APICategory) => c.estado === true));
       await fetchProducts();
     } catch (error: any) {
       console.error('Error fetching categories:', error);
@@ -253,7 +253,7 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
       setProducts(prev => prev.map(p =>
         p.id === product.id ? mapSupplyToUI(updatedSupply, product.category) : p
       ));
-      showAlert('success', `Estado de "${product.name}" cambiado a $`);
+      showAlert('success', `Estado de "${product.name}" cambiado a ${newStatus === 'active' ? 'Activo' : 'Inactivo'}`);
     } catch (error) {
       // Revert optimistic update on failure
       setProducts(prev => prev.map(p => p.id === product.id ? product : p));
@@ -412,7 +412,31 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
             </thead>
 
             <tbody className="divide-y divide-gray-100">
-              {paginatedProducts.map(product => {
+              {isLoading && products.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center space-y-3">
+                      <RefreshCw className="w-10 h-10 text-brand-pink animate-spin" />
+                      <p className="text-gray-500 font-medium">Cargando insumos...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedProducts.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center">
+                      <Package className="w-16 h-16 text-gray-300 mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">No hay insumos registrados</h3>
+                      <p className="text-gray-400 text-sm mt-1">
+                        {searchTerm
+                          ? 'No se encontraron insumos con ese criterio de búsqueda'
+                          : 'Comienza a registrar insumos para verlos aquí'}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+              paginatedProducts.map(product => {
                 return (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 font-semibold text-gray-800">{product.name}</td>
@@ -452,13 +476,27 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
                           <>
                             <button
                               onClick={() => handleEditProduct(product)}
-                              className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
+                              disabled={product.status === 'inactive'}
+                              className={cn(
+                                'p-2 rounded-lg transition-colors',
+                                product.status === 'inactive'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                                  : 'bg-green-100 text-green-700 hover:bg-green-200'
+                              )}
+                              title={product.status === 'inactive' ? 'No se puede editar un insumo inactivo' : 'Editar insumo'}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteProduct(product)}
-                              className="p-2 bg-gray-100 text-brand-pink rounded-lg hover:bg-red-200"
+                              disabled={product.status === 'inactive'}
+                              className={cn(
+                                'p-2 rounded-lg transition-colors',
+                                product.status === 'inactive'
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                                  : 'bg-gray-100 text-brand-pink hover:bg-red-200'
+                              )}
+                              title={product.status === 'inactive' ? 'No se puede eliminar un insumo inactivo' : 'Eliminar insumo'}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -468,7 +506,8 @@ export function ProductManagement({ hasPermission }: ProductManagementProps) {
                     </td>
                   </tr>
                 );
-              })}
+              })
+              )}
             </tbody>
           </table>
         </div>
@@ -594,7 +633,7 @@ function CategorySearchSelect({ onSelect, selectedId, error, disabled, initialDa
       try {
         const res = await supplyCategoryService.getCategories({ search: searchTerm, pageSize: 20 });
         const data = Array.isArray(res) ? res : (res?.data || []);
-        setSearchResults(unwrapValues(data));
+        setSearchResults(unwrapValues(data).filter((c: any) => c.estado === true));
       } catch (err) {
         console.error('Error searching categories:', err);
       } finally {

@@ -312,13 +312,26 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {paginatedSupplies.length === 0 && !loading ? (
+                {loading && supplies.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-16 text-center">
+                      <div className="flex flex-col items-center space-y-3">
+                        <Loader2 className="w-10 h-10 text-brand-pink animate-spin" />
+                        <p className="text-gray-500 font-medium">Cargando insumos...</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : paginatedSupplies.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center">
                         <Package className="w-16 h-16 text-gray-300 mb-4" />
                         <p className="text-gray-600 font-semibold text-lg">No hay insumos registrados</p>
-                        <p className="text-gray-400 text-sm mt-2">Comienza a registrar insumos para verlos aquí</p>
+                        <p className="text-gray-400 text-sm mt-2">
+                          {searchTerm
+                            ? 'No se encontraron insumos con ese criterio de búsqueda'
+                            : 'Comienza a registrar insumos para verlos aquí'}
+                        </p>
                       </div>
                     </td>
                   </tr>

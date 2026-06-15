@@ -78,7 +78,7 @@ function CategorySearchSelect({ onSelect, selectedId, error, disabled, initialDa
       try {
         const res = await supplyCategoryService.getCategories({ search: searchTerm, pageSize: 100 });
         const data = Array.isArray(res) ? res : (res?.data || []);
-        setSearchResults(unwrapValues(data));
+        setSearchResults(unwrapValues(data).filter((c: any) => c.estado === true));
       } catch (err) {
         console.error('Error searching categories:', err);
       } finally {
@@ -203,7 +203,7 @@ export function SupplyEditModal({ supply, onClose, onSave, suppliers }: SupplyEd
       try {
         const res = await supplyCategoryService.getCategories({ pageSize: 100 });
         const data = Array.isArray(res) ? res : (res?.data || []);
-        setCategories(unwrapValues(data));
+        setCategories(unwrapValues(data).filter((c: any) => c.estado === true));
       } catch (err) {
         console.error('Error fetching categories:', err);
       }

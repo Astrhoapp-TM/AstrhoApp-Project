@@ -1,4 +1,5 @@
 import { apiClient, type PaginatedResponse } from '@/shared/services/apiClient';
+import { horarioEmpleadoService } from '@/features/schedule/services/scheduleService';
 
 // ── Interfaces ──
 
@@ -92,12 +93,24 @@ export const userService = {
         
         if (personInfo) {
             try {
-                if (personInfo.type === 'client') {
-                    // Delete client first
-                    await apiClient.delete(`/api/Clientes/${personInfo.documentId}`);
-                } else if (personInfo.type === 'employee') {
-                    // Delete employee first
+                if (personInfo.type === 'employee') {
+                    // Remove all schedule assignments for this employee first
+                    // so the backend doesn't block deletion due to horario records
+                    try {
+                        const assignments = await horarioEmpleadoService.getByEmpleado(personInfo.documentId);
+                        const list = Array.isArray(assignments) ? assignments
+                            : (assignments as any)?.$values ?? (assignments as any)?.data ?? [];
+                        await Promise.all(
+                            list.map((a: any) => horarioEmpleadoService.delete(a.horarioEmpleadoId).catch(() => {}))
+                        );
+                    } catch (scheduleError) {
+                        console.warn('Could not remove schedule assignments, proceeding anyway:', scheduleError);
+                    }
+                    // Delete employee record
                     await apiClient.delete(`/api/Empleados/${personInfo.documentId}`);
+                } else if (personInfo.type === 'client') {
+                    // Delete client record
+                    await apiClient.delete(`/api/Clientes/${personInfo.documentId}`);
                 }
             } catch (error) {
                 console.error('Error deleting associated client/employee:', error);

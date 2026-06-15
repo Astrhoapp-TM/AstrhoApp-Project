@@ -2342,12 +2342,6 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
                   <p className="font-bold text-gray-800 text-lg">{group.nombre}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Estado del Grupo:</span>
-                  <div className="mt-1">
-                    
-                  </div>
-                </div>
-                <div>
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Días Configurados:</span>
                   <p className="font-bold text-gray-800 text-lg">
                     {horarios.reduce((acc, h) => acc + (extractArray(h).length), 0)} días
@@ -2372,7 +2366,6 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
                       <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Día de la Semana</th>
                       <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Inicio</th>
                       <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Fin</th>
-                      <th className="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Estado</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -2390,9 +2383,6 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
                               <span className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-50 text-pink-700 font-bold text-sm">
                                 {d.horaFin ? formatTo12Hour(d.horaFin.substring(0, 5)) : '--:--'}
                               </span>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              
                             </td>
                           </tr>
                         ))}

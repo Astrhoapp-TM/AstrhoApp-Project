@@ -195,8 +195,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                  (personDocStr && saleEmpId === personDocStr);
         });
 
-        if (hasAppointments || hasSales) {
-          toast.error("Esta persona ya esta asociada a una Cita o Venta");
+        if (hasAppointments) {
+          toast.error("Este usuario tiene citas asociadas y no puede ser eliminado");
           setLoading(false);
           hideSectionLoading();
           setShowDeleteModal(false);

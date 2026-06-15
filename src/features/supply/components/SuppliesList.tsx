@@ -1,11 +1,12 @@
-import React, { useEffect, useState  } from 'react';
-import { X, 
-  Package, Edit, Trash2, Eye, Search, Filter, Plus,
-  AlertCircle, CheckCircle, Clock, Archive, Tag, TrendingUp, Truck, MapPin, FileText, Info
+import React, { useEffect, useState } from 'react';
+import {
+  X, Package, Edit, Trash2, Eye, Search, Plus,
+  AlertCircle, CheckCircle, Clock, Archive, Tag, TrendingUp, FileText, Info, Loader2, RefreshCw
 } from 'lucide-react';
 import { cn } from '@/shared/components/ui/utils';
 import { useLoading } from '@/shared/contexts/LoadingContext';
 import { SectionLoader } from '@/shared/components/GlobalLoader';
+import { supplyService, type Supply } from '../services/supplyService';
 import {
   Pagination,
   PaginationContent,
@@ -16,135 +17,16 @@ import {
   PaginationPrevious,
 } from '@/shared/components/ui/pagination';
 
-// Mock data for supplies
-const mockSupplies = [
-  {
-    id: 1,
-    name: 'Tinte Rubio Cenizo',
-    description: 'Tinte permanente para coloración professional',
-    sku: 'TIN-001',
-    type: 'chemical',
-    quantity: 25,
-    unit: 'unidad',
-    location: 'Almacén A - Estante 3',
-    expirationDate: '2025-06-15',
-    status: 'active',
-    supplierId: 1,
-    supplierName: 'Distribuidora L\'Oréal',
-    costPrice: 18500,
-    minStock: 10,
-    maxStock: 50,
-    assignedTo: [2, 3],
-    notes: 'Revisar fecha de vencimiento mensualmente',
-    createdAt: '2023-08-15',
-    updatedAt: '2024-01-16'
-  },
-  {
-    id: 2,
-    name: 'Tijeras Profesionales',
-    description: 'Tijeras de acero inoxidable para corte profesional',
-    sku: 'HER-001',
-    type: 'tool',
-    quantity: 8,
-    unit: 'unidad',
-    location: 'Estación 1',
-    status: 'active',
-    supplierId: 2,
-    supplierName: 'Herramientas Beauty Pro',
-    costPrice: 125000,
-    minStock: 5,
-    maxStock: 15,
-    assignedTo: [1, 2],
-    notes: 'Requiere mantenimiento semestral',
-    createdAt: '2023-06-20',
-    updatedAt: '2024-01-10'
-  },
-  {
-    id: 3,
-    name: 'Papel Aluminio',
-    description: 'Papel aluminio para mechas y reflejos',
-    sku: 'CON-001',
-    type: 'consumable',
-    quantity: 3,
-    unit: 'rollo',
-    location: 'Almacén B - Estante 1',
-    status: 'low_stock',
-    supplierId: 3,
-    supplierName: 'Suministros Belleza Total',
-    costPrice: 8500,
-    minStock: 5,
-    maxStock: 20,
-    assignedTo: [1, 2, 3],
-    notes: 'Stock bajo - solicitar reposición',
-    createdAt: '2023-09-05',
-    updatedAt: '2024-01-15'
-  },
-  {
-    id: 4,
-    name: 'Secador Profesional',
-    description: 'Secador de pelo profesional 2000W',
-    sku: 'EQU-001',
-    type: 'equipment',
-    quantity: 4,
-    unit: 'unidad',
-    location: 'Estación 2',
-    status: 'active',
-    supplierId: 4,
-    supplierName: 'Equipos Hair Studio',
-    costPrice: 285000,
-    minStock: 3,
-    maxStock: 8,
-    assignedTo: [2, 3],
-    notes: 'Garantía hasta diciembre 2024',
-    createdAt: '2023-05-12',
-    updatedAt: '2024-01-08'
-  },
-  {
-    id: 5,
-    name: 'Desinfectante Instrumental',
-    description: 'Solución desinfectante para herramientas',
-    sku: 'LIM-001',
-    type: 'cleaning',
-    quantity: 12,
-    unit: 'litro',
-    location: 'Área de Limpieza',
-    expirationDate: '2024-12-30',
-    status: 'active',
-    supplierId: 5,
-    supplierName: 'Productos de Limpieza Medellín',
-    costPrice: 15500,
-    minStock: 8,
-    maxStock: 25,
-    assignedTo: [1, 2, 3],
-    notes: 'Uso obligatorio después de cada cliente',
-    createdAt: '2023-11-22',
-    updatedAt: '2024-01-14'
-  },
-  {
-    id: 6,
-    name: 'Oxidante 30 Vol',
-    description: 'Peróxido de hidrógeno al 9% para coloración',
-    sku: 'QUI-001',
-    type: 'chemical',
-    quantity: 18,
-    unit: 'litro',
-    location: 'Almacén A - Estante 4',
-    expirationDate: '2024-08-20',
-    status: 'active',
-    supplierId: 1,
-    supplierName: 'Distribuidora L\'Oréal',
-    costPrice: 12800,
-    minStock: 15,
-    maxStock: 40,
-    assignedTo: [1, 2],
-    notes: 'Almacenar en lugar fresco y seco',
-    createdAt: '2023-07-08',
-    updatedAt: '2024-01-12'
-  }
-];
-
 interface SuppliesListProps {
   hasPermission: (permission: string) => boolean;
+}
+
+// Helper: unwrap ASP.NET $values wrappers
+function unwrapArray(raw: any): any[] {
+  if (Array.isArray(raw)) return raw;
+  if (raw && Array.isArray(raw.$values)) return raw.$values;
+  if (raw && Array.isArray(raw.data)) return raw.data;
+  return [];
 }
 
 export function SuppliesList({ hasPermission }: SuppliesListProps) {
@@ -155,24 +37,46 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
     setTimeout(() => setAlert(null), 4000);
   };
 
-  const [supplies, setSupplies] = useState(mockSupplies);
-  const [selectedSupply, setSelectedSupply] = useState(null);
+  const [supplies, setSupplies] = useState<Supply[]>([]);
+  const [selectedSupply, setSelectedSupply] = useState<Supply | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [supplyToDelete, setSupplyToDelete] = useState(null);
+  const [supplyToDelete, setSupplyToDelete] = useState<Supply | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const { showSectionLoading, hideSectionLoading } = useLoading();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // ── Fetch from API ──
+  const fetchSupplies = async () => {
+    try {
+      setLoading(true);
+      showSectionLoading('Cargando insumos...');
+      const raw = await supplyService.getSupplies();
+      setSupplies(unwrapArray(raw));
+    } catch (err) {
+      console.error('Error loading supplies:', err);
+      showAlert('error', 'Error al cargar los insumos');
+      setSupplies([]);
+    } finally {
+      setLoading(false);
+      hideSectionLoading();
+    }
+  };
+
+  useEffect(() => {
+    fetchSupplies();
+  }, []);
 
   // Filter supplies
   const filteredSupplies = supplies.filter(supply => {
-    const matchesSearch = supply.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supply.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supply.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesSearch;
+    const term = searchTerm.toLowerCase();
+    return (
+      (supply.nombre || '').toLowerCase().includes(term) ||
+      (supply.sku || '').toLowerCase().includes(term) ||
+      (supply.descripcion || '').toLowerCase().includes(term)
+    );
   });
 
   // Pagination
@@ -182,87 +86,51 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
     currentPage * itemsPerPage
   );
 
-  const goToPage = (page: number) => {
-    setCurrentPage(page);
-  };
+  const goToPage = (page: number) => setCurrentPage(page);
+  const goToPreviousPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+  const goToNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
 
-  const goToPreviousPage = () => {
-    setCurrentPage(prev => Math.max(prev - 1, 1));
-  };
-
-  const goToNextPage = () => {
-    setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  };
-
-  const handleViewSupply = (supply) => {
+  const handleViewSupply = (supply: Supply) => {
     setSelectedSupply(supply);
     setShowDetailModal(true);
   };
 
-  const handleDeleteSupply = (supply) => {
+  const handleDeleteSupply = (supply: Supply) => {
     setSupplyToDelete(supply);
     setShowDeleteModal(true);
   };
 
-  const confirmDeleteSupply = () => {
+  const confirmDeleteSupply = async () => {
     if (supplyToDelete) {
-      setSupplies(supplies.filter(s => s.id !== supplyToDelete.id));
-      setShowDeleteModal(false);
-      setSupplyToDelete(null);
-      showAlert('success', 'Insumo eliminado exitosamente');
+      try {
+        showSectionLoading('Eliminando insumo...');
+        await supplyService.deleteSupply(supplyToDelete.insumoId);
+        setSupplies(prev => prev.filter(s => s.insumoId !== supplyToDelete.insumoId));
+        showAlert('success', 'Insumo eliminado exitosamente');
+      } catch (err) {
+        console.error('Error deleting supply:', err);
+        showAlert('error', 'Error al eliminar el insumo');
+      } finally {
+        hideSectionLoading();
+        setShowDeleteModal(false);
+        setSupplyToDelete(null);
+      }
     }
   };
 
-  const getTypeDisplayName = (type) => {
-    const types = {
-      chemical: 'Químico',
-      tool: 'Herramienta',
-      equipment: 'Equipo',
-      consumable: 'Consumible',
-      cleaning: 'Limpieza'
-    };
-    return types[type] || type;
-  };
+  const getStatusDisplayName = (estado: boolean) =>
+    estado ? 'Activo' : 'Inactivo';
 
-  const getTypeBadgeColor = (type) => {
-    const colors = {
-      chemical: 'bg-orange-100 text-orange-800',
-      tool: 'bg-blue-100 text-blue-800',
-      equipment: 'bg-gray-50 text-purple-800',
-      consumable: 'bg-green-100 text-green-800',
-      cleaning: 'bg-yellow-100 text-yellow-800'
-    };
-    return colors[type] || 'bg-gray-100 text-gray-800';
-  };
+  const getStatusBadgeColor = (estado: boolean) =>
+    estado ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
 
-  const getStatusDisplayName = (status) => {
-    const statuses = {
-      active: 'Activo',
-      inactive: 'Inactivo',
-      expired: 'Vencido',
-      low_stock: 'Stock Bajo'
-    };
-    return statuses[status] || status;
-  };
+  const getStatusIcon = (estado: boolean) =>
+    estado ? CheckCircle : Archive;
 
-  const getStatusBadgeColor = (status) => {
-    const colors = {
-      active: 'bg-green-100 text-green-800',
-      inactive: 'bg-gray-100 text-gray-800',
-      expired: 'bg-gray-100 text-red-800',
-      low_stock: 'bg-yellow-100 text-yellow-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'active': return CheckCircle;
-      case 'low_stock': return AlertCircle;
-      case 'expired': return Clock;
-      case 'inactive': return Archive;
-      default: return CheckCircle;
-    }
+  const getStockBadgeColor = (stock: number) => {
+    if (stock <= 0) return 'bg-gray-100 text-red-800';
+    if (stock <= 5) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-green-100 text-green-800';
   };
 
   return (
@@ -271,14 +139,12 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold text-gray-800">Gestión de Insumos</h2>
-          <p className="text-gray-600">
-            Administra los insumos y materiales del salón
-          </p>
+          <p className="text-gray-600">Administra los insumos y materiales del salón</p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-2xl p-6">
           <div className="flex items-center space-x-4">
             <Package className="w-8 h-8 text-blue-600" />
@@ -288,39 +154,27 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-6">
           <div className="flex items-center space-x-4">
             <CheckCircle className="w-8 h-8 text-green-600" />
             <div>
               <p className="text-2xl font-bold text-green-800">
-                {supplies.filter(s => s.status === 'active').length}
+                {supplies.filter(s => s.estado === true).length}
               </p>
               <p className="text-sm text-green-600">Activos</p>
             </div>
           </div>
         </div>
-        
+
         <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-2xl p-6">
           <div className="flex items-center space-x-4">
             <AlertCircle className="w-8 h-8 text-yellow-600" />
             <div>
               <p className="text-2xl font-bold text-yellow-800">
-                {supplies.filter(s => s.status === 'low_stock').length}
+                {supplies.filter(s => (s.stock ?? 0) <= 5 && s.estado === true).length}
               </p>
               <p className="text-sm text-yellow-600">Stock Bajo</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gradient-to-r from-red-50 to-red-100 rounded-2xl p-6">
-          <div className="flex items-center space-x-4">
-            <Clock className="w-8 h-8 text-brand-pink" />
-            <div>
-              <p className="text-2xl font-bold text-red-800">
-                {supplies.filter(s => s.status === 'expired').length}
-              </p>
-              <p className="text-sm text-brand-pink">Vencidos</p>
             </div>
           </div>
         </div>
@@ -335,176 +189,181 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
               type="text"
               placeholder="Buscar por nombre, SKU o descripción..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent"
             />
           </div>
 
-          {hasPermission('manage_supplies') && (
-            <button className="w-full md:w-auto bg-gradient-brand text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2 whitespace-nowrap">
-              <Plus className="w-5 h-5" />
-              <span>Nuevo Insumo</span>
+          <div className="flex gap-3">
+            <button
+              onClick={fetchSupplies}
+              disabled={loading}
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50"
+              title="Recargar datos"
+            >
+              <RefreshCw className={cn('w-5 h-5', loading && 'animate-spin')} />
             </button>
-          )}
+          </div>
         </div>
       </div>
 
       {/* Supplies Table */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <SectionLoader />
         <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
           <h3 className="text-xl font-bold text-gray-800">Lista de Insumos</h3>
           <p className="text-gray-600">
             {filteredSupplies.length} insumo{filteredSupplies.length !== 1 ? 's' : ''} encontrado{filteredSupplies.length !== 1 ? 's' : ''}
           </p>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left font-semibold text-gray-800">Insumo</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-800">Tipo</th>
+                <th className="px-6 py-4 text-left font-semibold text-gray-800">Categoría</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-800">Stock</th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-800">Ubicación</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-800">Estado</th>
                 <th className="px-6 py-4 text-left font-semibold text-gray-800">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {paginatedSupplies.map((supply) => {
-                const StatusIcon = getStatusIcon(supply.status);
-                
-                return (
-                  <tr key={supply.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-brand rounded-full flex items-center justify-center">
-                          <Package className="w-5 h-5 text-white" />
+              {loading && supplies.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center space-y-3">
+                      <Loader2 className="w-10 h-10 text-brand-pink animate-spin" />
+                      <p className="text-gray-500 font-medium">Cargando insumos...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedSupplies.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center">
+                      <Package className="w-16 h-16 text-gray-300 mb-4" />
+                      <h3 className="text-xl font-semibold text-gray-600 mb-2">No hay insumos registrados</h3>
+                      <p className="text-gray-400 text-sm mt-1">
+                        {searchTerm
+                          ? 'No se encontraron insumos con ese criterio de búsqueda'
+                          : 'Comienza a registrar insumos para verlos aquí'}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedSupplies.map((supply) => {
+                  const StatusIcon = getStatusIcon(supply.estado);
+                  return (
+                    <tr key={supply.insumoId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-brand rounded-full flex items-center justify-center">
+                            <Package className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-800">{supply.nombre}</div>
+                            <div className="text-sm text-gray-600">SKU: {supply.sku}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-semibold text-gray-800">{supply.name}</div>
-                          <div className="text-sm text-gray-600">SKU: {supply.sku}</div>
-                        </div>
-                      </div>
-                    </td>
-                    
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getTypeBadgeColor(supply.type)}`}>
-                        {getTypeDisplayName(supply.type)}
-                      </span>
-                    </td>
-                    
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        <div className="font-semibold text-gray-800">
-                          {supply.quantity} {supply.unit}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Min: {supply.minStock} | Max: {supply.maxStock}
-                        </div>
-                      </div>
-                    </td>
-                    
-                    <td className="px-6 py-4">
-                      <div className="text-gray-800">{supply.location}</div>
-                    </td>
-                    
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <StatusIcon className={`w-4 h-4 ${
-                          supply.status === 'active' ? 'text-green-500' :
-                          supply.status === 'low_stock' ? 'text-yellow-500' :
-                          supply.status === 'expired' ? 'text-brand-pink' :
-                          'text-gray-500'
-                        }`} />
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(supply.status)}`}>
-                          {getStatusDisplayName(supply.status)}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                          {supply.categoriaNombre || 'N/A'}
                         </span>
-                      </div>
-                    </td>
-                    
-                    <td className="px-6 py-4">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => handleViewSupply(supply)}
-                          className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                          title="Ver detalle"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        
-                        {hasPermission('manage_supplies') && (
-                          <>
-                            <button
-                              disabled={supply.status === 'inactive'}
-                              className={cn(
-                                "p-2 rounded-lg transition-colors",
-                                supply.status === 'inactive'
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
-                                  : "bg-green-100 text-green-700 hover:bg-green-200"
-                              )}
-                              title={supply.status === 'inactive' ? "No se puede editar un insumo inactivo" : "Editar insumo"}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            
-                            <button
-                              onClick={() => handleDeleteSupply(supply)}
-                              disabled={supply.status === 'inactive'}
-                              className={cn(
-                                "p-2 rounded-lg transition-colors",
-                                supply.status === 'inactive'
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
-                                  : "bg-gray-100 text-brand-pink hover:bg-red-200"
-                              )}
-                              title={supply.status === 'inactive' ? "No se puede eliminar un insumo inactivo" : "Eliminar insumo"}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStockBadgeColor(supply.stock ?? 0)}`}>
+                          {supply.stock ?? 0}
+                        </span>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <StatusIcon className={`w-4 h-4 ${supply.estado ? 'text-green-500' : 'text-gray-400'}`} />
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(supply.estado)}`}>
+                            {getStatusDisplayName(supply.estado)}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleViewSupply(supply)}
+                            className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            title="Ver detalle"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+
+                          {hasPermission('manage_supplies') && (
+                            <>
+                              <button
+                                disabled={supply.estado !== true}
+                                className={cn(
+                                  'p-2 rounded-lg transition-colors',
+                                  supply.estado !== true
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                )}
+                                title={supply.estado !== true ? 'No se puede editar un insumo inactivo' : 'Editar insumo'}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+
+                              <button
+                                onClick={() => handleDeleteSupply(supply)}
+                                disabled={supply.estado !== true}
+                                className={cn(
+                                  'p-2 rounded-lg transition-colors',
+                                  supply.estado !== true
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+                                    : 'bg-gray-100 text-brand-pink hover:bg-red-200'
+                                )}
+                                title={supply.estado !== true ? 'No se puede eliminar un insumo inactivo' : 'Eliminar insumo'}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
-        </div>
         </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              Mostrando {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, filteredSupplies.length)} de {filteredSupplies.length} registros
+              Mostrando {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredSupplies.length)} de {filteredSupplies.length} registros
             </div>
             <Pagination>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious 
+                  <PaginationPrevious
                     onClick={goToPreviousPage}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                   />
                 </PaginationItem>
-                
-                {/* First page */}
+
                 {currentPage > 3 && (
                   <>
                     <PaginationItem>
-                      <PaginationLink onClick={() => goToPage(1)} className="cursor-pointer">
-                        1
-                      </PaginationLink>
+                      <PaginationLink onClick={() => goToPage(1)} className="cursor-pointer">1</PaginationLink>
                     </PaginationItem>
-                    {currentPage > 4 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
+                    {currentPage > 4 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
                   </>
                 )}
-                
-                {/* Pages around current page */}
+
                 {[...Array(totalPages)].map((_, index) => {
                   const pageNum = index + 1;
                   if (pageNum >= currentPage - 2 && pageNum <= currentPage + 2) {
@@ -513,11 +372,7 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
                         <PaginationLink
                           onClick={() => goToPage(pageNum)}
                           isActive={currentPage === pageNum}
-                          className={`cursor-pointer ${
-                            currentPage === pageNum
-                              ? 'bg-gradient-brand text-white border-pink-400'
-                              : ''
-                          }`}
+                          className={`cursor-pointer ${currentPage === pageNum ? 'bg-gradient-brand text-white border-pink-400' : ''}`}
                         >
                           {pageNum}
                         </PaginationLink>
@@ -526,27 +381,20 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
                   }
                   return null;
                 })}
-                
-                {/* Last page */}
+
                 {currentPage < totalPages - 2 && (
                   <>
-                    {currentPage < totalPages - 3 && (
-                      <PaginationItem>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    )}
+                    {currentPage < totalPages - 3 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
                     <PaginationItem>
-                      <PaginationLink onClick={() => goToPage(totalPages)} className="cursor-pointer">
-                        {totalPages}
-                      </PaginationLink>
+                      <PaginationLink onClick={() => goToPage(totalPages)} className="cursor-pointer">{totalPages}</PaginationLink>
                     </PaginationItem>
                   </>
                 )}
-                
+
                 <PaginationItem>
-                  <PaginationNext 
+                  <PaginationNext
                     onClick={goToNextPage}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -558,8 +406,7 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
       {/* Supply Detail Modal */}
       {showDetailModal && selectedSupply && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header - Fixed at top */}
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -568,174 +415,78 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold leading-tight">Detalle del Insumo</h3>
-                    <p className="text-pink-100 text-sm">{selectedSupply.name}</p>
+                    <p className="text-pink-100 text-sm">{selectedSupply.nombre}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
-                  className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/30 hover:scale-110 active:scale-95 transition-all shadow-sm"
+                  className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/30 hover:scale-110 active:scale-95 transition-all"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
-            {/* Scrollable Body */}
-            <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50/30 no-scrollbar">
-              <style>{`
-                .no-scrollbar::-webkit-scrollbar { display: none; }
-                .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-              `}</style>
-
-              <div className="max-w-4xl mx-auto space-y-6">
-                {/* Info Cards Row */}
-                <div className="grid md:grid-cols-3 gap-4">
-                  {/* Basic Info Card */}
-                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <div className="flex items-center space-x-2 text-brand-violet mb-3">
-                      <Tag className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
-                    </div>
-                    <div className="mb-1">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Nombre:</span>
-                      <p className="font-bold text-gray-800 text-lg mb-1 truncate">{selectedSupply.name}</p>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-500">
-                      <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded-md">SKU: {selectedSupply.sku}</span>
-                    </div>
+            <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm space-y-3">
+                  <div className="flex items-center space-x-2 text-brand-violet mb-1">
+                    <Tag className="w-4 h-4" />
+                    <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
                   </div>
-
-                  {/* Stock Info Card */}
-                  <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <div className="flex items-center space-x-2 text-brand-pink mb-3">
-                      <TrendingUp className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Estado de Stock</h4>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Cantidad:</span>
-                        <span className={`font-bold ${selectedSupply.quantity <= selectedSupply.minStock ? 'text-brand-pink' : 'text-blue-600'}`}>
-                          {selectedSupply.quantity} {selectedSupply.unit}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Tipo:</span>
-                        <span className="font-bold text-gray-700">{getTypeDisplayName(selectedSupply.type)}</span>
-                      </div>
-                    </div>
+                  <div>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Nombre</span>
+                    <p className="font-bold text-gray-800">{selectedSupply.nombre}</p>
                   </div>
+                  <div>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">SKU</span>
+                    <p className="font-mono text-gray-700 text-sm">{selectedSupply.sku}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Categoría</span>
+                    <p className="font-bold text-gray-700">{selectedSupply.categoriaNombre || 'N/A'}</p>
+                  </div>
+                </div>
 
-                  {/* Status Card */}
-                  <div className={`rounded-2xl p-5 border shadow-sm flex flex-col items-center justify-center ${
-                    selectedSupply.status === 'active' 
-                    ? 'bg-green-50/50 border-green-100 text-green-600' 
-                    : 'bg-gray-50/50 border-red-100 text-brand-pink'
-                  }`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${
-                      selectedSupply.status === 'active' ? 'bg-green-100' : 'bg-gray-100'
-                    }`}>
-                      <CheckCircle className="w-5 h-5" />
-                    </div>
-                    <span className="font-black uppercase text-[10px] tracking-[0.2em]">
-                      {getStatusDisplayName(selectedSupply.status)}
+                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm space-y-3">
+                  <div className="flex items-center space-x-2 text-brand-pink mb-1">
+                    <TrendingUp className="w-4 h-4" />
+                    <h4 className="font-bold uppercase text-[10px] tracking-widest">Inventario</h4>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Stock actual</span>
+                    <p className={`font-bold text-lg ${(selectedSupply.stock ?? 0) <= 5 ? 'text-yellow-600' : 'text-blue-600'}`}>
+                      {selectedSupply.stock ?? 0}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Estado</span>
+                    <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(selectedSupply.estado)}`}>
+                      {getStatusDisplayName(selectedSupply.estado)}
                     </span>
                   </div>
                 </div>
-
-                {/* Grid for Detailed Sections */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Stock Details Section */}
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
-                      <h4 className="font-bold text-gray-700 text-sm flex items-center space-x-2">
-                        <Package className="w-4 h-4 text-blue-400" />
-                        <span>Parámetros de Inventario</span>
-                      </h4>
-                    </div>
-                    <div className="p-6">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-gray-50 rounded-xl">
-                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Mínimo</span>
-                          <p className="font-bold text-gray-700">{selectedSupply.minStock} {selectedSupply.unit}</p>
-                        </div>
-                        <div className="p-3 bg-gray-50 rounded-xl">
-                          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Máximo</span>
-                          <p className="font-bold text-gray-700">{selectedSupply.maxStock} {selectedSupply.unit}</p>
-                        </div>
-                        <div className="p-3 bg-green-50 rounded-xl col-span-2">
-                          <span className="text-[10px] font-black text-green-600 uppercase tracking-widest block mb-1">Precio de Costo</span>
-                          <p className="font-bold text-green-700 text-lg">${selectedSupply.costPrice.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Supplier & Location Section */}
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
-                      <h4 className="font-bold text-gray-700 text-sm flex items-center space-x-2">
-                        <Truck className="w-4 h-4 text-purple-400" />
-                        <span>Logística y Origen</span>
-                      </h4>
-                    </div>
-                    <div className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center">
-                            <MapPin className="w-4 h-4 text-brand-violet" />
-                          </div>
-                          <div>
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Ubicación</span>
-                            <p className="font-bold text-gray-700 text-sm">{selectedSupply.location}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                            <Truck className="w-4 h-4 text-blue-500" />
-                          </div>
-                          <div>
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Proveedor</span>
-                            <p className="font-bold text-gray-700 text-sm">{selectedSupply.supplierName}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Description & Notes Section */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
-                    <h4 className="font-bold text-gray-700 text-sm flex items-center space-x-2">
-                      <FileText className="w-4 h-4 text-brand-pink" />
-                      <span>Detalles Adicionales</span>
-                    </h4>
-                  </div>
-                  <div className="p-6 space-y-4">
-                    <div>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Descripción</span>
-                      <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 p-4 rounded-xl italic">
-                        {selectedSupply.description || 'Sin descripción disponible.'}
-                      </p>
-                    </div>
-                    {selectedSupply.notes && (
-                      <div>
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Notas del Insumo</span>
-                        <p className="text-gray-700 text-sm leading-relaxed bg-yellow-50/50 p-4 rounded-xl border border-yellow-100">
-                          {selectedSupply.notes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
+
+              {selectedSupply.descripcion && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
+                    <FileText className="w-4 h-4 text-brand-pink" />
+                    <h4 className="font-bold text-gray-700 text-sm">Descripción</h4>
+                  </div>
+                  <div className="p-6">
+                    <p className="text-gray-700 text-sm leading-relaxed italic">
+                      {selectedSupply.descripcion}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Footer - Fixed at bottom */}
-            <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
+            <div className="p-5 bg-white border-t border-gray-100 flex justify-end">
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 active:scale-95 transition-all text-sm uppercase tracking-widest"
               >
                 Cerrar
               </button>
@@ -748,21 +499,20 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
       {showDeleteModal && supplyToDelete && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-red-500 to-pink-600 p-5 text-white shrink-0 shadow-md">
+            <div className="bg-gradient-to-r from-red-500 to-pink-600 p-5 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                     <Trash2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold leading-tight">Confirmar Eliminación</h3>
-                    <p className="text-red-100 text-xs font-medium">Esta acción no se puede deshacer</p>
+                    <h3 className="text-xl font-bold">Confirmar Eliminación</h3>
+                    <p className="text-red-100 text-xs">Esta acción no se puede deshacer</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/30 hover:scale-110 active:scale-95 transition-all shadow-sm"
+                  className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/30 transition-all"
                 >
                   <X className="w-5 h-5 text-white" />
                 </button>
@@ -775,20 +525,18 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
                   <AlertCircle className="w-10 h-10 text-brand-pink -rotate-3" />
                 </div>
                 <h4 className="text-lg font-bold text-gray-800 mb-2">
-                  ¿Eliminar insumo "{supplyToDelete.name}"?
+                  ¿Eliminar "{supplyToDelete.nombre}"?
                 </h4>
-                <p className="text-sm text-gray-500 leading-relaxed mb-6">
-                  Estás a punto de eliminar este insumo de forma permanente. 
-                  Esta acción afectará los registros históricos y el inventario actual.
+                <p className="text-sm text-gray-500 mb-6">
+                  Estás a punto de eliminar este insumo de forma permanente.
                 </p>
-                
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex items-center space-x-4">
                   <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
                     <Package className="w-6 h-6 text-brand-pink" />
                   </div>
                   <div className="text-left">
                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Insumo a eliminar</p>
-                    <p className="font-bold text-gray-700">{supplyToDelete.name}</p>
+                    <p className="font-bold text-gray-700">{supplyToDelete.nombre}</p>
                     <p className="text-[10px] font-mono text-gray-400 uppercase">SKU: {supplyToDelete.sku}</p>
                   </div>
                 </div>
@@ -803,7 +551,7 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
                 </button>
                 <button
                   onClick={confirmDeleteSupply}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg active:scale-95 transition-all flex items-center justify-center space-x-2"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Eliminar</span>
@@ -818,24 +566,20 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
       {alert && (
         <div className="fixed bottom-6 right-6 z-[9999] animate-in slide-in-from-right-5 duration-300">
           <div className={cn(
-            "text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r",
-            alert.type === 'success' ? "from-pink-400 to-purple-500" :
-              alert.type === 'error' ? "from-red-500 to-pink-600" :
-                "from-blue-400 to-indigo-500"
+            'text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-4 min-w-[320px] bg-gradient-to-r',
+            alert.type === 'success' ? 'from-pink-400 to-purple-500' :
+              alert.type === 'error' ? 'from-red-500 to-pink-600' :
+                'from-blue-400 to-indigo-500'
           )}>
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
-                {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
-                {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
-              </div>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+              {alert.type === 'success' && <CheckCircle className="w-6 h-6 text-white" />}
+              {alert.type === 'error' && <AlertCircle className="w-6 h-6 text-white" />}
+              {alert.type === 'info' && <Info className="w-6 h-6 text-white" />}
             </div>
-            <div className="flex-1">
-              <p className="font-semibold">{alert.message}</p>
-            </div>
+            <p className="font-semibold flex-1">{alert.message}</p>
             <button
               onClick={() => setAlert(null)}
-              className="flex-shrink-0 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+              className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors shrink-0"
             >
               <X className="w-5 h-5" />
             </button>

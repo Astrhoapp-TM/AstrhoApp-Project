@@ -135,9 +135,35 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
         }
     };
 
-    const handleEditPerson = (person: Person) => {
-        setEditingPerson(person);
-        setShowNewPersonModal(true);
+    const handleEditPerson = async (person: Person) => {
+        try {
+            showSectionLoading("Cargando datos...");
+            setLoading(true);
+            const fullPerson = await personService.getPersonByDocument(person.documentId, person.type);
+
+            // Enrich with email from user service if needed
+            if (!fullPerson.email && fullPerson.usuarioId) {
+                try {
+                    const userDetail = await userService.getById(fullPerson.usuarioId);
+                    if (userDetail?.email) {
+                        fullPerson.email = userDetail.email;
+                    }
+                } catch (userError) {
+                    console.error('Error fetching associated user email:', userError);
+                }
+            }
+
+            setEditingPerson(fullPerson);
+            setShowNewPersonModal(true);
+        } catch (error) {
+            console.error('Error fetching person detail for edit:', error);
+            // Fallback to list-row data if the fetch fails
+            setEditingPerson(person);
+            setShowNewPersonModal(true);
+        } finally {
+            setLoading(false);
+            hideSectionLoading();
+        }
     };
 
     const handleDeletePerson = (person: Person) => {
@@ -245,31 +271,27 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             showSectionLoading("Guardando información...");
             const { email, roleId, ...personOnlyData } = personData;
 
-            // Validar documento duplicado si es un registro nuevo o si el documento ha cambiado
-            const docId = personOnlyData.documentId.trim();
-            const originalDocId = editingPerson?.documentId;
-            
-            if (!editingPerson || docId !== originalDocId) {
+            // When editing, personOnlyData.documentId holds the USER documento (not the person PK).
+            // The person PK (documentoEmpleado/documentoCliente) stays as editingPerson.documentId.
+            const isEditing = !!editingPerson;
+
+            // Validar documento duplicado solo en creación
+            if (!isEditing) {
+                const docId = personOnlyData.documentId.trim();
                 let docExists = false;
-                
-                // Buscar en Clientes
+
                 try {
                     const client = await personService.getPersonByDocument(docId, 'client');
                     if (client) docExists = true;
-                } catch (e) {
-                    // No encontrado
-                }
-                
-                // Buscar en Empleados
+                } catch (e) { /* No encontrado */ }
+
                 if (!docExists) {
                     try {
                         const employee = await personService.getPersonByDocument(docId, 'employee');
                         if (employee) docExists = true;
-                    } catch (e) {
-                        // No encontrado
-                    }
+                    } catch (e) { /* No encontrado */ }
                 }
-                
+
                 if (docExists) {
                     showAlert('error', 'Error: El número de documento ya está registrado para otro usuario.');
                     return;
@@ -299,15 +321,36 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
             }
 
             if (editingPerson) {
-                // Edit
+                // Edit: personOnlyData.documentId is the USER documento (from the form).
+                // The person record must keep the original PK (editingPerson.documentId).
+                const userDocumento = personOnlyData.documentId;
+
                 const updatedRaw = await personService.updatePerson(editingPerson.documentId, {
                     ...editingPerson,
                     ...personOnlyData,
+                    documentId: editingPerson.documentId, // preserve person PK
                     type: personType
                 } as Person);
 
+                // Also update the associated user's documento field
+                if (editingPerson.usuarioId && userDocumento) {
+                    try {
+                        const userDetail = await userService.getById(editingPerson.usuarioId);
+                        if (userDetail) {
+                            await userService.update(editingPerson.usuarioId, {
+                                rolId: userDetail.rol?.rolId,
+                                email: userDetail.email,
+                                estado: userDetail.estado,
+                                documento: userDocumento,
+                            });
+                        }
+                    } catch (userUpdateError) {
+                        console.error('Error updating user documento:', userUpdateError);
+                    }
+                }
+
                 setPersons(persons.map(p =>
-                    p.documentId === editingPerson.documentId ? { ...updatedRaw, status: editingPerson.status } : p // Merge status back if API response lacks it based on spec
+                    p.documentId === editingPerson.documentId ? { ...updatedRaw, status: editingPerson.status } : p
                 ));
                 showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} actualizado exitosamente`);
             } else {
@@ -833,7 +876,7 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
 function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: { onClose: () => void, onSave: (data: any) => void, editingPerson: Person | null, personType: string, roles: RolListDto[] }) {
     const [formData, setFormData] = useState({
         documentType: editingPerson?.documentType || 'CC',
-        documentId: editingPerson?.documentId || '',
+        documentId: editingPerson ? (editingPerson.userDocument || editingPerson.documentId || '') : '',
         name: editingPerson?.name || '',
         phone: editingPerson?.phone || '',
         address: editingPerson?.address || '',
@@ -1219,6 +1262,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
                                                 type="text"
+                                                name="address"
                                                 value={formData.address}
                                                 onChange={(e) => handleChange('address', e.target.value)}
                                                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"

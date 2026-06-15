@@ -143,62 +143,69 @@ export const userService = {
             const targetId = Number(userId);
             console.log('🔍 [getPersonForUser] targetId:', targetId);
 
-            // Helper function to get address from data
-            const getAddress = (data: any, type: 'client' | 'employee') => {
-                const common = data.direccion || data.address || data.Direccion || data['dirección'] || data['Dirección'] || '';
-                if (type === 'client') {
-                    return data.direccionCliente || data.direccion_cliente || data['direcciónCliente'] || common;
-                } else {
-                    return data.direccionEmpleado || data.direccion_empleado || data['direcciónEmpleado'] || common;
+            // Helper: fetch full detail and extract address from it
+            const fetchDetail = async (documentId: string, type: 'client' | 'employee', fallbackData: any) => {
+                try {
+                    const endpoint = type === 'client'
+                        ? `/api/Clientes/${documentId}`
+                        : `/api/Empleados/${documentId}`;
+                    const detail = await apiClient.get<any>(endpoint);
+                    const d = detail || fallbackData;
+                    const common = d.direccion || d.address || d.Direccion || d['dirección'] || d['Dirección'] || '';
+                    const address = type === 'client'
+                        ? (d.direccionCliente || d.direccion_cliente || d['direcciónCliente'] || common)
+                        : (d.direccionEmpleado || d.direccion_empleado || d['direcciónEmpleado'] || common);
+                    return address;
+                } catch {
+                    // Fallback to list data if detail fetch fails
+                    const d = fallbackData;
+                    const common = d.direccion || d.address || d.Direccion || d['dirección'] || d['Dirección'] || '';
+                    return type === 'client'
+                        ? (d.direccionCliente || d.direccion_cliente || d['direcciónCliente'] || common)
+                        : (d.direccionEmpleado || d.direccion_empleado || d['direcciónEmpleado'] || common);
                 }
             };
 
             // 1. First priority: Search by usuarioId in the corresponding table
             if (isClient) {
                 console.log('🔍 [getPersonForUser] Searching in /api/Clientes by usuarioId');
-                // Search in /Clientes
                 const clients = await apiClient.getAllPages<any>('/api/Clientes').catch((err) => {
                     console.error('❌ [getPersonForUser] Error fetching /api/Clientes:', err);
                     return [];
                 });
-                console.log('🔍 [getPersonForUser] All clients:', clients);
                 const client = clients.find((c: any) => Number(c.usuarioId) === targetId);
-                console.log('🔍 [getPersonForUser] Found client:', client);
                 
                 if (client) {
-                    console.log('✅ [getPersonForUser] Found client, client keys:', Object.keys(client));
-                    const address = getAddress(client, 'client');
-                    console.log('✅ [getPersonForUser] Client address:', address);
+                    const docId = client.documentoCliente;
+                    const address = await fetchDetail(docId, 'client', client);
+                    console.log('✅ [getPersonForUser] Client address from detail:', address);
                     return {
-                        documentId: client.documentoCliente,
+                        documentId: docId,
                         documentType: client.tipoDocumento || 'CC',
                         name: client.nombre || 'Cliente',
                         phone: client.telefono || '',
-                        address: address,
+                        address,
                         type: 'client'
                     };
                 }
             } else {
                 console.log('🔍 [getPersonForUser] Searching in /api/Empleados by usuarioId');
-                // Search in /Empleados (for Admin, Assistant, Super Admin, etc.)
                 const employees = await apiClient.getAllPages<any>('/api/Empleados').catch((err) => {
                     console.error('❌ [getPersonForUser] Error fetching /api/Empleados:', err);
                     return [];
                 });
-                console.log('🔍 [getPersonForUser] All employees:', employees);
                 const employee = employees.find((e: any) => Number(e.usuarioId) === targetId);
-                console.log('🔍 [getPersonForUser] Found employee:', employee);
                 
                 if (employee) {
-                    console.log('✅ [getPersonForUser] Found employee, employee keys:', Object.keys(employee));
-                    const address = getAddress(employee, 'employee');
-                    console.log('✅ [getPersonForUser] Employee address:', address);
+                    const docId = employee.documentoEmpleado;
+                    const address = await fetchDetail(docId, 'employee', employee);
+                    console.log('✅ [getPersonForUser] Employee address from detail:', address);
                     return {
-                        documentId: employee.documentoEmpleado,
+                        documentId: docId,
                         documentType: employee.tipoDocumento || 'CC',
                         name: employee.nombre || 'Empleado',
                         phone: employee.telefono || '',
-                        address: address,
+                        address,
                         type: 'employee'
                     };
                 }
@@ -212,33 +219,31 @@ export const userService = {
             ]);
 
             const foundClient = allClients.find((x: any) => Number(x.usuarioId) === targetId);
-            console.log('🔍 [getPersonForUser] Cross-search found client:', foundClient);
             if (foundClient) {
-                console.log('✅ [getPersonForUser] Cross-search found client, client keys:', Object.keys(foundClient));
-                const address = getAddress(foundClient, 'client');
-                console.log('✅ [getPersonForUser] Cross-search client address:', address);
+                const docId = foundClient.documentoCliente;
+                const address = await fetchDetail(docId, 'client', foundClient);
+                console.log('✅ [getPersonForUser] Cross-search client address from detail:', address);
                 return {
-                    documentId: foundClient.documentoCliente,
+                    documentId: docId,
                     documentType: foundClient.tipoDocumento || 'CC',
                     name: foundClient.nombre || 'Cliente',
                     phone: foundClient.telefono || '',
-                    address: address,
+                    address,
                     type: 'client'
                 };
             }
 
             const foundEmployee = allEmployees.find((x: any) => Number(x.usuarioId) === targetId);
-            console.log('🔍 [getPersonForUser] Cross-search found employee:', foundEmployee);
             if (foundEmployee) {
-                console.log('✅ [getPersonForUser] Cross-search found employee, employee keys:', Object.keys(foundEmployee));
-                const address = getAddress(foundEmployee, 'employee');
-                console.log('✅ [getPersonForUser] Cross-search employee address:', address);
+                const docId = foundEmployee.documentoEmpleado;
+                const address = await fetchDetail(docId, 'employee', foundEmployee);
+                console.log('✅ [getPersonForUser] Cross-search employee address from detail:', address);
                 return {
-                    documentId: foundEmployee.documentoEmpleado,
+                    documentId: docId,
                     documentType: foundEmployee.tipoDocumento || 'CC',
                     name: foundEmployee.nombre || 'Empleado',
                     phone: foundEmployee.telefono || '',
-                    address: address,
+                    address,
                     type: 'employee'
                 };
             }

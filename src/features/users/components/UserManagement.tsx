@@ -248,37 +248,34 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         if (personInfo) {
           const docId = personInfo.documentId;
           const isClient = personInfo.type === 'client';
-          
-          const mapDocType = (t: string): string => {
-            const key = (t || '').toLowerCase();
-            if (key === 'cedula' || key === 'cédula' || key === 'cedula_ciudadania') return 'CC';
-            if (key === 'tarjeta_identidad' || key === 'ti') return 'TI';
-            if (key === 'cedula_extranjeria' || key === 'ce') return 'CE';
-            if (key === 'pasaporte' || key === 'passport') return 'PAS';
-            if (key === 'nit') return 'NIT';
-            return 'CC';
-          };
 
           const newEstado = userData.estado !== undefined ? userData.estado : selectedUser.estado;
+          const direccion = userData.direccion || '';
 
         if (isClient) {
             await apiClient.put(`/api/Clientes/${docId}`, {
               documentoCliente: docId,
               usuarioId: userId,
-              tipoDocumento: 'CC',
+              tipoDocumento: personInfo.documentType || 'CC',
               nombre: userData.nombre,
               telefono: userData.phone,
-              dirección: userData.direccion,
+              direccion: direccion,
+              direccionCliente: direccion,
+              'dirección': direccion,
+              'direcciónCliente': direccion,
               estado: newEstado,
             });
           } else {
             await apiClient.put(`/api/Empleados/${docId}`, {
               documentoEmpleado: docId,
               usuarioId: userId,
-              tipoDocumento: 'CC',
+              tipoDocumento: personInfo.documentType || 'CC',
               nombre: userData.nombre,
               telefono: userData.phone,
-              dirección: userData.direccion,
+              direccion: direccion,
+              direccionEmpleado: direccion,
+              'dirección': direccion,
+              'direcciónEmpleado': direccion,
               estado: newEstado,
             });
           }
@@ -330,7 +327,10 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
           tipoDocumento: 'CC',
           nombre: userData.nombre,
           telefono: userData.phone,
-          dirección: userData.direccion,
+          direccion: userData.direccion || '',
+          direccionCliente: userData.direccion || '',
+          'dirección': userData.direccion || '',
+          'direcciónCliente': userData.direccion || '',
         });
       } else {
         // Empleado (Administrador, Asistente, or any other non-client role)
@@ -340,7 +340,10 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
           tipoDocumento: 'CC',
           nombre: userData.nombre,
           telefono: userData.phone,
-          dirección: userData.direccion,
+          direccion: userData.direccion || '',
+          direccionEmpleado: userData.direccion || '',
+          'dirección': userData.direccion || '',
+          'direcciónEmpleado': userData.direccion || '',
         });
       }
 

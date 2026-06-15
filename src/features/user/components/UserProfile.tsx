@@ -203,6 +203,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
         email: userForm.email,
         rolId: rolIdToUse,
         estado: true,
+        documento: user.documento || personData.documentId || undefined,
       };
 
       await apiClient.put(`/api/Usuarios/${userId}`, userUpdatePayload);

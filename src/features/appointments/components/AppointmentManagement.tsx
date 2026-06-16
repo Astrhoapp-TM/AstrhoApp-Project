@@ -411,7 +411,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
 
   const handleEditAppointment = (apt: AgendaItem) => {
     setSelectedAppointment(apt);
-    setShowCreateModal(true);
+    setIsBookingMode(true);
   };
 
   const handleViewDetail = async (apt: AgendaItem) => {
@@ -570,11 +570,16 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
           <AppointmentBooking
             currentUser={currentUser}
             isAdminBooking={true}
+            appointmentToReschedule={selectedAppointment}
             onBookingComplete={() => {
               setIsBookingMode(false);
+              setSelectedAppointment(null);
               loadData();
             }}
-            onBack={() => setIsBookingMode(false)}
+            onBack={() => {
+              setIsBookingMode(false);
+              setSelectedAppointment(null);
+            }}
           />
         </div>
       )}

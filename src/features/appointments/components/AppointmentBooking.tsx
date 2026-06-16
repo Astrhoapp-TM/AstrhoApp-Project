@@ -184,6 +184,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
   } = useClientes(6);
 
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [allServicesCatalog, setAllServicesCatalog] = useState<any[]>([]);
 
   const [existingAppointments, setExistingAppointments] = useState<AgendaItem[]>([]);
   const [metodosPago, setMetodosPago] = useState<any[]>([]);
@@ -208,6 +209,13 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     return horariosEmpleados.some(h => String(h.documentoEmpleado) === String(selectedProfessional.id));
   }, [isAsistente, selectedProfessional, horariosEmpleados]);
 
+  const displayClients = useMemo(() => {
+    if (selectedClient && !clients.some(c => c.id === selectedClient.id)) {
+      return [selectedClient, ...clients];
+    }
+    return clients;
+  }, [clients, selectedClient]);
+
   const hasProfessionalPermissionError = professionalError?.includes('403');
 
   // Service Map for duration lookup
@@ -225,10 +233,10 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
 
   // Initialize data for new booking or reschedule
   useEffect(() => {
-    if (appointmentToReschedule && services.length > 0 && professionals.length > 0) {
-      // Find full service objects
+    if (appointmentToReschedule && allServicesCatalog.length > 0 && professionals.length > 0) {
+      // Find full service objects from the complete catalog (not just current page of services)
       const fullServices = appointmentToReschedule.servicios.map(name => 
-        services.find(s => s.name.toLowerCase().trim() === name.toLowerCase().trim())
+        allServicesCatalog.find(s => s.name.toLowerCase().trim() === name.toLowerCase().trim())
       ).filter(Boolean);
       
       setSelectedServices(fullServices);
@@ -240,6 +248,16 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       // Set date and time
       setSelectedDate(appointmentToReschedule.fechaCita.split('T')[0]);
       setSelectedTime(appointmentToReschedule.horaInicio?.substring(0, 5) || '');
+      
+      // Pre-select client
+      setClientDocument(appointmentToReschedule.documentoCliente);
+      setSelectedClient({
+        id: appointmentToReschedule.documentoCliente,
+        name: appointmentToReschedule.cliente,
+        phone: '',
+        role: 'Cliente',
+        avatar: (appointmentToReschedule.cliente || 'C').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+      });
       
       // Payment method is handled after metodosPago load
     } else if (initialService && services.length > 0) {
@@ -263,7 +281,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
         setSelectedProfessional(currentProf);
       }
     }
-  }, [appointmentToReschedule, initialService, services, professionals, currentUser, selectedProfessional]);
+  }, [appointmentToReschedule, initialService, services, professionals, currentUser, selectedProfessional, allServicesCatalog]);
 
   // Helper to extract array from API responses
   const extractArray = (data: any): any[] => {
@@ -428,6 +446,29 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
           });
         }
         setServiciosCatalogMap(catalogMap);
+
+        // Map and set the complete services catalog
+        const activeMappedCatalog = (serviciosCatalogData || [])
+          .filter((s: any) => {
+            const estado = s.estado !== undefined ? s.estado : s.Estado;
+            return estado === true || 
+                   estado === 1 || 
+                   estado === '1' || 
+                   String(estado).toLowerCase() === 'activo' ||
+                   estado === undefined || 
+                   estado === null;
+          })
+          .map((s: any) => ({
+            id: s.servicioId || s.ServicioId || s.id || s.Id,
+            name: s.nombre || s.Nombre || 'Sin nombre',
+            description: s.descripcion || s.Descripcion || '',
+            price: s.precio || s.Precio || 0,
+            duration: s.duracion || s.Duracion || 0,
+            category: s.categoriaNombre || s.CategoriaNombre || 'General',
+            icon: Scissors,
+            color: 'bg-pink-500'
+          }));
+        setAllServicesCatalog(activeMappedCatalog);
         
         // Initial selected payment method (prefer Cash/Efectivo)
         if (metodosArray.length > 0) {
@@ -463,7 +504,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       }
     };
     fetchData();
-  }, [currentUser]);
+  }, [currentUser, appointmentToReschedule]);
 
   // Get current week dates
   const getWeekDates = (date: Date) => {
@@ -1025,10 +1066,10 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   )}
                 </div>
 
-                {clients.length > 0 ? (
+                {displayClients.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                      {clients.map((client) => (
+                      {displayClients.map((client) => (
                         <div
                           key={client.id}
                           onClick={() => {
@@ -2181,10 +2222,10 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             </p>
           </div>
 
-          {clients.length > 0 ? (
+          {displayClients.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {clients.map((client) => (
+                {displayClients.map((client) => (
                   <div
                     key={client.id}
                     onClick={() => {

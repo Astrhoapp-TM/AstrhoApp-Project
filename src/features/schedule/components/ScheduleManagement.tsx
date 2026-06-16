@@ -936,20 +936,30 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                       <div>
                         <div className="text-gray-600 text-sm mb-1">Empleados asignados:</div>
                         <div className="flex flex-wrap gap-2">
-                          {assignments.length > 0 ? (
-                            <>
-                              {assignments.slice(0, 3).map(a => (
-                                <span key={a.horarioEmpleadoId} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs">
-                                  {a.empleadoNombre || a.documentoEmpleado}
-                                </span>
-                              ))}
-                              {assignments.length > 3 && (
-                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
-                                  +{assignments.length - 3} más
-                                </span>
-                              )}
-                            </>
-                          ) : (
+                          {assignments.length > 0 ? (() => {
+                            // Deduplicate by documentoEmpleado — each employee shown only once
+                            const seen = new Set<string>();
+                            const unique = assignments.filter(a => {
+                              const doc = a.documentoEmpleado || '';
+                              if (seen.has(doc)) return false;
+                              seen.add(doc);
+                              return true;
+                            });
+                            return (
+                              <>
+                                {unique.slice(0, 3).map(a => (
+                                  <span key={a.documentoEmpleado} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs">
+                                    {a.empleadoNombre || a.documentoEmpleado}
+                                  </span>
+                                ))}
+                                {unique.length > 3 && (
+                                  <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
+                                    +{unique.length - 3} más
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })() : (
                             <span className="text-gray-400 text-xs">Sin empleados asignados</span>
                           )}
                         </div>

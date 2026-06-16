@@ -5,6 +5,7 @@ import { Navigation } from "@/shared/components/Navigation";
 import { Hero } from "@/shared/components/Hero";
 import { ServiceList } from "@/features/services/components/ServiceList";
 import { Footer } from "@/shared/components/Footer";
+import { AppDownload } from "@/shared/components/AppDownload";
 import { AppointmentList } from "@/features/appointments/components/AppointmentList";
 import { ClientAppointments } from "@/features/appointments/components/ClientAppointments";
 import { AppointmentBooking } from "@/features/appointments/components/AppointmentBooking";
@@ -380,6 +381,7 @@ function App() {
               <ServiceList
                 onBookAppointment={navigateToAppointments}
               />
+              <AppDownload />
               <Footer />
             </>
           );
@@ -482,6 +484,7 @@ function App() {
             <ServiceList
               onBookAppointment={navigateToAppointments}
             />
+            <AppDownload />
             <Footer />
           </>
         );

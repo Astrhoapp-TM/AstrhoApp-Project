@@ -645,6 +645,12 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
           `}</style>
 
           <form onSubmit={handleFormSubmit} className="max-w-4xl mx-auto space-y-6">
+            {/* Info Message */}
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">
+              <Info className="w-5 h-5 text-blue-600" />
+              <p className="text-sm text-blue-700">Si el cliente al que se registra esta venta no está dentro de nuestro sistema, por favor seleccione el Cliente Invitado para registrar la venta</p>
+            </div>
+
             {/* Form Alert */}
             {Object.keys(errors).length > 0 && (
               <div className="bg-gray-50 border-l-4 border-red-400 p-4 rounded-xl flex items-center space-x-3 animate-in slide-in-from-left-2 duration-200">

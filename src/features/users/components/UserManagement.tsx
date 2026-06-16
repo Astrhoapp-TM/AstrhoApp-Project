@@ -242,42 +242,69 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         // 1. Update User Record
         await userService.update(userId, updatePayload);
 
-        // 2. Update Associated Person (Client or Employee)
-        const personInfo = await userService.getPersonForUser(selectedUser);
-        
-        if (personInfo) {
-          const docId = personInfo.documentId;
-          const isClient = personInfo.type === 'client';
+        // 2. Handle Client and Employee Records
+        const newEstado = userData.estado !== undefined ? userData.estado : selectedUser.estado;
+        const direccion = userData.direccion || '';
+        const documentId = userData.documentId || userData.documento || String(userId);
+        const documentType = userData.documentType || 'CC';
+        const nombre = userData.nombre;
+        const telefono = userData.phone;
 
-          const newEstado = userData.estado !== undefined ? userData.estado : selectedUser.estado;
-          const direccion = userData.direccion || '';
+        // Get both existing client and employee for this user
+        const [allClients, allEmployees] = await Promise.all([
+          apiClient.getAllPages<any>('/api/Clientes').catch(() => []),
+          apiClient.getAllPages<any>('/api/Empleados').catch(() => [])
+        ]);
+        const existingClient = allClients.find((c: any) => Number(c.usuarioId) === userId);
+        const existingEmployee = allEmployees.find((e: any) => Number(e.usuarioId) === userId);
 
-        if (isClient) {
-            await apiClient.put(`/api/Clientes/${docId}`, {
-              documentoCliente: docId,
-              usuarioId: userId,
-              tipoDocumento: personInfo.documentType || 'CC',
-              nombre: userData.nombre,
-              telefono: userData.phone,
-              direccion: direccion,
-              direccionCliente: direccion,
-              'dirección': direccion,
-              'direcciónCliente': direccion,
-              estado: newEstado,
-            });
+        // Determine what type(s) we need
+        const selectedRole = roles.find(r => r.rolId === updatePayload.rolId);
+        const roleName = (selectedRole?.nombre || '').toLowerCase();
+        const needsClient = roleName === 'cliente';
+        const needsEmployee = ['administrador', 'asistente', 'super admin'].includes(roleName);
+
+        // Update or create Client if needed (or if it already exists)
+        if (existingClient || needsClient) {
+          const clientDocId = existingClient ? existingClient.documentoCliente : documentId;
+          const clientPayload = {
+            documentoCliente: clientDocId,
+            usuarioId: userId,
+            tipoDocumento: existingClient ? existingClient.tipoDocumento : documentType,
+            nombre,
+            telefono,
+            direccion: direccion,
+            direccionCliente: direccion,
+            'dirección': direccion,
+            'direcciónCliente': direccion,
+            estado: newEstado,
+          };
+          if (existingClient) {
+            await apiClient.put(`/api/Clientes/${clientDocId}`, clientPayload);
           } else {
-            await apiClient.put(`/api/Empleados/${docId}`, {
-              documentoEmpleado: docId,
-              usuarioId: userId,
-              tipoDocumento: personInfo.documentType || 'CC',
-              nombre: userData.nombre,
-              telefono: userData.phone,
-              direccion: direccion,
-              direccionEmpleado: direccion,
-              'dirección': direccion,
-              'direcciónEmpleado': direccion,
-              estado: newEstado,
-            });
+            await apiClient.post('/api/Clientes', clientPayload);
+          }
+        }
+
+        // Update or create Employee if needed (or if it already exists)
+        if (existingEmployee || needsEmployee) {
+          const empDocId = existingEmployee ? existingEmployee.documentoEmpleado : documentId;
+          const empPayload = {
+            documentoEmpleado: empDocId,
+            usuarioId: userId,
+            tipoDocumento: existingEmployee ? existingEmployee.tipoDocumento : documentType,
+            nombre,
+            telefono,
+            direccion: direccion,
+            direccionEmpleado: direccion,
+            'dirección': direccion,
+            'direcciónEmpleado': direccion,
+            estado: newEstado,
+          };
+          if (existingEmployee) {
+            await apiClient.put(`/api/Empleados/${empDocId}`, empPayload);
+          } else {
+            await apiClient.post('/api/Empleados', empPayload);
           }
         }
 

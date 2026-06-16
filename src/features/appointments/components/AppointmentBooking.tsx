@@ -6,7 +6,7 @@ import {
   Wallet, Banknote, ArrowRightLeft, Smartphone, CreditCard, Users, AlertCircle
 } from 'lucide-react';
 import { serviceService } from '@/features/services/services/serviceService';
-import { agendaService, empleadoAgendaService, metodoPagoService, servicioAgendaService, type AgendaItem } from '../services/agendaService';
+import { agendaService, metodoPagoService, servicioAgendaService, type AgendaItem } from '../services/agendaService';
 import { userService } from '@/features/users/services/userService';
 import { personService } from '@/features/persons/services/personService';
 import { horarioEmpleadoService, horarioService, type HorarioEmpleado, type Horario, type HorarioDia } from '@/features/schedule/services/scheduleService';

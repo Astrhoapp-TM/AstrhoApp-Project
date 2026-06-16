@@ -127,10 +127,10 @@ export function useEmpleados(pageSize: number = 6) {
     setLoading(true);
     setError(null);
     try {
-      // Get employees from Empleados API
-      const response = await empleadoAgendaService.getAll({
-        page: currentPage,
-        pageSize,
+      // Get employees from personService, which already applies role filtering!
+      const response = await personService.getPersons('employee', {
+        page: 1,
+        pageSize: 1000,
         search: searchTerm
       });
 
@@ -165,11 +165,12 @@ export function useEmpleados(pageSize: number = 6) {
 
       // Map employees, super admins, and admins to professional format
       const allProfessionals = [
-        ...employeesArray.map((p: any) => ({
-          id: p.documentoEmpleado || p.DocumentoEmpleado,
-          name: p.nombre || p.Nombre,
+        ...employeesArray.map((p: any, index: number) => ({
+          id: p.documentId,
+          name: p.name,
           role: 'Estilista Profesional',
-          _source: 'employee'
+          _source: 'employee',
+          _index: index
         })),
         ...(await Promise.all(adminAndSuperAdminUsers.map(async (u: any, index: number) => {
           // Try to get person data for name
@@ -198,12 +199,10 @@ export function useEmpleados(pageSize: number = 6) {
           // Super admin is always active
           return true;
         }
-        const originalData = employeesArray.find((e: any) => 
-          (e.documentoEmpleado || e.DocumentoEmpleado) === p.id
-        );
+        const originalData = employeesArray.find((e: any) => e.documentId === p.id);
         if (!originalData) return true;
-        const est = originalData.estado !== undefined ? originalData.estado : originalData.Estado;
-        return est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
+        const est = originalData.status !== undefined ? originalData.status : originalData.Estado;
+        return est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
       }).map((p: any, index: number) => ({
         id: p.id,
         name: p.name,
@@ -213,28 +212,22 @@ export function useEmpleados(pageSize: number = 6) {
         avatar: (p.name || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
       }));
 
-      // Update total count and pages based on original response and super admins
-      if (Array.isArray(response)) {
-        // Client-side search and pagination
-        if (searchTerm) {
-          const term = searchTerm.toLowerCase();
-          activeProfessionals = activeProfessionals.filter((p: any) => 
-            p.name.toLowerCase().includes(term) || 
-            p.role.toLowerCase().includes(term)
-          );
-        }
-        
-        const totalFiltered = activeProfessionals.length;
-        setTotalPages(Math.ceil(totalFiltered / pageSize) || 1);
-        setTotalCount(totalFiltered);
-        
-        const start = (currentPage - 1) * pageSize;
-        const end = start + pageSize;
-        activeProfessionals = activeProfessionals.slice(start, end);
-      } else {
-        setTotalPages(response.totalPages || 1);
-        setTotalCount(response.totalCount || activeProfessionals.length);
+      // Update total count and pages
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        activeProfessionals = activeProfessionals.filter((p: any) => 
+          p.name.toLowerCase().includes(term) || 
+          p.role.toLowerCase().includes(term)
+        );
       }
+      
+      const totalFiltered = activeProfessionals.length;
+      setTotalPages(Math.ceil(totalFiltered / pageSize) || 1);
+      setTotalCount(totalFiltered);
+      
+      const start = (currentPage - 1) * pageSize;
+      const end = start + pageSize;
+      activeProfessionals = activeProfessionals.slice(start, end);
 
       setData(activeProfessionals);
     } catch (error: any) {

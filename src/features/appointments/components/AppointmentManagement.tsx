@@ -215,9 +215,35 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
         return all;
       };
 
+      const fetchAllPersons = async (type: 'client' | 'employee') => {
+        const pageSize = 200;
+        let page = 1;
+        let totalPagesRemote = 1;
+        const all: any[] = [];
+
+        do {
+          const response = await personService.getPersons(type, { page, pageSize });
+          const mapped = response.data.map(p => ({
+            ...(type === 'client' 
+              ? { documentoCliente: p.documentId, tipoDocumento: p.documentType, usuarioId: p.usuarioId }
+              : { documentoEmpleado: p.documentId, tipoDocumento: p.documentType, usuarioId: p.usuarioId }
+            ),
+            nombre: p.name,
+            telefono: p.phone,
+            estado: p.status === 'active'
+          }));
+
+          all.push(...mapped);
+          totalPagesRemote = response.totalPages || 1;
+          page += 1;
+        } while (page <= totalPagesRemote);
+
+        return all;
+      };
+
       const results = await Promise.allSettled([
         fetchAllAppointments(),
-        empleadoAgendaService.getAll(),
+        fetchAllPersons('employee'),
         servicioAgendaService.getAll(),
         metodoPagoService.getAll(),
         horarioEmpleadoService.getAll(),

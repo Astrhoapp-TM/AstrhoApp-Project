@@ -876,7 +876,8 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       {isAssistant ? (
         <AssistantScheduleView 
           currentUser={currentUser} 
-          horarioEmpleados={horarioEmpleados} 
+          horarioEmpleados={horarioEmpleados}
+          horarios={horarios}
         />
       ) : (
       <>
@@ -1470,11 +1471,18 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
 // ══════════════════════════════════════════
 // Assistant Schedule View
 // ══════════════════════════════════════════
-function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser: any, horarioEmpleados: HorarioEmpleado[] }) {
+function AssistantScheduleView({ currentUser, horarioEmpleados, horarios }: { currentUser: any, horarioEmpleados: HorarioEmpleado[], horarios: Horario[] }) {
   const docId = String(currentUser?.documentId || '');
   const myAssignments = horarioEmpleados.filter(a => String(a.documentoEmpleado) === docId);
 
   const DIAS_ORDER = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+  // Helper to check if a shift's parent horario is active
+  const isHorarioActive = (shift: HorarioEmpleado): boolean => {
+    const parent = horarios.find(h => h.horarioId === shift.horarioId);
+    // If we can't find the parent horario, treat as active (safe default)
+    return parent ? parent.estado : true;
+  };
   
   return (
     <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -1486,7 +1494,6 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
         
         <div className="relative z-10">
           <div className="inline-flex items-center space-x-2 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 mb-3 shadow-sm">
-            
             <span className="text-[10px] font-bold tracking-widest text-indigo-700 uppercase">Horario Oficial</span>
           </div>
           
@@ -1505,30 +1512,41 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
           {DIAS_ORDER.map((dia, index) => {
             const shift = myAssignments.find(a => normalizeDay(a.diaSemana) === normalizeDay(dia));
             const isWorking = !!shift;
+            const isActive = shift ? isHorarioActive(shift) : true;
 
             return (
               <div 
                 key={dia}
                 style={{ animationDelay: `${index * 50}ms` }}
                 className={`relative group overflow-hidden rounded-2xl transition-all duration-300 ${
-                  isWorking 
-                    ? 'bg-white border-2 border-indigo-50 shadow-md hover:shadow-xl hover:-translate-y-1 hover:border-indigo-200' 
+                  isWorking && isActive
+                    ? 'bg-white border-2 border-indigo-50 shadow-md hover:shadow-xl hover:-translate-y-1 hover:border-indigo-200'
+                    : isWorking && !isActive
+                    ? 'bg-amber-50/60 border-2 border-dashed border-amber-200 opacity-90'
                     : 'bg-gray-50 border-2 border-dashed border-gray-200 opacity-80'
                 }`}
               >
                 {/* Accent line for working days */}
-                {isWorking && (
+                {isWorking && isActive && (
                   <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500" />
+                )}
+                {isWorking && !isActive && (
+                  <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-amber-400 to-orange-400" />
                 )}
 
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h4 className={`text-lg font-bold tracking-tight ${isWorking ? 'text-gray-900' : 'text-gray-500'}`}>
+                    <h4 className={`text-lg font-bold tracking-tight ${isWorking ? (isActive ? 'text-gray-900' : 'text-amber-800') : 'text-gray-500'}`}>
                       {dia}
                     </h4>
-                    {isWorking && (
+                    {isWorking && isActive && (
                        <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-full border border-indigo-200">
                          Turno
+                       </span>
+                    )}
+                    {isWorking && !isActive && (
+                       <span className="bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-full border border-amber-200">
+                         Inactivo
                        </span>
                     )}
                   </div>
@@ -1536,12 +1554,16 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
                   {isWorking ? (
                     <div className="space-y-5">
                       <div className="flex items-start space-x-4">
-                        <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0 text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-100 transition-all">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                          isActive
+                            ? 'bg-indigo-50 text-indigo-600 group-hover:scale-110 group-hover:bg-indigo-100'
+                            : 'bg-amber-100 text-amber-600'
+                        }`}>
                           <Clock className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Horario</p>
-                          <div className="font-extrabold text-gray-900 text-[15px]">
+                          <div className={`font-extrabold text-[15px] ${isActive ? 'text-gray-900' : 'text-amber-800'}`}>
                             {shift ? formatTo12Hour(shift.horaInicio || '') : ''} 
                             <span className="text-gray-400 mx-2">-</span> 
                             {shift ? formatTo12Hour(shift.horaFin || '') : ''}
@@ -1550,10 +1572,17 @@ function AssistantScheduleView({ currentUser, horarioEmpleados }: { currentUser:
                       </div>
                       
                       <div className="pt-4 border-t border-gray-100">
-                        <div className="flex items-center space-x-2 text-sm font-medium text-emerald-700 bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100/50 w-full justify-center">
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Jornada Confirmada</span>
-                        </div>
+                        {isActive ? (
+                          <div className="flex items-center space-x-2 text-sm font-medium text-emerald-700 bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100/50 w-full justify-center">
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Jornada Confirmada</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2 text-sm font-medium text-amber-700 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200/60 w-full justify-center">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>Horario Inactivo</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (

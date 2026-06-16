@@ -267,6 +267,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         // Update or create Client if needed (or if it already exists)
         if (existingClient || needsClient) {
           const clientDocId = existingClient ? existingClient.documentoCliente : documentId;
+          // Client is active only when the new role IS 'cliente'; otherwise deactivate it
+          const clientEstado = needsClient ? newEstado : false;
           const clientPayload = {
             documentoCliente: clientDocId,
             usuarioId: userId,
@@ -277,7 +279,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             direccionCliente: direccion,
             'dirección': direccion,
             'direcciónCliente': direccion,
-            estado: newEstado,
+            estado: clientEstado,
           };
           if (existingClient) {
             await apiClient.put(`/api/Clientes/${clientDocId}`, clientPayload);
@@ -289,6 +291,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         // Update or create Employee if needed (or if it already exists)
         if (existingEmployee || needsEmployee) {
           const empDocId = existingEmployee ? existingEmployee.documentoEmpleado : documentId;
+          // Employee is active only when the new role IS a staff role; otherwise deactivate it
+          const empEstado = needsEmployee ? newEstado : false;
           const empPayload = {
             documentoEmpleado: empDocId,
             usuarioId: userId,
@@ -299,12 +303,30 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             direccionEmpleado: direccion,
             'dirección': direccion,
             'direcciónEmpleado': direccion,
-            estado: newEstado,
+            estado: empEstado,
           };
           if (existingEmployee) {
             await apiClient.put(`/api/Empleados/${empDocId}`, empPayload);
           } else {
             await apiClient.post('/api/Empleados', empPayload);
+          }
+        }
+
+        // If role changed to 'cliente' and the user previously had an employee record,
+        // remove all schedule assignments so they don't appear in schedules as staff
+        if (needsClient && existingEmployee) {
+          const empDocId = existingEmployee.documentoEmpleado;
+          try {
+            const assignments = await horarioEmpleadoService.getByEmpleado(empDocId);
+            const list = Array.isArray(assignments) ? assignments
+              : (assignments as any)?.$values ?? (assignments as any)?.data ?? [];
+            await Promise.all(
+              list.map((a: any) =>
+                horarioEmpleadoService.delete(a.horarioEmpleadoId).catch(() => {})
+              )
+            );
+          } catch (scheduleErr) {
+            console.warn('Could not remove schedule assignments on role change:', scheduleErr);
           }
         }
 

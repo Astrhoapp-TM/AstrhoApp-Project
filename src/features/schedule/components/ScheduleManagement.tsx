@@ -16,6 +16,7 @@ import { useLoading } from '@/shared/contexts/LoadingContext';
 import { SectionLoader } from '@/shared/components/GlobalLoader';
 import { motivoService, type Motivo, type CreateMotivoData, type UpdateMotivoData, type CreateAdminMotivoData } from '@/shared/services/motivoService';
 import { agendaService, servicioAgendaService, metodoPagoService, type AgendaItem, type ServicioAPI, type MetodoPago } from '@/features/appointments/services/agendaService';
+import { userService } from '@/features/users/services/userService';
 
 interface ScheduleManagementProps {
   hasPermission: (permission: string) => boolean;
@@ -2583,7 +2584,25 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
           return Array.isArray(data) ? data.length : 0;
         };
 
-        setAvailableEmpleadosFromApi(extract(response));
+        let fetchedEmpleados: Empleado[] = extract(response);
+
+        // Filter out employees whose user has role 'Cliente'
+        try {
+          const usersRes = await userService.getAll({ pageSize: 1000 });
+          const users = usersRes.data || [];
+          const clienteUserIds = new Set(
+            users
+              .filter(u => (u.rolNombre || '').toLowerCase() === 'cliente')
+              .map(u => u.usuarioId)
+          );
+          fetchedEmpleados = fetchedEmpleados.filter(
+            e => !clienteUserIds.has(e.usuarioId)
+          );
+        } catch {
+          // If user fetch fails, show all employees (better than showing none)
+        }
+
+        setAvailableEmpleadosFromApi(fetchedEmpleados);
         setTotalAvailableRecords(total(response));
       } catch (error) {
         console.error("Error fetching available employees:", error);

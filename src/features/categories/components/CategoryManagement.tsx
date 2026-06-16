@@ -146,7 +146,7 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
   };
 
   const confirmDeleteCategory = async () => {
-    const hasProducts = getProductsByCategory(selectedCategory.id).length > 0;
+    const hasProducts = selectedCategory.productCount > 0;
 
     if (hasProducts) {
       setErrorModalMessage('No se puede eliminar una categoría que tiene insumos asociados. Por favor, reasigne o elimine los insumos primero.');
@@ -261,24 +261,6 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
   const handleCreateCategory = () => {
     setSelectedCategory(null);
     setShowEditModal(true);
-  };
-
-  const getProductsByCategory = (categoryId: number) => {
-    const category = categories.find(c => c.id === categoryId);
-    return mockProducts.filter(product => product.category === category?.name) || [];
-  };
-
-  const getCategoryMetrics = (category: any) => {
-    const products = getProductsByCategory(category.id);
-    const productCount = products.length;
-    const totalValue = products.reduce((sum, p) => sum + (p.stock * p.price), 0);
-    const lowStockCount = products.filter(p => p.stock <= p.minStock).length;
-
-    return {
-      productCount,
-      totalValue,
-      lowStockCount
-    };
   };
 
   // Calculate totals
@@ -509,7 +491,6 @@ export function CategoryManagement({ hasPermission }: CategoryManagementProps) {
         <CategoryDetailModal
           category={selectedCategory}
           onClose={() => setShowDetailModal(false)}
-          getProductsByCategory={getProductsByCategory}
         />
       )}
 
@@ -777,9 +758,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
 }
 
 // Category Detail Modal Component
-function CategoryDetailModal({ category, onClose, getProductsByCategory }) {
-  const products = getProductsByCategory(category.id);
-
+function CategoryDetailModal({ category, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
@@ -845,24 +824,13 @@ function CategoryDetailModal({ category, onClose, getProductsByCategory }) {
                   <p className="text-gray-700 italic">{category.description || 'Sin descripción disponible'}</p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-500">
-                      <CheckCircle className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block">Insumos Asociados</span>
-                      <span className="font-bold text-blue-700">{products.length} productos</span>
-                    </div>
+                <div className="flex items-center space-x-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-500">
+                    <CheckCircle className="w-4 h-4" />
                   </div>
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50/50 rounded-xl border border-gray-200">
-                    <div className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-brand-pink">
-                      <FolderTree className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-black text-brand-pink uppercase tracking-widest block">Tipo Categoría</span>
-                      <span className="font-bold text-pink-700">Insumos/Productos</span>
-                    </div>
+                  <div>
+                    <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block">Insumos Asociados</span>
+                    <span className="font-bold text-blue-700">{category.productCount} insumos</span>
                   </div>
                 </div>
               </div>

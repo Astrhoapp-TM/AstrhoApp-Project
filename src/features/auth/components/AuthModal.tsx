@@ -1080,7 +1080,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                       setIsLogin(!isLogin);
                       setApiError('');
                       setFormData({
-                        documentType: 'cedula',
+                        documentType: 'CC',
                         firstName: '',
                         lastName: '',
                         documentId: '',

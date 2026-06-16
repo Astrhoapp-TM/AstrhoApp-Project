@@ -92,19 +92,34 @@ export const personService = {
             if (person.documentId === '8729451090') {
                 person.status = 'active';
             }
-            // Enrich with user document from allUsers
+            // Enrich with user document and role from allUsers
             if (person.usuarioId) {
                 const user = allUsers.find((u: any) => Number(u.usuarioId) === Number(person.usuarioId));
                 if (user?.documento) {
                     person.userDocument = user.documento;
                 }
+                // Attach role name for filtering
+                (person as any)._rolNombre = (user?.rolNombre || '').toLowerCase().trim();
             }
             return person;
         });
 
-        // Return the same pagination info from API but with mapped persons
+        // Filter by user role: clients section only shows users with role 'cliente',
+        // employees section only shows users whose role is NOT 'cliente'.
+        const filteredPersons = mappedPersons.filter(person => {
+            const roleName = (person as any)._rolNombre;
+            // If no associated user, show in both sections (fallback)
+            if (!person.usuarioId || !roleName) return true;
+            if (type === 'client') {
+                return roleName === 'cliente';
+            } else {
+                return roleName !== 'cliente';
+            }
+        });
+
+        // Return the same pagination info from API but with filtered persons
         return {
-            data: mappedPersons,
+            data: filteredPersons,
             totalCount: apiResponse.totalCount || 0,
             page: apiResponse.page || 1,
             pageSize: apiResponse.pageSize || 10,

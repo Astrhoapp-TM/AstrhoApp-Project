@@ -397,7 +397,8 @@ export function DashboardOverview({
 }: DashboardOverviewProps) {
   const isAsistente = currentUser?.role === 'asistente';
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("today");
-  const [viewMode, setViewMode] = useState<"my" | "all">("all");
+  // Asistentes siempre ven solo sus propios datos
+  const [viewMode, setViewMode] = useState<"my" | "all">(isAsistente ? "my" : "all");
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -748,15 +749,17 @@ export function DashboardOverview({
             <option value="all">Todos</option>
           </select>
 
-          {/* View mode selector (my vs all) */}
-          <select
-            value={viewMode}
-            onChange={(e) => setViewMode(e.target.value as "my" | "all")}
-            className="bg-white border border-gray-300 rounded-xl px-4 py-2 font-medium text-gray-700 focus:ring-2 focus:ring-brand-periwinkle/300"
-          >
-            <option value="all">Todos</option>
-            <option value="my">Mis datos</option>
-          </select>
+          {/* View mode selector (my vs all) — hidden for assistants */}
+          {!isAsistente && (
+            <select
+              value={viewMode}
+              onChange={(e) => setViewMode(e.target.value as "my" | "all")}
+              className="bg-white border border-gray-300 rounded-xl px-4 py-2 font-medium text-gray-700 focus:ring-2 focus:ring-brand-periwinkle/300"
+            >
+              <option value="all">Todos</option>
+              <option value="my">Mis datos</option>
+            </select>
+          )}
         </div>
       </div>
 

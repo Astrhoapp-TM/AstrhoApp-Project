@@ -87,6 +87,8 @@ function getAppointmentDurationMinutesFromServices(
 // getEstadoId now resolved dynamically inside the component using loaded estados
 
 export function AppointmentManagement({ hasPermission, currentUser }: AppointmentManagementProps) {
+  const isAsistente = currentUser?.role === 'asistente';
+
   const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
   const showAlert = (type: 'success' | 'error' | 'info', message: string) => {
@@ -250,6 +252,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
         horarioService.getAll(), // fetch base Horario records for the join
         estadoAgendaService.getAll(), // fetch real estados from API
         motivoService.getAll(), // fetch absence reasons
+        fetchAllPersons('client'), // fetch clients to enrich appointments missing client name
       ]);
 
       const extract = (r: PromiseSettledResult<any>) => {
@@ -279,9 +282,27 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       const allAppointments = results[0].status === 'fulfilled' && Array.isArray(results[0].value)
         ? results[0].value
         : [];
-      setAppointments(allAppointments);
-      setTotalCount(allAppointments.length);
-      setTotalPages(Math.max(1, Math.ceil(allAppointments.length / itemsPerPage)));
+
+      // Build a documentoCliente → nombre map from the clients list (results[8])
+      const rawClients: any[] = extract(results[8]);
+      const clientNameMap = new Map<string, string>();
+      rawClients.forEach((c: any) => {
+        const doc = String(c.documentoCliente || '').trim();
+        if (doc) clientNameMap.set(doc, c.nombre || '');
+      });
+
+      // Enrich appointments that are missing the client name (happens with mis-citas-empleado)
+      const enrichedAppointments = allAppointments.map((apt: AgendaItem) => {
+        if (!apt.cliente && apt.documentoCliente) {
+          const nombre = clientNameMap.get(String(apt.documentoCliente).trim());
+          if (nombre) return { ...apt, cliente: nombre };
+        }
+        return apt;
+      });
+
+      setAppointments(enrichedAppointments);
+      setTotalCount(enrichedAppointments.length);
+      setTotalPages(Math.max(1, Math.ceil(enrichedAppointments.length / itemsPerPage)));
 
       setEmpleados(extract(results[1]).filter((e: any) => e.estado));
       setServicios(extract(results[2]).filter((s: any) => s.estado));
@@ -294,7 +315,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       if (rawEstados.length > 0) setEstadosAgenda(rawEstados);
 
       // Trigger auto-cancellation for overdue appointments
-      const currentAppointments = allAppointments;
+      const currentAppointments = enrichedAppointments;
       const currentServicios = extract(results[2]).filter((s: any) => s.estado);
       const currentMetodos = extract(results[3]);
       autoCancelOverdue(currentAppointments, currentServicios, currentMetodos);
@@ -733,7 +754,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                       <div className="font-semibold text-gray-800">{apt.empleado}</div>
                     </td>
                     <td className="p-4">
-                      {isLocked || !hasPermission('manage_appointments') ? (
+                      {isLocked || !hasPermission('manage_appointments') || isAsistente ? (
                         <span className={`px-3 py-1 rounded-full text-sm font-semibold border inline-block ${getStatusColor(apt.estado)}`}>
                           {apt.estado}
                         </span>
@@ -760,22 +781,26 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => handleEditAppointment(apt)}
-                          disabled={isLocked}
-                          className={`p-2 rounded-lg transition-colors ${isLocked ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
-                          title="Editar cita"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAppointment(apt)}
-                          disabled={estadoLower === 'completado' || estadoLower === 'completed'}
-                          className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-brand-pink hover:bg-red-200'}`}
-                          title="Eliminar cita"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {!isAsistente && (
+                          <button
+                            onClick={() => handleEditAppointment(apt)}
+                            disabled={isLocked}
+                            className={`p-2 rounded-lg transition-colors ${isLocked ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                            title="Editar cita"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
+                        {!isAsistente && (
+                          <button
+                            onClick={() => handleDeleteAppointment(apt)}
+                            disabled={estadoLower === 'completado' || estadoLower === 'completed'}
+                            className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-brand-pink hover:bg-red-200'}`}
+                            title="Eliminar cita"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -890,14 +890,17 @@ function SupplierSearchSelect({ onSelect, selectedId, error, disabled }: any) {
 
   useEffect(() => {
     const fetchSuppliers = async () => {
-      if (!searchTerm.trim()) {
-        setSearchResults([]);
-        return;
-      }
+      if (!isOpen) return;
       setLoading(true);
       try {
-        const res = await supplierService.getAll({ search: searchTerm, pageSize: 20 });
-        setSearchResults(res.data);
+        const res = await supplierService.getAll({
+          search: searchTerm.trim() || undefined,
+          pageSize: 100
+        });
+        const activeSuppliers = (res.data || []).filter(
+          (supplier: SupplierAPI) => supplier.estado !== false
+        );
+        setSearchResults(activeSuppliers);
       } catch (err) {
         console.error('Error searching suppliers:', err);
       } finally {
@@ -905,9 +908,10 @@ function SupplierSearchSelect({ onSelect, selectedId, error, disabled }: any) {
       }
     };
 
-    const timer = setTimeout(fetchSuppliers, 300);
+    const delay = searchTerm.trim() === '' ? 0 : 300;
+    const timer = setTimeout(fetchSuppliers, delay);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -967,7 +971,7 @@ function SupplierSearchSelect({ onSelect, selectedId, error, disabled }: any) {
               <div className="p-4 text-sm text-gray-500 text-center">Buscando...</div>
             ) : searchResults.length === 0 ? (
               <div className="p-4 text-sm text-gray-500 text-center">
-                {searchTerm ? 'No se encontraron proveedores' : 'Escribe para buscar...'}
+                {searchTerm ? 'No se encontraron proveedores' : 'No se encontraron proveedores activos'}
               </div>
             ) : (
               searchResults.map((supplier) => (
@@ -1037,14 +1041,17 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
 
   useEffect(() => {
     const fetchSupplies = async () => {
-      if (!searchTerm.trim()) {
-        setSearchResults([]);
-        return;
-      }
+      if (!isOpen) return;
       setLoading(true);
       try {
-        const res = await supplyService.getSupplies({ search: searchTerm, pageSize: 20 });
-        setSearchResults(res.data);
+        const res = await supplyService.getSupplies({
+          search: searchTerm.trim() || undefined,
+          pageSize: 100
+        });
+        const activeSupplies = (res.data || []).filter(
+          (supply: Supply) => supply.estado !== false
+        );
+        setSearchResults(activeSupplies);
       } catch (err) {
         console.error('Error searching supplies:', err);
       } finally {
@@ -1052,9 +1059,10 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
       }
     };
 
-    const timer = setTimeout(fetchSupplies, 300);
+    const delay = searchTerm.trim() === '' ? 0 : 300;
+    const timer = setTimeout(fetchSupplies, delay);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -1112,7 +1120,7 @@ function SupplySearchSelect({ onSelect, selectedId, error, disabled, allSelected
               <div className="p-4 text-sm text-gray-500 text-center">Buscando...</div>
             ) : searchResults.length === 0 ? (
               <div className="p-4 text-sm text-gray-500 text-center">
-                {searchTerm ? 'No se encontraron insumos' : 'Escribe para buscar...'}
+                {searchTerm ? 'No se encontraron insumos' : 'No se encontraron insumos activos'}
               </div>
             ) : (
               searchResults.map((supply) => {
@@ -1298,7 +1306,12 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
       item.insumoId = String(value.insumoId);
       item.insumoNombre = value.nombre;
     } else if (field === 'cantidad') {
-      item.cantidad = Math.max(1, parseInt(value) || 1);
+      if (value === '') {
+        item.cantidad = '' as any;
+      } else {
+        const parsed = parseInt(value);
+        item.cantidad = isNaN(parsed) ? '' as any : Math.max(0, parsed);
+      }
     } else if (field === 'precioUnitario') {
       if (isDirectNumber) {
         item.precioUnitario = value;
@@ -1308,9 +1321,22 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
     }
 
     // Recalcular subtotal
-    item.subtotal = item.cantidad * item.precioUnitario;
+    item.subtotal = (Number(item.cantidad) || 0) * item.precioUnitario;
     newItems[index] = item;
 
+    setFormData({
+      ...formData,
+      items: newItems
+    });
+  };
+
+  const handleBlurQuantity = (index: number) => {
+    const newItems = [...formData.items];
+    const item = { ...newItems[index] };
+    const val = parseInt(item.cantidad as any);
+    item.cantidad = isNaN(val) || val < 1 ? 1 : val;
+    item.subtotal = item.cantidad * item.precioUnitario;
+    newItems[index] = item;
     setFormData({
       ...formData,
       items: newItems
@@ -1352,7 +1378,33 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
       newErrors.items = 'Agrega al menos un insumo';
     }
 
-    formData.items.forEach((item, index) => {
+    // Coerce empty or invalid quantities to 1
+    const coercedItems = formData.items.map(item => {
+      const val = parseInt(item.cantidad as any);
+      const coercedQuantity = isNaN(val) || val < 1 ? 1 : val;
+      return {
+        ...item,
+        cantidad: coercedQuantity,
+        subtotal: coercedQuantity * item.precioUnitario
+      };
+    });
+
+    // Update formData state if any item was coerced
+    let hasChanges = false;
+    for (let i = 0; i < formData.items.length; i++) {
+      if (formData.items[i].cantidad !== coercedItems[i].cantidad) {
+        hasChanges = true;
+        break;
+      }
+    }
+    if (hasChanges) {
+      setFormData(prev => ({
+        ...prev,
+        items: coercedItems
+      }));
+    }
+
+    coercedItems.forEach((item, index) => {
       if (!item.insumoId) {
         newErrors[`product_${index}`] = 'Selecciona un insumo';
       }
@@ -1377,17 +1429,24 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
       return;
     }
 
+    // Coerce items for final payload
+    const finalItems = formData.items.map(item => {
+      const val = parseInt(item.cantidad as any);
+      const coercedQuantity = isNaN(val) || val < 1 ? 1 : val;
+      return {
+        insumoId: parseInt(item.insumoId),
+        cantidad: coercedQuantity,
+        precioUnitario: item.precioUnitario
+      };
+    });
+
     const purchaseData = {
       proveedorId: parseInt(formData.proveedorId),
       iva: parseFloat(formData.iva),
       purchaseNumber: formData.purchaseNumber,
       notes: formData.notes,
       fechaRegistro: formData.orderDate,
-      items: formData.items.map(item => ({
-        insumoId: parseInt(item.insumoId),
-        cantidad: item.cantidad,
-        precioUnitario: item.precioUnitario
-      }))
+      items: finalItems
     };
 
     onSave(purchaseData);
@@ -1558,6 +1617,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                             min="1"
                             value={item.cantidad}
                             onChange={(e) => updateProduct(index, 'cantidad', e.target.value)}
+                            onBlur={() => handleBlurQuantity(index)}
                             className={cn(
                               "w-full px-3 py-2 bg-white border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 transition-all font-bold text-gray-700 text-sm",
                               errors[`quantity_${index}`] ? 'border-red-300' : 'border-gray-200'

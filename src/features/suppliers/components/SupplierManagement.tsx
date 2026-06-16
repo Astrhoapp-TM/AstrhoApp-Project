@@ -56,6 +56,24 @@ const mapFrontendToApi = (frontendData: any, isPost = false) => ({
   estado: frontendData.status === 'active' || frontendData.status === true
 });
 
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'active': return 'bg-green-100 text-green-800';
+    case 'inactive': return 'bg-gray-100 text-gray-800';
+    case 'blacklisted': return 'bg-gray-100 text-red-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case 'active': return 'Activo';
+    case 'inactive': return 'Inactivo';
+    case 'blacklisted': return 'Lista Negra';
+    default: return status;
+  }
+};
+
 interface SupplierManagementProps {
   hasPermission: (permission: string) => boolean;
 }
@@ -133,6 +151,7 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       toast.error('No se pudo cargar el detalle del proveedor');
     } finally {
       setIsLoading(false);
+      hideSectionLoading();
     }
   };
 
@@ -299,25 +318,6 @@ export function SupplierManagement({ hasPermission }: SupplierManagementProps) {
       setCurrentPage(currentPage - 1);
     }
   };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'inactive': return 'bg-gray-100 text-gray-800';
-      case 'blacklisted': return 'bg-gray-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'active': return 'Activo';
-      case 'inactive': return 'Inactivo';
-      case 'blacklisted': return 'Lista Negra';
-      default: return status;
-    }
-  };
-
 
   return (
     <div className="p-8">
@@ -621,7 +621,9 @@ function SupplierDetailModal({ supplier, onClose }) {
                     <div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Estado:</span>
                       <div className="mt-1">
-
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(supplier.status)}`}>
+                          {getStatusLabel(supplier.status)}
+                        </span>
                       </div>
                     </div>
                   </div>

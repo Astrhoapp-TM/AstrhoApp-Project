@@ -97,5 +97,18 @@ export const purchaseService = {
 
     delete: async (id: number): Promise<void> => {
         return apiClient.delete(`/api/Compras/${id}`);
+    },
+
+    cancel: async (id: number, data: { proveedorId: number; iva: number; observacion?: string }): Promise<PurchaseAPI> => {
+        const result = await apiClient.put(`/api/Compras/${id}`, {
+            proveedorId: data.proveedorId,
+            iva: data.iva,
+            estado: false,
+            observacion: data.observacion
+        });
+        if (!result) {
+            return { compraId: id, ...data, estado: false } as unknown as PurchaseAPI;
+        }
+        return result as PurchaseAPI;
     }
 };

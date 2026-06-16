@@ -241,13 +241,23 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
     }
   };
 
-  const handleCancelPurchase = (purchase: PurchaseAPI) => {
+  const handleCancelPurchase = async (purchase: PurchaseAPI) => {
     if (!isPurchaseCancellable(purchase)) {
       toast.error('No se puede anular una compra después de 7 días');
       return;
     }
-    setSelectedPurchase(purchase);
-    setShowCancelModal(true);
+    try {
+      showSectionLoading("Cargando detalle de la compra...");
+      const raw = await purchaseService.getById(purchase.compraId);
+      const normalized = normalizePurchaseAPI(raw, purchase);
+      setSelectedPurchase(normalized);
+      setShowCancelModal(true);
+    } catch (err) {
+      console.error('Error fetching purchase details:', err);
+      toast.error('No se pudo cargar el detalle de la compra');
+    } finally {
+      hideSectionLoading();
+    }
   };
 
   const confirmCancelPurchase = async (observation: string) => {
@@ -261,27 +271,25 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
 
     try {
       showSectionLoading("Anulando compra...");
-      await purchaseService.update(selectedPurchase.compraId, {
+      await purchaseService.cancel(selectedPurchase.compraId, {
         proveedorId: selectedPurchase.proveedorId,
         iva: selectedPurchase.iva,
-        estado: false,
-        observacion: observation, // Pass the observation to the update
-        items: selectedPurchase.detalles ? selectedPurchase.detalles.map((d: any) => ({
-          insumoId: d.insumoId,
-          cantidad: d.cantidad,
-          precioUnitario: d.precioUnitario
-        })) : []
+        observacion: observation
       });
 
       await fetchPurchases();
 
       setShowCancelModal(false);
       setSelectedPurchase(null);
-      setShowSuccessAlert(true);
-      setAlertMessage('Compra anulada exitosamente');
-    } catch (err) {
+      showAlert('success', 'Compra anulada exitosamente');
+    } catch (err: any) {
       console.error('Error cancelling purchase:', err);
-      toast.error('Error al anular la compra');
+      const errMsg = err?.message || String(err || '');
+      if (errMsg.includes('Stock insuficiente') || errMsg.includes('stock suficiente') || errMsg.includes('reducir')) {
+        toast.error('No se puede cancelar porque el insumo ya está asociado a una entrega de insumo y no hay stock suficiente para devolver los insumos y cancelar la compra');
+      } else {
+        toast.error('Error al anular la compra');
+      }
     } finally {
       hideSectionLoading();
     }

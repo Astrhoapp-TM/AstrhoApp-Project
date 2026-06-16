@@ -82,12 +82,9 @@ export const authService = {
     },
 
     async createTempUser(data: TempUserData) {
-        const passwordToUse = data.password || Math.random().toString(36).slice(-10);
         const response = await apiClient.post('/api/auth/create-temp-user', {
             rolId: data.rolId || 2,
             email: data.email.trim().toLowerCase(),
-            contrasena: passwordToUse,
-            confirmarContrasena: passwordToUse,
             documento: data.documento
         });
         return response;

@@ -89,7 +89,12 @@ export const userService = {
 
     delete: async (id: number): Promise<void> => {
         // First get the associated person (client or employee)
-        const personInfo = await userService.getPersonForUser({ usuarioId: id });
+        let personInfo = null;
+        try {
+            personInfo = await userService.getPersonForUser({ usuarioId: id });
+        } catch (e) {
+            console.warn('Could not get person info for user, proceeding to delete user anyway', e);
+        }
         
         if (personInfo) {
             try {
@@ -107,10 +112,18 @@ export const userService = {
                         console.warn('Could not remove schedule assignments, proceeding anyway:', scheduleError);
                     }
                     // Delete employee record
-                    await apiClient.delete(`/api/Empleados/${personInfo.documentId}`);
+                    try {
+                        await apiClient.delete(`/api/Empleados/${personInfo.documentId}`);
+                    } catch (e) {
+                        console.warn('Could not delete employee record, proceeding to delete user anyway', e);
+                    }
                 } else if (personInfo.type === 'client') {
                     // Delete client record
-                    await apiClient.delete(`/api/Clientes/${personInfo.documentId}`);
+                    try {
+                        await apiClient.delete(`/api/Clientes/${personInfo.documentId}`);
+                    } catch (e) {
+                        console.warn('Could not delete client record, proceeding to delete user anyway', e);
+                    }
                 }
             } catch (error) {
                 console.error('Error deleting associated client/employee:', error);

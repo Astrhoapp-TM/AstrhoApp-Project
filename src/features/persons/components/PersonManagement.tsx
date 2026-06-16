@@ -240,7 +240,13 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 // If not, we still try to delete the person record via personService
                 if (targetUserId) {
                     console.log('Deleting associated user:', targetUserId);
-                    await userService.delete(targetUserId);
+                    try {
+                        await userService.delete(targetUserId);
+                    } catch (userDeleteError: any) {
+                        console.warn('User deletion failed, trying to delete person record directly:', userDeleteError);
+                        // If user deletion fails (like 404), still try to delete the person record
+                        await personService.deletePerson(personToDelete.documentId, personType);
+                    }
                 } else {
                     console.log('No associated user found, deleting person record only');
                     await personService.deletePerson(personToDelete.documentId, personType);
@@ -250,8 +256,8 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} eliminado exitosamente`);
             } catch (error: any) {
                 console.error('Error deleting person:', error);
-                // Handle 404 gracefully if it was already deleted by cascade
-                if (error?.response?.status === 404) {
+                // Handle 404 gracefully (user or person not found)
+                if (error?.status === 404) {
                     setPersons(persons.filter(p => p.documentId !== personToDelete.documentId));
                     showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} eliminado exitosamente`);
                 } else {
@@ -307,16 +313,26 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 const selectedRoleId = roleId || (personType === 'client' ? 2 : 3);
                 const tempResp = await authService.createTempUser({
                     rolId: selectedRoleId,
-                    email
+                    email,
+                    documento: personOnlyData.documentId
                 });
                 let usuarioId = (tempResp && (tempResp.usuarioId || tempResp.id)) || null;
                 if (!usuarioId) {
                     usuarioId = await authService.getUserIdByEmail(email);
                 }
                 if (!usuarioId) {
-                    showAlert('error', 'No se pudo obtener el ID del usuario creado. Intenta nuevamente.');
+                    showAlert('error', 'No se pudo obtener el ID del usuario creado. Intente nuevamente.');
                     return;
                 }
+
+                // Explicitly update the user's documento field
+                await userService.update(usuarioId, {
+                    rolId: selectedRoleId,
+                    email: email,
+                    estado: true,
+                    documento: personOnlyData.documentId
+                });
+
                 (personOnlyData as any).usuarioId = usuarioId;
             }
 

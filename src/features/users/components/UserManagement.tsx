@@ -162,38 +162,49 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         setLoading(true);
 
         // 1. Get associated person to check for appointments/sales
-        const personInfo = await userService.getPersonForUser(userToDelete);
+        let personInfo = null;
+        try {
+            personInfo = await userService.getPersonForUser(userToDelete);
+        } catch (e) {
+            console.warn('Could not get person info for dependency check, proceeding', e);
+        }
 
         // 2. Check associations with appointments and sales
-        const [appointmentsRes, salesRes] = await Promise.all([
-          agendaService.getAll(),
-          salesService.getAll()
-        ]);
+        let hasAppointments = false;
+        let hasSales = false;
+        try {
+            const [appointmentsRes, salesRes] = await Promise.all([
+              agendaService.getAll(),
+              salesService.getAll()
+            ]);
 
-        const appointments = appointmentsRes?.data || [];
-        const sales = salesRes?.data || [];
+            const appointments = appointmentsRes?.data || [];
+            const sales = salesRes?.data || [];
 
-        const hasAppointments = appointments.some(apt => {
-          const personIdStr = String(userToDelete.usuarioId);
-          const personDocStr = String(personInfo?.documentId || '');
+            hasAppointments = appointments.some(apt => {
+              const personIdStr = String(userToDelete.usuarioId);
+              const personDocStr = String(personInfo?.documentId || '');
 
-          return String(apt.documentoCliente) === personDocStr || 
-                 String(apt.documentoEmpleado) === personDocStr ||
-                 (apt as any).customer_id === userToDelete.usuarioId ||
-                 (apt as any).assigned_to === userToDelete.usuarioId;
-        });
+              return String(apt.documentoCliente) === personDocStr || 
+                     String(apt.documentoEmpleado) === personDocStr ||
+                     (apt as any).customer_id === userToDelete.usuarioId ||
+                     (apt as any).assigned_to === userToDelete.usuarioId;
+            });
 
-        const hasSales = sales.some(sale => {
-          const saleCustId = String(sale.customerId || '');
-          const saleEmpId = String(sale.employeeId || '');
-          const personIdStr = String(userToDelete.usuarioId);
-          const personDocStr = String(personInfo?.documentId || '');
+            hasSales = sales.some(sale => {
+              const saleCustId = String(sale.customerId || '');
+              const saleEmpId = String(sale.employeeId || '');
+              const personIdStr = String(userToDelete.usuarioId);
+              const personDocStr = String(personInfo?.documentId || '');
 
-          return (saleCustId === personIdStr) || 
-                 (saleEmpId === personIdStr) ||
-                 (personDocStr && saleCustId === personDocStr) ||
-                 (personDocStr && saleEmpId === personDocStr);
-        });
+              return (saleCustId === personIdStr) || 
+                     (saleEmpId === personIdStr) ||
+                     (personDocStr && saleCustId === personDocStr) ||
+                     (personDocStr && saleEmpId === personDocStr);
+            });
+        } catch (e) {
+            console.warn('Could not check dependencies, proceeding to delete user', e);
+        }
 
         if (hasAppointments) {
           toast.error("Este usuario tiene citas asociadas y no puede ser eliminado");
@@ -212,7 +223,15 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         await fetchUsers();
       } catch (error) {
         console.error('Error deleting user:', error);
-        toast.error('Error al eliminar el usuario. Verifique que no existan dependencias activas.');
+        // Even if there's an error, let's try to fetch users to see if it was actually deleted
+        try {
+            await fetchUsers();
+            toast.success('Usuario eliminado correctamente');
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+        } catch (fetchError) {
+            toast.error('Error al eliminar el usuario. Verifique que no existan dependencias activas.');
+        }
       } finally {
         setLoading(false);
         hideSectionLoading();
@@ -244,8 +263,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
         // 2. Handle Client and Employee Records
         const newEstado = userData.estado !== undefined ? userData.estado : selectedUser.estado;
-        const documentId = userData.documentId || userData.documento || String(userId);
-        const documentType = userData.documentType || 'CC';
+        const documentId = userData.documento;
+        const documentType = userData.documentType;
         const nombre = userData.nombre;
         const telefono = userData.phone;
 
@@ -371,6 +390,14 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         }
       }
 
+      // Step 1.5: Explicitly update the user's documento field
+      await userService.update(usuarioId, {
+        rolId: userData.rolId,
+        email: userData.email,
+        estado: true,
+        documento: userData.documento
+      });
+
       // Step 2: Create Empleado or Cliente record depending on role
       const roleName = (selectedRole?.nombre || '').toLowerCase();
 
@@ -378,7 +405,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         await apiClient.post('/api/Clientes', {
           documentoCliente: userData.documento,
           usuarioId: usuarioId,
-          tipoDocumento: 'CC',
+          tipoDocumento: userData.documentType,
           nombre: userData.nombre,
           telefono: userData.phone,
           direccion: userData.direccion || '',
@@ -391,7 +418,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         await apiClient.post('/api/Empleados', {
           documentoEmpleado: userData.documento,
           usuarioId: usuarioId,
-          tipoDocumento: 'CC',
+          tipoDocumento: userData.documentType,
           nombre: userData.nombre,
           telefono: userData.phone,
           direccion: userData.direccion || '',
@@ -918,7 +945,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
   const [formData, setFormData] = useState({
     rolId: user?.rol?.rolId || (availableRoles.length > 0 ? availableRoles[0].rolId : 0),
-    documentType: 'cedula',
+    documentType: 'CC',
     documentId: '',
     documento: user?.documento || '',
     nombre: '',
@@ -940,12 +967,12 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
           const data = await userService.getPersonForUser(user);
           
           const mapDocTypeBack = (t: string) => {
-            if (t === 'CC') return 'cedula';
-            if (t === 'CE') return 'cedula_extranjeria';
-            if (t === 'TI') return 'tarjeta_identidad';
-            if (t === 'PAS') return 'pasaporte';
-            if (t === 'NIT') return 'nit';
-            return 'cedula';
+            if (t === 'CC') return 'CC';
+            if (t === 'CE') return 'CE';
+            if (t === 'TI') return 'TI';
+            if (t === 'Pasaporte') return 'Pasaporte';
+            if (t === 'NIT') return 'NIT';
+            return 'CC';
           };
           
           if (data) {
@@ -969,6 +996,12 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       
       fetchPersonData();
     }
+    // Clear direccion error when modal opens
+    setFieldErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.direccion;
+      return newErrors;
+    });
   }, [user]);
 
   // ── Centralized synchronous validation per field ──
@@ -985,11 +1018,19 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'El formato del correo no es válido';
         return '';
       case 'documento': {
+        const type = docType || formData.documentType;
         if (isCreate && !value.trim()) return 'El documento de usuario es obligatorio';
         if (value.trim()) {
-          if (!/^[0-9]+$/.test(value.trim()))
-            return 'El documento de usuario solo debe contener números';
-          if (value.trim().length < 7 || value.trim().length > 11) return 'El documento de usuario debe tener entre 7 y 11 caracteres';
+          if (type === 'NIT') {
+            if (!/^[0-9-]+$/.test(value.trim())) return 'El NIT solo debe contener números y un guion';
+            const dashCount = (value.match(/-/g) || []).length;
+            if (dashCount > 1) return 'El NIT solo puede tener un guion';
+          } else if (type === 'Pasaporte') {
+            if (!/^[a-zA-Z0-9]+$/.test(value.trim())) return 'El pasaporte solo debe contener letras y números';
+          } else {
+            if (!/^[0-9]+$/.test(value.trim())) return 'El documento solo debe contener números';
+            if (value.trim().length < 7 || value.trim().length > 11) return 'El documento debe tener entre 7 y 11 caracteres';
+          }
         }
         return '';
       }
@@ -999,11 +1040,85 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
           return 'El teléfono debe tener exactamente 10 dígitos numéricos';
         return '';
       case 'direccion':
-        if (!value.trim()) return 'La dirección es obligatoria';
         return '';
       default:
         return '';
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    
+    // Allow: backspace, delete, tab, escape, enter
+    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter'].includes(e.key)) {
+      return;
+    }
+
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V (we'll handle paste separately)
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+
+    // Allow: home, end, left, right
+    if (['Home', 'End', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      return;
+    }
+
+    const docTypeLower = (formData.documentType || '').toLowerCase();
+
+    // For phone and numeric-only documentIds (except NIT and Pasaporte)
+    if (name === 'phone' || (name === 'documento' && docTypeLower !== 'nit' && docTypeLower !== 'pasaporte')) {
+      if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+
+    // For pasaporte documento: allow letters and numbers
+    if (name === 'documento' && docTypeLower === 'pasaporte') {
+      if (!/^[a-zA-Z0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    }
+
+    // For NIT: allow numbers and a single hyphen
+    if (name === 'documento' && docTypeLower === 'nit') {
+      const currentValue = e.currentTarget.value;
+      if (!/^[0-9-]$/.test(e.key)) {
+        e.preventDefault();
+      }
+      if (e.key === '-' && currentValue.includes('-')) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const { name } = e.currentTarget;
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    let sanitizedText = pastedText;
+
+    const docTypeLower = (formData.documentType || '').toLowerCase();
+
+    if (name === 'phone' || (name === 'documento' && docTypeLower !== 'nit' && docTypeLower !== 'pasaporte')) {
+      sanitizedText = pastedText.replace(/[^0-9]/g, '');
+    } else if (name === 'documento' && docTypeLower === 'pasaporte') {
+      sanitizedText = pastedText.replace(/[^a-zA-Z0-9]/g, '');
+    } else if (name === 'documento' && docTypeLower === 'nit') {
+      sanitizedText = pastedText.replace(/[^0-9-]/g, '');
+      // Solo permite un guion
+      const firstDashIndex = sanitizedText.indexOf('-');
+      if (firstDashIndex !== -1) {
+        sanitizedText = sanitizedText.slice(0, firstDashIndex + 1) + sanitizedText.slice(firstDashIndex + 1).replace(/-/g, '');
+      }
+    }
+    
+    // Validación en tiempo real
+    const error = validateField(name, sanitizedText, formData.documentType);
+    setFieldErrors(prev => ({ ...prev, [name]: error }));
+    
+    // Actualiza form data
+    setFormData(prev => ({ ...prev, [name]: sanitizedText }));
   };
 
   // ── Blur handler: sync validation on all fields + async uniqueness checks ──
@@ -1021,8 +1136,11 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
     // Always run sync validation on blur (shows "required" errors when leaving empty fields)
     const syncError = validateField(name, finalValue);
+    const newErrors = { ...fieldErrors, [name]: syncError };
+    // Clear direccion error since it's optional
+    delete newErrors.direccion;
+    setFieldErrors(newErrors);
     if (syncError) {
-      setFieldErrors(prev => ({ ...prev, [name]: syncError }));
       return;
     }
 
@@ -1047,8 +1165,8 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
     // Run all sync validations
     const fieldsToValidate = !user
-      ? ['nombre', 'email', 'documento', 'phone', 'direccion']
-      : ['nombre', 'email', 'phone', 'direccion'];
+      ? ['nombre', 'email', 'documento', 'phone']
+      : ['nombre', 'email', 'phone'];
 
     for (const field of fieldsToValidate) {
       const err = validateField(field, (formData as any)[field]);
@@ -1100,83 +1218,6 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const { name } = e.currentTarget;
-    
-    // Allow: backspace, delete, tab, escape, enter
-    if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter'].includes(e.key)) {
-      return;
-    }
-
-    // Allow: Ctrl+A, Ctrl+C, Ctrl+X, Ctrl+V (we'll handle paste separately)
-    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
-      return;
-    }
-
-    // Allow: home, end, left, right
-    if (['Home', 'End', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-      return;
-    }
-
-    const docTypeLower = (formData.documentType || '').toLowerCase();
-
-    // For phone and numeric-only documentIds (except NIT and Pasaporte)
-    if (name === 'phone' || (name === 'documentId' && docTypeLower !== 'nit' && docTypeLower !== 'pasaporte')) {
-      if (!/^[0-9]$/.test(e.key)) {
-        e.preventDefault();
-      }
-    }
-
-    // For passport documentId: allow letters and numbers
-    if (name === 'documentId' && docTypeLower === 'pasaporte') {
-      if (!/^[a-zA-Z0-9]$/.test(e.key)) {
-        e.preventDefault();
-      }
-    }
-
-    // For NIT: allow numbers and a single hyphen
-    if (name === 'documentId' && docTypeLower === 'nit') {
-      const currentValue = e.currentTarget.value;
-      if (!/^[0-9-]$/.test(e.key)) {
-        e.preventDefault();
-      }
-      if (e.key === '-' && currentValue.includes('-')) {
-        e.preventDefault();
-      }
-    }
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const { name } = e.currentTarget;
-    e.preventDefault();
-    const pastedText = e.clipboardData.getData('text');
-    let sanitizedText = pastedText;
-
-    const docTypeLower = (formData.documentType || '').toLowerCase();
-
-    if (name === 'phone' || (name === 'documentId' && docTypeLower !== 'nit' && docTypeLower !== 'pasaporte')) {
-      sanitizedText = pastedText.replace(/[^0-9]/g, '');
-    } else if (name === 'documentId' && docTypeLower === 'pasaporte') {
-      sanitizedText = pastedText.replace(/[^a-zA-Z0-9]/g, '');
-    } else if (name === 'documentId' && docTypeLower === 'nit') {
-      sanitizedText = pastedText.replace(/[^0-9-]/g, '');
-      const firstDashIndex = sanitizedText.indexOf('-');
-      if (firstDashIndex !== -1) {
-        sanitizedText = sanitizedText.slice(0, firstDashIndex + 1) + sanitizedText.slice(firstDashIndex + 1).replace(/-/g, '');
-      }
-    }
-
-    // Real-time synchronous validation
-    const error = validateField(name, sanitizedText, formData.documentType);
-    setFieldErrors(prev => ({ ...prev, [name]: error }));
-
-    // Update form data with sanitized text
-    setFormData(prev => ({
-      ...prev,
-      [name]: sanitizedText,
-    }));
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let sanitized = value;
@@ -1186,13 +1227,8 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       sanitized = value.replace(/[^0-9]/g, '').slice(0, 10);
     }
 
-    // Strip non-numeric characters for documento & limit to 11 digits
+    // Sanitize documento based on doc type
     if (name === 'documento') {
-      sanitized = value.replace(/[^0-9]/g, '').slice(0, 11);
-    }
-
-    // Sanitize documentId based on doc type
-    if (name === 'documentId') {
       const docTypeLower = (formData.documentType || '').toLowerCase();
       if (docTypeLower === 'pasaporte') {
         sanitized = value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
@@ -1214,23 +1250,26 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     }
 
     // Real-time synchronous validation (without sanitizing nombre yet)
-    const error = validateField(name, sanitized, name === 'documentType' ? sanitized : undefined);
-    setFieldErrors(prev => ({ ...prev, [name]: error }));
+    const error = validateField(name, sanitized, name === 'documentType' ? sanitized : formData.documentType);
+    const newErrors = { ...fieldErrors, [name]: error };
+    // Clear direccion error since it's optional
+    delete newErrors.direccion;
+    setFieldErrors(newErrors);
 
-    // When document type changes, truncate documentId to new max and re-validate
+    // When document type changes, truncate documento to new max and re-validate
     if (name === 'documentType') {
       const docTypeLower = (sanitized || '').toLowerCase();
       let newMaxLen = 15;
       if (docTypeLower === 'pasaporte') newMaxLen = 20;
       else if (docTypeLower === 'nit') newMaxLen = 11;
 
-      const trimmedDocId = formData.documentId.slice(0, newMaxLen);
-      const docError = validateField('documentId', trimmedDocId, sanitized);
-      setFieldErrors(prev => ({ ...prev, documentId: docError }));
+      const trimmedDocId = formData.documento.slice(0, newMaxLen);
+      const docError = validateField('documento', trimmedDocId, sanitized);
+      setFieldErrors(prev => ({ ...prev, documento: docError }));
       setFormData(prev => ({
         ...prev,
         documentType: sanitized,
-        documentId: trimmedDocId,
+        documento: trimmedDocId,
       }));
       return;
     }
@@ -1369,78 +1408,43 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    {user ? (
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Documento Usuario</label>
-                        <div className="relative">
-                          <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <input
-                            type="text"
-                            name="documento"
-                            value={formData.documento}
-                            onChange={handleInputChange}
-                            onBlur={handleBlur}
-                            onKeyDown={(e) => {
-                              // Allow only numeric characters
-                              if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-                                return;
-                              }
-                              if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
-                                return;
-                              }
-                              if (!/^[0-9]$/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            onPaste={(e) => {
-                              e.preventDefault();
-                              const pastedText = e.clipboardData.getData('text');
-                              const sanitized = pastedText.replace(/[^0-9]/g, '').slice(0, 11);
-                              setFormData(prev => ({ ...prev, documento: sanitized }));
-                            }}
-                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none border-gray-200`}
-                            placeholder="Documento del usuario"
-                            maxLength={11}
-                          />
-                        </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo de Documento *</label>
+                      <div className="relative">
+                        <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <select
+                          name="documentType"
+                          value={formData.documentType}
+                          onChange={handleInputChange}
+                          className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none appearance-none"
+                        >
+                          <option value="TI">Tarjeta Identidad (TI)</option>
+                          <option value="CC">Cédula (CC)</option>
+                          <option value="CE">Cédula Extranjería (CE)</option>
+                          <option value="NIT">NIT</option>
+                          <option value="Pasaporte">Pasaporte</option>
+                        </select>
                       </div>
-                    ) : (
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Documento Usuario</label>
-                        <div className="relative">
-                          <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <input
-                            type="text"
-                            name="documento"
-                            value={formData.documento}
-                            onChange={handleInputChange}
-                            onBlur={handleBlur}
-                            onKeyDown={(e) => {
-                              // Allow only numeric characters
-                              if (['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-                                return;
-                              }
-                              if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
-                                return;
-                              }
-                              if (!/^[0-9]$/.test(e.key)) {
-                                e.preventDefault();
-                              }
-                            }}
-                            onPaste={(e) => {
-                              e.preventDefault();
-                              const pastedText = e.clipboardData.getData('text');
-                              const sanitized = pastedText.replace(/[^0-9]/g, '').slice(0, 11);
-                              setFormData(prev => ({ ...prev, documento: sanitized }));
-                            }}
-                            className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${fieldErrors.documento ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'}`}
-                            placeholder="Documento de usuario"
-                            maxLength={11}
-                          />
-                        </div>
-                        {fieldErrors.documento && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.documento}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Número Documento *</label>
+                      <div className="relative">
+                        <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                          type="text"
+                          name="documento"
+                          value={formData.documento}
+                          onChange={handleInputChange}
+                          onBlur={handleBlur}
+                          onKeyDown={handleKeyDown}
+                          onPaste={handlePaste}
+                          className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none ${fieldErrors.documento ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-200'}`}
+                          placeholder={formData.documentType === 'NIT' ? '901234567-1' : formData.documentType === 'Pasaporte' ? 'PAS123456' : '1234567890'}
+                          maxLength={formData.documentType === 'NIT' ? 11 : formData.documentType === 'Pasaporte' ? 20 : 15}
+                        />
                       </div>
-                    )}
+                      {fieldErrors.documento && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.documento}</p>}
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

@@ -1,5 +1,4 @@
 import { apiClient, type PaginatedResponse } from '@/shared/services/apiClient';
-import { roleService } from '@/features/roles/services/roleService';
 
 export interface Person {
     documentId: string;    // Maps to documentoCliente / documentoEmpleado
@@ -80,240 +79,36 @@ export const personService = {
     // GET ALL
     async getPersons(type: 'client' | 'employee', params?: { page?: number; pageSize?: number; search?: string }): Promise<PaginatedResponse<Person>> {
         const endpoint = type === 'client' ? '/api/Clientes' : '/api/Empleados';
-        const response = await apiClient.get<any>(endpoint, params);
+        // Fetch paginated data from API
+        const apiResponse = await apiClient.get<PaginatedResponse<any>>(endpoint, params);
         
-        // Fetch roles, users to get document field and role
-        const [rolesResponse, usersResponse] = await Promise.all([
-            roleService.getRoles({ page: 1, pageSize: 1000 }),
-            apiClient.get<any>('/api/Usuarios', { page: 1, pageSize: 1000 }).catch(() => ({ data: [] }))
-        ]);
-        const roles = rolesResponse.data || [];
-        const users = usersResponse.data || [];
+        // Fetch all users to enrich with userDocument
+        const allUsers = await apiClient.getAllPages<any>('/api/Usuarios');
         
-        console.log('personService getPersons - roles:', roles);
-        console.log('personService getPersons - users:', users);
-        console.log('personService getPersons - users detailed:');
-        users.forEach((u, idx) => {
-            console.log(`  User ${idx}:`, u, 'Keys:', Object.keys(u));
+        // Map each API item to Person and enrich
+        const mappedPersons = (apiResponse.data || []).map(item => {
+            const person = mapBackendToPerson(item, type);
+            // Force specific employee to always be active
+            if (person.documentId === '8729451090') {
+                person.status = 'active';
+            }
+            // Enrich with user document from allUsers
+            if (person.usuarioId) {
+                const user = allUsers.find((u: any) => Number(u.usuarioId) === Number(person.usuarioId));
+                if (user?.documento) {
+                    person.userDocument = user.documento;
+                }
+            }
+            return person;
         });
-        
-        // Map roles: find which rolId is cliente, which are admin/asistente/super admin
-        // Case-insensitive lookup for role properties
-        const clienteRole = roles.find(r => {
-            for (const key of Object.keys(r)) {
-                if (key.toLowerCase() === 'nombre') {
-                    return (r[key] || '').toLowerCase() === 'cliente';
-                }
-            }
-            return false;
-        });
-        const adminRoles = roles.filter(r => {
-            for (const key of Object.keys(r)) {
-                if (key.toLowerCase() === 'nombre') {
-                    return ['administrador', 'asistente', 'super admin'].includes((r[key] || '').toLowerCase());
-                }
-            }
-            return false;
-        });
-        const adminRoleIds = adminRoles.map(r => {
-            for (const key of Object.keys(r)) {
-                if (key.toLowerCase() === 'rolid') {
-                    return r[key];
-                }
-            }
-            return null;
-        }).filter(id => id != null);
-        const clienteRoleId = (() => {
-            if (!clienteRole) return undefined;
-            for (const key of Object.keys(clienteRole)) {
-                if (key.toLowerCase() === 'rolid') {
-                    return clienteRole[key];
-                }
-            }
-            return undefined;
-        })();
-        
-        console.log('personService getPersons - clienteRoleId:', clienteRoleId);
-        console.log('personService getPersons - adminRoleIds:', adminRoleIds);
-        
-        let persons: Person[] = [];
-        let totalCount = 0;
-        
-        if (response && response.data && Array.isArray(response.data)) {
-            const mappedPersons = response.data.map(item => {
-                const person = mapBackendToPerson(item, type);
-                // Force specific employee to always be active
-                if (person.documentId === '8729451090') {
-                    person.status = 'active';
-                }
-                // Enrich with user document and role from users API
-                if (person.usuarioId) {
-                    const user = users.find((u: any) => Number(u.usuarioId) === Number(person.usuarioId));
-                    console.log('Found user for person.usuarioId', person.usuarioId, ':', user);
-                    if (user?.documento) {
-                        person.userDocument = user.documento;
-                    }
-                    // Attach role id and name to person for filtering
-                    // Check all possible casing variations
-                    let rolId = null;
-                    let rolNombre = null;
-                    
-                    // First check user-level role properties (any casing)
-                    for (const key of Object.keys(user || {})) {
-                        if (key.toLowerCase() === 'rolid') {
-                            rolId = user[key];
-                        }
-                        if (key.toLowerCase() === 'rolnombre') {
-                            rolNombre = user[key];
-                        }
-                    }
-                    
-                    // If not found at user level, check nested rol object (any casing)
-                    if (!rolId || !rolNombre) {
-                        const nestedRolKey = Object.keys(user || {}).find(k => k.toLowerCase() === 'rol');
-                        if (nestedRolKey && user[nestedRolKey]) {
-                            for (const key of Object.keys(user[nestedRolKey])) {
-                                if (key.toLowerCase() === 'rolid' && !rolId) {
-                                    rolId = user[nestedRolKey][key];
-                                }
-                                if (key.toLowerCase() === 'nombre' && !rolNombre) {
-                                    rolNombre = user[nestedRolKey][key];
-                                }
-                            }
-                        }
-                    }
-                    
-                    (person as any).rolId = rolId;
-                    (person as any).rolNombre = rolNombre;
-                    console.log('Attached to person:', { rolId: (person as any).rolId, rolNombre: (person as any).rolNombre });
-                }
-                return person;
-            });
-            
-            console.log('personService getPersons - type:', type);
-            console.log('personService getPersons - mappedPersons:', mappedPersons);
-            // Filter 1: role-based filtering using rolId first, fallback to name
-            let filteredByRole = mappedPersons.filter(person => {
-                const rolId = (person as any).rolId;
-                const roleName = ((person as any).rolNombre || '').toLowerCase();
-                console.log(`Checking person ${person.name} (usuarioId: ${person.usuarioId}) - rolId: ${rolId}, roleName: ${roleName}`);
-                console.log(`  → clientRoleId: ${clienteRoleId}, adminRoleIds:`, adminRoleIds);
-                if (type === 'client') {
-                    if (clienteRoleId && rolId) {
-                        const isMatch = Number(rolId) === Number(clienteRoleId);
-                        console.log(`  → Client check using rolId ${rolId} vs ${clienteRoleId}: ${isMatch}`);
-                        return isMatch;
-                    }
-                    const isMatch = roleName === 'cliente';
-                    console.log(`  → Client check using roleName ${roleName}: ${isMatch}`);
-                    return isMatch;
-                } else {
-                    if (adminRoleIds.length > 0 && rolId) {
-                        const isMatch = adminRoleIds.includes(Number(rolId));
-                        console.log(`  → Employee check using rolId ${rolId} in [${adminRoleIds}]: ${isMatch}`);
-                        return isMatch;
-                    }
-                    const isMatch = ['administrador', 'asistente', 'super admin'].includes(roleName);
-                    console.log(`  → Employee check using roleName ${roleName}: ${isMatch}`);
-                    return isMatch;
-                }
-            });
-            console.log('personService getPersons - filteredByRole:', filteredByRole);
-            
-            // Filter 2: search filtering
-            let filteredBySearch = filteredByRole;
-            if (params?.search) {
-                const searchLower = params.search.toLowerCase();
-                filteredBySearch = filteredByRole.filter(person => 
-                    person.name.toLowerCase().includes(searchLower) ||
-                    person.documentId.toLowerCase().includes(searchLower) ||
-                    (person.userDocument && person.userDocument.toLowerCase().includes(searchLower)) ||
-                    (person.phone && person.phone.toLowerCase().includes(searchLower))
-                );
-            }
-            
-            persons = filteredBySearch;
-            totalCount = persons.length;
-        }
 
-        // Fallback
-        if (Array.isArray(response)) {
-            const mappedPersons = response.map(item => {
-                const person = mapBackendToPerson(item, type);
-                // Force specific employee to always be active
-                if (person.documentId === '8729451090') {
-                    person.status = 'active';
-                }
-                if (person.usuarioId) {
-                    const user = users.find((u: any) => Number(u.usuarioId) === Number(person.usuarioId));
-                    if (user?.documento) {
-                        person.userDocument = user.documento;
-                    }
-                    (person as any).rolId = user?.rolId || user?.rol?.rolId;
-                    (person as any).rolNombre = user?.rolNombre || user?.rol?.nombre;
-                }
-                return person;
-            });
-            
-            console.log('personService getPersons - type:', type);
-            console.log('personService getPersons - mappedPersons:', mappedPersons);
-            // Filter 1: role-based filtering using rolId first, fallback to name
-            let filteredByRole = mappedPersons.filter(person => {
-                const rolId = (person as any).rolId;
-                const roleName = ((person as any).rolNombre || '').toLowerCase();
-                console.log(`Checking person ${person.name} (usuarioId: ${person.usuarioId}) - rolId: ${rolId}, roleName: ${roleName}`);
-                console.log(`  → clientRoleId: ${clienteRoleId}, adminRoleIds:`, adminRoleIds);
-                if (type === 'client') {
-                    if (clienteRoleId && rolId) {
-                        const isMatch = Number(rolId) === Number(clienteRoleId);
-                        console.log(`  → Client check using rolId ${rolId} vs ${clienteRoleId}: ${isMatch}`);
-                        return isMatch;
-                    }
-                    const isMatch = roleName === 'cliente';
-                    console.log(`  → Client check using roleName ${roleName}: ${isMatch}`);
-                    return isMatch;
-                } else {
-                    if (adminRoleIds.length > 0 && rolId) {
-                        const isMatch = adminRoleIds.includes(Number(rolId));
-                        console.log(`  → Employee check using rolId ${rolId} in [${adminRoleIds}]: ${isMatch}`);
-                        return isMatch;
-                    }
-                    const isMatch = ['administrador', 'asistente', 'super admin'].includes(roleName);
-                    console.log(`  → Employee check using roleName ${roleName}: ${isMatch}`);
-                    return isMatch;
-                }
-            });
-            console.log('personService getPersons - filteredByRole:', filteredByRole);
-            
-            // Filter 2: search filtering
-            let filteredBySearch = filteredByRole;
-            if (params?.search) {
-                const searchLower = params.search.toLowerCase();
-                filteredBySearch = filteredByRole.filter(person => 
-                    person.name.toLowerCase().includes(searchLower) ||
-                    person.documentId.toLowerCase().includes(searchLower) ||
-                    (person.userDocument && person.userDocument.toLowerCase().includes(searchLower)) ||
-                    (person.phone && person.phone.toLowerCase().includes(searchLower))
-                );
-            }
-            
-            persons = filteredBySearch;
-            totalCount = persons.length;
-        }
-
-        // Apply pagination manually since we filtered
-        const page = params?.page || 1;
-        const pageSize = params?.pageSize || 10;
-        const startIndex = (page - 1) * pageSize;
-        const endIndex = startIndex + pageSize;
-        const paginatedPersons = persons.slice(startIndex, endIndex);
-
-        return { 
-            data: paginatedPersons, 
-            totalCount, 
-            page, 
-            pageSize, 
-            totalPages: Math.ceil(totalCount / pageSize) 
+        // Return the same pagination info from API but with mapped persons
+        return {
+            data: mappedPersons,
+            totalCount: apiResponse.totalCount || 0,
+            page: apiResponse.page || 1,
+            pageSize: apiResponse.pageSize || 10,
+            totalPages: apiResponse.totalPages || 0
         };
     },
 

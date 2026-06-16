@@ -100,6 +100,9 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
               documentoEmpleado: apt.documentoEmpleado,
               fechaCita: apt.fechaCita.split('T')[0],
               horaInicio: apt.horaInicio.length === 5 ? `${apt.horaInicio}:00` : apt.horaInicio,
+              horaFin: apt.horaFin
+                ? (apt.horaFin.length === 5 ? `${apt.horaFin}:00` : apt.horaFin)
+                : apt.horaInicio.length === 5 ? `${apt.horaInicio}:00` : apt.horaInicio,
               metodoPagoId: Number(metodoPagoId),
               observaciones: apt.observaciones || 'Cancelación automática por reglas de negocio',
               serviciosIds: serviceIds,
@@ -114,10 +117,13 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
           ? empleadosResult 
           : (empleadosResult as any)?.data || (empleadosResult as any)?.$values || [];
 
-        // Map employee names
+        // Map employee names — always run mapping regardless of whether empleado is set
         const mappedAppointments = appointmentsData.map(apt => {
-          if (!apt.empleado) {
-            const emp = empleados.find((e: any) => String(e.documentoEmpleado) === String(apt.documentoEmpleado));
+          if (!apt.empleado || !apt.empleado.trim()) {
+            const empDoc = String(apt.documentoEmpleado || '').trim();
+            const emp = empleados.find((e: any) =>
+              String(e.documentoEmpleado || '').trim() === empDoc
+            );
             if (emp) {
               return { ...apt, empleado: emp.nombre };
             }
@@ -231,29 +237,54 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
     
     setIsCancelling(true);
     try {
+      // Use the appointment already in state — getById returns 405 (not supported by backend)
+      // Try to find a richer version in the appointments list
+      const fullApt = appointments.find(a => a.agendaId === appointmentToCancel.agendaId) || appointmentToCancel;
+
       // Find IDs for services — use case-insensitive trimmed comparison
-      const serviceIds = appointmentToCancel.servicios.map(name => {
+      const serviceIds = fullApt.servicios.map(name => {
         const normalizedName = name.trim().toLowerCase();
         const svc = services.find(s => s.nombre.trim().toLowerCase() === normalizedName);
         return svc ? svc.servicioId : 0;
       }).filter(id => id > 0);
 
-      const mp = metodosPago.find(m => m.nombre === appointmentToCancel.metodoPago);
+      const mp = metodosPago.find(m => m.nombre === fullApt.metodoPago);
       const metodoPagoId = mp ? (mp.metodopagoId || (mp as any).metodoPagoId) : (metodosPago.length > 0 ? (metodosPago[0].metodopagoId || (metodosPago[0] as any).metodoPagoId) : 1);
 
-      const payload = {
-        agendaId: appointmentToCancel.agendaId,
-        documentoCliente: appointmentToCancel.documentoCliente,
-        documentoEmpleado: appointmentToCancel.documentoEmpleado,
-        fechaCita: appointmentToCancel.fechaCita.split('T')[0],
-        horaInicio: appointmentToCancel.horaInicio.length === 5 ? `${appointmentToCancel.horaInicio}:00` : appointmentToCancel.horaInicio,
-        metodoPagoId: Number(metodoPagoId),
-        observaciones: appointmentToCancel.observaciones || 'Cancelada por el cliente',
-        serviciosIds: serviceIds.length > 0 ? serviceIds : [1], // Fallback to prevent empty array rejection
-        estadoId: 3 // 3 is Cancelado
-      };
+      // documentoCliente may be empty from mis-citas endpoint — fall back to currentUser
+      const documentoCliente = fullApt.documentoCliente
+        || currentUser?.documentId
+        || currentUser?.documento
+        || '';
 
-      console.log('Cancel payload:', payload);
+      const toHHMMSS = (t: string) => t && t.length === 5 ? `${t}:00` : (t || '');
+
+      // Calculate horaFin from service durations if not available
+      let horaFin = toHHMMSS(fullApt.horaFin);
+      if (!horaFin || horaFin === toHHMMSS(fullApt.horaInicio)) {
+        const totalMinutes = fullApt.servicios.reduce((acc, svcName) => {
+          const svc = services.find(s => s.nombre.trim().toLowerCase() === svcName.trim().toLowerCase());
+          return acc + (svc?.duracion || 30);
+        }, 0);
+        const [h, m] = toHHMMSS(fullApt.horaInicio).split(':').map(Number);
+        const endMinutes = h * 60 + m + totalMinutes;
+        const endH = String(Math.floor(endMinutes / 60) % 24).padStart(2, '0');
+        const endM = String(endMinutes % 60).padStart(2, '0');
+        horaFin = `${endH}:${endM}:00`;
+      }
+
+      const payload = {
+        agendaId: fullApt.agendaId,
+        documentoCliente,
+        documentoEmpleado: fullApt.documentoEmpleado,
+        fechaCita: fullApt.fechaCita.split('T')[0],
+        horaInicio: toHHMMSS(fullApt.horaInicio),
+        horaFin,
+        metodoPagoId: Number(metodoPagoId),
+        observaciones: fullApt.observaciones || 'Cancelada por el cliente',
+        serviciosIds: serviceIds.length > 0 ? serviceIds : [1],
+        estadoId: 3 // Cancelado
+      };
       await agendaService.update(appointmentToCancel.agendaId, payload);
       toast.success('Cita cancelada con éxito');
       setShowCancelConfirmModal(false);

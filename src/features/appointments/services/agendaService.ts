@@ -10,7 +10,8 @@ export interface AgendaItem {
   documentoEmpleado: string;
   empleado: string;
   fechaCita: string; // ISO "YYYY-MM-DD"
-  horaInicio: string; // ISO "HH:mm:ss"
+  horaInicio: string; // "HH:mm:ss"
+  horaFin: string;   // "HH:mm:ss"
   metodoPago: string;
   observaciones: string;
   estado: string;
@@ -23,6 +24,7 @@ export interface CreateAgendaData {
   documentoEmpleado: string;
   fechaCita: string;
   horaInicio: string;
+  horaFin?: string;
   metodoPagoId: number;
   observaciones: string;
   serviciosIds: number[];
@@ -205,6 +207,7 @@ function normalizeAgendaItem(raw: any): AgendaItem {
     empleado:           raw.empleado           ?? raw.Empleado          ?? raw.empleadoNombre   ?? raw.EmpleadoNombre   ?? '',
     fechaCita:          raw.fechaCita          ?? raw.FechaCita         ?? '',
     horaInicio:         raw.horaInicio         ?? raw.HoraInicio        ?? '',
+    horaFin:            raw.horaFin            ?? raw.HoraFin           ?? '',
     estado:             normalizeEstado(raw.estado ?? raw.Estado ?? raw.estadoId ?? raw.EstadoId),
     estadoId:           raw.estadoId           ?? raw.EstadoId          ?? 1,
     metodoPago:         raw.metodoPago         ?? raw.MetodoPago        ?? '',

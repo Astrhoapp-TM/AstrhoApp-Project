@@ -880,6 +880,153 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
         />
       ) : (
       <>
+      {/* ── Motivos Section (Admin/Super Admin only) ── */}
+      {isAdmin && showMotivos && (
+        <div className="mt-8 bg-white rounded-2xl shadow-lg overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 leading-tight">Motivos de Ausencia</h3>
+                  <p className="text-gray-600 text-sm">
+                    {motivos.length} motivo{motivos.length !== 1 ? 's' : ''} registrado{motivos.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-purple-50 to-pink-50">
+                <tr>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Empleado</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Inicio</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Fin</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Estado</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {motivos.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center">
+                        <FileText className="w-16 h-16 text-gray-200 mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-500 mb-1">No hay motivos registrados</h3>
+                        <p className="text-sm text-gray-400">Los motivos de ausencia registrados aparecerán aquí</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  (() => {
+                    const startIndex = (currentPageMotivos - 1) * itemsPerPageMotivos;
+                    const paginatedMotivos = motivos.slice(startIndex, startIndex + itemsPerPageMotivos);
+                    return paginatedMotivos.map((motivo) => (
+                      <tr key={motivo.motivoId} className="hover:bg-gray-50/60 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-9 h-9 bg-gradient-to-br from-pink-400 to-purple-500 rounded-xl flex items-center justify-center shrink-0">
+                              <span className="text-white font-bold text-sm">
+                                {(motivo.nombreEmpleado || motivo.documentoEmpleado || 'E').charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="font-semibold text-gray-800 text-sm">
+                              {motivo.nombreEmpleado || motivo.documentoEmpleado}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm font-medium text-gray-700">
+                            {new Date(motivo.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs">
+                            {formatTo12Hour(motivo.horaInicio)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 font-bold text-xs">
+                            {formatTo12Hour(motivo.horaFin)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="text-sm text-gray-600 max-w-[200px] truncate" title={motivo.descripcion}>
+                            {motivo.descripcion}
+                          </p>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={cn(
+                            "px-3 py-1 rounded-full text-xs font-bold",
+                            String(motivo.estado).toLowerCase() === 'aprobado'
+                              ? "bg-green-100 text-green-700 border border-green-200"
+                              : String(motivo.estado).toLowerCase() === 'rechazado'
+                              ? "bg-red-100 text-red-700 border border-red-200"
+                              : "bg-yellow-100 text-yellow-700 border border-yellow-200"
+                          )}>
+                            {String(motivo.estado).charAt(0).toUpperCase() + String(motivo.estado).slice(1).toLowerCase()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleViewMotivoDetail(motivo)}
+                              className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                              title="Ver detalle"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            {(String(motivo.estado).toLowerCase() === 'pendiente' || motivo.estadoId === 1) && (
+                              <>
+                                <button
+                                  onClick={() => handleAcceptMotivo(motivo)}
+                                  className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                                  title="Aceptar"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleRejectMotivo(motivo)}
+                                  className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                                  title="Rechazar"
+                                >
+                                  <AlertCircle className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ));
+                  })()
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {motivos.length > 0 && (
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+              <SimplePagination
+                currentPage={currentPageMotivos}
+                totalPages={Math.max(1, Math.ceil(motivos.length / itemsPerPageMotivos))}
+                onPageChange={setCurrentPageMotivos}
+                totalRecords={motivos.length}
+                recordsPerPage={itemsPerPageMotivos}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Schedules List ── */}
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative min-h-[400px]">
         <SectionLoader />
@@ -1063,124 +1210,6 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
         </div>
       </div>
       
-      {/* Motivos Section (Admin/Super Admin only) */}
-      {isAdmin && showMotivos && (
-        <div className="mt-8 bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 border-b border-gray-100">
-            <h3 className="text-xl font-bold text-gray-800">Motivos Registrados</h3>
-            <p className="text-gray-600">
-              {motivos.length} motivo{motivos.length !== 1 ? 's' : ''} registrado{motivos.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="text-left p-4 font-semibold text-gray-600">Empleado</th>
-                  <th className="text-left p-4 font-semibold text-gray-600">Fecha</th>
-                  <th className="text-left p-4 font-semibold text-gray-600">Hora Inicio</th>
-                  <th className="text-left p-4 font-semibold text-gray-600">Hora Fin</th>
-                  <th className="text-left p-4 font-semibold text-gray-600">Descripción</th>
-                  <th className="text-left p-4 font-semibold text-gray-600">Estado</th>
-                  <th className="text-left p-4 font-semibold text-gray-600">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(() => {
-                  const totalPages = Math.max(1, Math.ceil(motivos.length / itemsPerPageMotivos));
-                  const startIndex = (currentPageMotivos - 1) * itemsPerPageMotivos;
-                  const paginatedMotivos = motivos.slice(startIndex, startIndex + itemsPerPageMotivos);
-
-                  return paginatedMotivos.map((motivo) => (
-                    <tr key={motivo.motivoId} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="p-4">
-                        <div className="font-semibold text-gray-800">
-                          {motivo.nombreEmpleado || motivo.documentoEmpleado}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-gray-800">
-                          {new Date(motivo.fecha + 'T00:00:00').toLocaleDateString('es-ES')}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-gray-800">{formatTo12Hour(motivo.horaInicio)}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-gray-800">{formatTo12Hour(motivo.horaFin)}</div>
-                      </td>
-                      <td className="p-4">
-                        <div className="text-gray-800">{motivo.descripcion}</div>
-                      </td>
-                      <td className="p-4">
-                        <span className={cn(
-                          "px-3 py-1 rounded-full text-xs font-bold border-2",
-                          String(motivo.estado).toLowerCase() === 'aprobado' ? "bg-green-100 text-green-700 border-green-200" :
-                          String(motivo.estado).toLowerCase() === 'rechazado' ? "bg-red-100 text-red-700 border-red-200" :
-                          String(motivo.estado).toLowerCase() === 'pendiente' ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
-                          "bg-gray-100 text-gray-700 border-gray-200"
-                        )}>
-                          {String(motivo.estado).charAt(0).toUpperCase() + String(motivo.estado).slice(1).toLowerCase()}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleViewMotivoDetail(motivo)}
-                            className="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                            title="Ver detalle"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          {(String(motivo.estado).toLowerCase() === 'pendiente' || motivo.estadoId === 1) && (
-                            <>
-                              <button
-                                onClick={() => handleAcceptMotivo(motivo)}
-                                className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                                title="Aceptar"
-                              >
-                                <CheckCircle className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleRejectMotivo(motivo)}
-                                className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                                title="Rechazar"
-                              >
-                                <AlertCircle className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ));
-                })()}
-              </tbody>
-            </table>
-
-            {motivos.length === 0 && (
-              <div className="text-center py-12">
-                <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No hay motivos registrados</h3>
-                <p className="text-gray-500">No se encontraron motivos en el sistema</p>
-              </div>
-            )}
-          </div>
-
-          {/* Pagination for Motivos */}
-          {motivos.length > 0 && (
-            <div className="p-6 border-t border-gray-100 bg-gray-50/50">
-              <SimplePagination
-                currentPage={currentPageMotivos}
-                totalPages={Math.max(1, Math.ceil(motivos.length / itemsPerPageMotivos))}
-                onPageChange={setCurrentPageMotivos}
-                totalRecords={motivos.length}
-                recordsPerPage={itemsPerPageMotivos}
-              />
-            </div>
-          )}
-        </div>
-      )}
       </>
       )}
 
@@ -1656,7 +1685,7 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
                 required
               >
                 <option value="">Selecciona un empleado</option>
-                {empleados.map((empleado) => (
+                {empleados.filter(e => e.estado === true).map((empleado) => (
                   <option key={empleado.documentoEmpleado} value={empleado.documentoEmpleado}>
                     {empleado.nombre}
                   </option>

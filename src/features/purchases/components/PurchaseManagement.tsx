@@ -243,7 +243,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
 
   const handleCancelPurchase = (purchase: PurchaseAPI) => {
     if (!isPurchaseCancellable(purchase)) {
-      toast.error('No se puede anular una compra después de 1 semana');
+      toast.error('No se puede anular una compra después de 7 días');
       return;
     }
     setSelectedPurchase(purchase);
@@ -253,7 +253,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
   const confirmCancelPurchase = async (observation: string) => {
     if (!selectedPurchase) return;
     if (!isPurchaseCancellable(selectedPurchase)) {
-      toast.error('No se puede anular una compra después de 1 semana');
+      toast.error('No se puede anular una compra después de 7 días');
       setShowCancelModal(false);
       setSelectedPurchase(null);
       return;
@@ -610,7 +610,7 @@ export function PurchaseManagement({ hasPermission }: PurchaseManagementProps) {
                                   ? 'bg-gray-100 text-brand-pink hover:bg-red-200'
                                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                               }`}
-                              title={isPurchaseCancellable(purchase) ? 'Anular Compra' : 'No se puede anular después de 1 semana'}
+                              title={isPurchaseCancellable(purchase) ? 'Anular Compra' : 'No se puede anular después de 7 días'}
                             >
                               <Ban className="w-4 h-4" />
                             </button>

@@ -244,7 +244,6 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
         // 2. Handle Client and Employee Records
         const newEstado = userData.estado !== undefined ? userData.estado : selectedUser.estado;
-        const direccion = userData.direccion || '';
         const documentId = userData.documentId || userData.documento || String(userId);
         const documentType = userData.documentType || 'CC';
         const nombre = userData.nombre;
@@ -257,6 +256,12 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         ]);
         const existingClient = allClients.find((c: any) => Number(c.usuarioId) === userId);
         const existingEmployee = allEmployees.find((e: any) => Number(e.usuarioId) === userId);
+
+        // Use existing stored direccion as fallback if the form field is empty
+        const existingDireccion =
+          existingClient?.direccion || existingClient?.['dirección'] ||
+          existingEmployee?.direccion || existingEmployee?.['dirección'] || '';
+        const direccion = userData.direccion || existingDireccion;
 
         // Determine what type(s) we need
         const selectedRole = roles.find(r => r.rolId === updatePayload.rolId);

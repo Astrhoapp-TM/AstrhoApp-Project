@@ -284,6 +284,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     // First, create a map of all HorarioDia by horarioDiaId
     const horarioDiaMap = new Map<number, HorarioDia>();
     horariosList.forEach(horario => {
+      if (horario.estado === false) return; // Skip inactive schedules!
       const dias = extractArray(horario);
       dias.forEach(dia => {
         if (dia?.horarioDiaId) {
@@ -293,41 +294,50 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
     });
 
     // Now, enrich each HorarioEmpleado with the diaSemana, horaInicio, horaFin from corresponding HorarioDia
-    return horarioEmpleadosList.map(he => {
-      // First check if he already has diaSemana, horaInicio, horaFin
-      if (he.diaSemana && he.horaInicio && he.horaFin) {
+    return horarioEmpleadosList
+      .map(he => {
+        // Find the corresponding Horario
+        const possibleHorario = horariosList.find(h => h.horarioId === he.horarioId);
+        
+        // If the schedule is inactive, skip it
+        if (possibleHorario && possibleHorario.estado === false) {
+          return null;
+        }
+
+        // First check if he already has diaSemana, horaInicio, horaFin
+        if (he.diaSemana && he.horaInicio && he.horaFin) {
+          return he;
+        }
+
+        // If not, try to find the corresponding HorarioDia
+        if (possibleHorario) {
+          const dias = extractArray(possibleHorario);
+          // If there's only one day, use that one
+          if (dias.length === 1) {
+            return {
+              ...he,
+              diaSemana: dias[0].diaSemana,
+              horaInicio: dias[0].horaInicio,
+              horaFin: dias[0].horaFin
+            };
+          }
+          // Otherwise, check if there's a horarioDiaId in the HorarioEmpleado
+          const heWithHorarioDiaId = he as any;
+          if (heWithHorarioDiaId.horarioDiaId && horarioDiaMap.has(heWithHorarioDiaId.horarioDiaId)) {
+            const dia = horarioDiaMap.get(heWithHorarioDiaId.horarioDiaId)!;
+            return {
+              ...he,
+              diaSemana: dia.diaSemana,
+              horaInicio: dia.horaInicio,
+              horaFin: dia.horaFin
+            };
+          }
+        }
+
+        // If we can't find the day, return as-is
         return he;
-      }
-
-      // If not, try to find the corresponding HorarioDia
-      const possibleHorario = horariosList.find(h => h.horarioId === he.horarioId);
-      if (possibleHorario) {
-        const dias = extractArray(possibleHorario);
-        // If there's only one day, use that one
-        if (dias.length === 1) {
-          return {
-            ...he,
-            diaSemana: dias[0].diaSemana,
-            horaInicio: dias[0].horaInicio,
-            horaFin: dias[0].horaFin
-          };
-        }
-        // Otherwise, check if there's a horarioDiaId in the HorarioEmpleado
-        const heWithHorarioDiaId = he as any;
-        if (heWithHorarioDiaId.horarioDiaId && horarioDiaMap.has(heWithHorarioDiaId.horarioDiaId)) {
-          const dia = horarioDiaMap.get(heWithHorarioDiaId.horarioDiaId)!;
-          return {
-            ...he,
-            diaSemana: dia.diaSemana,
-            horaInicio: dia.horaInicio,
-            horaFin: dia.horaFin
-          };
-        }
-      }
-
-      // If we can't find the day, return as-is
-      return he;
-    }).filter(he => he.diaSemana && he.horaInicio && he.horaFin);
+      })
+      .filter((he): he is HorarioEmpleado => he !== null && !!he.diaSemana && !!he.horaInicio && !!he.horaFin);
   };
 
   useEffect(() => {

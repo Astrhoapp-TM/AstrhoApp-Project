@@ -213,15 +213,17 @@ export const authService = {
         }
 
         // 2. Create the Client details
-        const clientPayload = {
+        // The backend /api/Clientes expects exactly these fields:
+        // { documentoCliente, usuarioId, tipoDocumento, nombre, telefono, "dirección" }
+        const clientPayload: Record<string, any> = {
             documentoCliente: data.userDocument,
             usuarioId: usuarioId,
             tipoDocumento: data.documentType || 'CC',
             nombre: `${data.firstName} ${data.lastName}`.trim(),
             telefono: data.phone,
-            direccionCliente: data.address || '',
-            direccion: data.address || ''
         };
+        // Use bracket notation to set the accented key exactly as the backend expects it
+        clientPayload['dirección'] = data.address || '';
 
         try {
             const clientResponse = await apiClient.post('/api/Clientes', clientPayload);

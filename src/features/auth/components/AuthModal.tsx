@@ -1083,7 +1083,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                         documentType: 'CC',
                         firstName: '',
                         lastName: '',
-                        documentId: '',
+                        userDocument: '',
                         email: '',
                         phone: '',
                         address: '',

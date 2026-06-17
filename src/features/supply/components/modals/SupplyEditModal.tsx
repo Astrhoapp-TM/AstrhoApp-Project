@@ -221,7 +221,7 @@ export function SupplyEditModal({ supply, onClose, onSave, suppliers }: SupplyEd
 }
 
 // Formulario para editar un solo insumo (modo edición)
-function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
+function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
   const [formData, setFormData] = useState({
     name: supply?.name || '',
     description: supply?.description || '',
@@ -509,7 +509,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                             />
                           </div>
 
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo</label>
                       <select
@@ -524,14 +524,15 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers }) {
                         ))}
                       </select>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
-                      <CategorySearchSelect
-                        selectedId={formData.categoriaId}
-                        initialData={categories}
-                        onSelect={(cat: any) => setFormData({ ...formData, categoriaId: cat.categoriaId })}
-                      />
-                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
+                    <CategorySearchSelect
+                      selectedId={formData.categoriaId}
+                      initialData={categories}
+                      onSelect={(cat: any) => setFormData({ ...formData, categoriaId: cat.categoriaId })}
+                    />
                   </div>
                 </div>
               </div>
@@ -957,7 +958,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                           </div>
                         </div>
 
-                        <div className="grid md:grid-cols-4 gap-4">
+                        <div className="grid md:grid-cols-3 gap-4">
                           <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo</label>
                             <select
@@ -969,14 +970,6 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                                 <option key={key} value={key}>{type.label}</option>
                               ))}
                             </select>
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
-                            <CategorySearchSelect
-                              selectedId={supply.categoriaId}
-                              initialData={[]}
-                              onSelect={(cat: any) => updateSupply(index, 'categoriaId', cat.categoriaId)}
-                            />
                           </div>
                           <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Proveedor</label>
@@ -1035,6 +1028,15 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                               placeholder="0.00"
                             />
                           </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
+                          <CategorySearchSelect
+                            selectedId={supply.categoriaId}
+                            initialData={[]}
+                            onSelect={(cat: any) => updateSupply(index, 'categoriaId', cat.categoriaId)}
+                          />
                         </div>
 
                         <div>

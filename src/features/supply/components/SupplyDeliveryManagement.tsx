@@ -566,14 +566,6 @@ export function SupplyDeliveryManagement({ hasPermission, currentUser }: SupplyD
                           >
                             <Eye className="w-4 h-4" />
                           </button>
-
-                          <button
-                            onClick={() => handlePrintDeliveryPDF(delivery)}
-                            className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                            title="Imprimir PDF"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </button>
                         </div>
                       </td>
                     </tr>

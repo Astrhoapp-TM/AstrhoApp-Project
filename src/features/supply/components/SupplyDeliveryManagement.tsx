@@ -727,7 +727,9 @@ function ProductSearchSelect({ supplies, onSelect, selectedSupplyId, error, plac
     const nombre = (s.nombre || '').toLowerCase();
     const sku = (s.sku || '').toLowerCase();
     const search = searchTerm.toLowerCase();
-    return (s.estado === true || s.Estado === true) && (nombre.includes(search) || sku.includes(search));
+    const rawStock = s.cantidad ?? s.stock ?? s.existencia ?? s.stock_quantity ?? 0;
+    const availableStock = parseFloat(rawStock as any);
+    return (s.estado === true || s.Estado === true) && availableStock > 0 && (nombre.includes(search) || sku.includes(search));
   });
 
   useEffect(() => {

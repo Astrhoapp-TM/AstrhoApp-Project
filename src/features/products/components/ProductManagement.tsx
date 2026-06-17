@@ -936,7 +936,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
 
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código (Opcional)</label>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código *</label>
                       <div className="relative">
                         <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input

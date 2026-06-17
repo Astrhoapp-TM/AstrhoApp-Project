@@ -911,14 +911,13 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                   <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Inicio</th>
                   <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Fin</th>
                   <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción</th>
-                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Estado</th>
                   <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {motivos.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center">
+                    <td colSpan={6} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <FileText className="w-16 h-16 text-gray-200 mb-4" />
                         <h3 className="text-lg font-semibold text-gray-500 mb-1">No hay motivos registrados</h3>
@@ -965,18 +964,6 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                           </p>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={cn(
-                            "px-3 py-1 rounded-full text-xs font-bold",
-                            String(motivo.estado).toLowerCase() === 'aprobado'
-                              ? "bg-green-100 text-green-700 border border-green-200"
-                              : String(motivo.estado).toLowerCase() === 'rechazado'
-                              ? "bg-red-100 text-red-700 border border-red-200"
-                              : "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                          )}>
-                            {String(motivo.estado).charAt(0).toUpperCase() + String(motivo.estado).slice(1).toLowerCase()}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleViewMotivoDetail(motivo)}
@@ -985,24 +972,6 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                            {(String(motivo.estado).toLowerCase() === 'pendiente' || motivo.estadoId === 1) && (
-                              <>
-                                <button
-                                  onClick={() => handleAcceptMotivo(motivo)}
-                                  className="p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-                                  title="Aceptar"
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleRejectMotivo(motivo)}
-                                  className="p-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                                  title="Rechazar"
-                                >
-                                  <AlertCircle className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
                           </div>
                         </td>
                       </tr>

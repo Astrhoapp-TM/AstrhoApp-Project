@@ -9,48 +9,104 @@ const features = [
 ];
 
 interface AppDownloadProps {
-  /** Scroll position used for parallax on the background layer */
   scrollY?: number;
-  /** Pixel offset of this section from document top, used to normalise parallax */
   sectionOffsetTop?: number;
 }
 
 export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadProps) {
-  // Normalise scroll relative to this section so parallax only activates when visible
-  const localScroll = Math.max(0, scrollY - sectionOffsetTop);
-  const bgOffset   = localScroll * 0.35;
-  const cardOffset = localScroll * 0.12;
+  // Local scroll: 0 when section enters viewport
+  const local = Math.max(0, scrollY - sectionOffsetTop);
+
+  // ── Parallax offsets at different "depths" ──────────────────
+  const bgFar    = local * 0.45;   // slowest  — far background glows
+  const bgMid    = local * 0.28;   // medium   — mid-layer rings
+  const phoneY   = local * 0.14;   // phone vertical drift (upward)
+  const phoneTilt = Math.min(local * 0.015, 6); // subtle tilt in deg, max 6°
+  const labelY   = local * 0.22;   // floating label, between bg and phone
+  const orbA     = local * 0.38;   // fast orb
+  const orbB     = local * 0.18;   // slow orb
 
   return (
     <section
       className="relative overflow-hidden bg-gray-950 min-h-screen flex items-center py-24"
       style={{ scrollSnapAlign: 'start' }}
     >
-      {/* ── Parallax background ── */}
+
+      {/* ── Layer 1: far background (slowest) ── */}
       <div
-        className="absolute inset-0 will-change-transform pointer-events-none"
-        style={{ transform: `translateY(${bgOffset}px)` }}
+        className="absolute inset-0 pointer-events-none will-change-transform"
+        style={{ transform: `translateY(${bgFar}px)` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-pink/15 via-transparent to-brand-indigo/15" />
-        <div className="absolute -left-32 top-1/2 -translate-y-1/2 w-[480px] h-[480px] bg-brand-pink/8 rounded-full blur-3xl" />
-        {/* Concentric rings */}
-        <div className="absolute -right-40 top-1/2 -translate-y-1/2 w-[520px] h-[520px] rounded-full border border-white/[0.04]" />
-        <div className="absolute -right-24 top-1/2 -translate-y-1/2 w-[360px] h-[360px] rounded-full border border-white/[0.04]" />
-        {/* Fine grid */}
+        {/* Animated gradient — drifts left → right infinitely */}
         <div
-          className="absolute inset-0 opacity-[0.025]"
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(105deg, #0f0f13 0%, rgba(242,121,222,0.18) 25%, rgba(132,119,217,0.22) 50%, rgba(191,132,217,0.15) 75%, #0f0f13 100%)',
+            backgroundSize: '300% 100%',
+            animation: 'bgDrift 18s linear infinite',
+          }}
+        />
+
+        {/* Grid mesh on top */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage:
               'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)',
             backgroundSize: '60px 60px',
           }}
         />
+
+        {/* Keyframe injection */}
+        <style>{`
+          @keyframes bgDrift {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+          }
+        `}</style>
       </div>
 
+      {/* ── Layer 2: mid — concentric rings ── */}
+      <div
+        className="absolute inset-0 pointer-events-none will-change-transform"
+        style={{ transform: `translateY(${bgMid}px)` }}
+      >
+        <div className="absolute -right-48 top-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-white/[0.05]" />
+        <div className="absolute -right-28 top-1/2 -translate-y-1/2 w-[420px] h-[420px] rounded-full border border-white/[0.05]" />
+        <div className="absolute -right-10 top-1/2 -translate-y-1/2 w-[260px] h-[260px] rounded-full border border-white/[0.04]" />
+      </div>
+
+      {/* ── Orb A — fast, pink, top-left ── */}
+      <div
+        className="absolute pointer-events-none will-change-transform"
+        style={{
+          transform: `translateY(${-orbA}px)`,
+          top: '-80px', left: '-60px',
+          width: '420px', height: '420px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(242,121,222,0.12) 0%, transparent 70%)',
+          filter: 'blur(40px)',
+        }}
+      />
+
+      {/* ── Orb B — slow, indigo, bottom-right ── */}
+      <div
+        className="absolute pointer-events-none will-change-transform"
+        style={{
+          transform: `translateY(${orbB}px)`,
+          bottom: '-100px', right: '-60px',
+          width: '500px', height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(132,119,217,0.14) 0%, transparent 70%)',
+          filter: 'blur(50px)',
+        }}
+      />
+
+      {/* ── Content ── */}
       <div className="relative max-w-5xl mx-auto px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
 
-          {/* ── Left: text & CTA ── */}
+          {/* Left: text */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-5">
               Aplicación móvil · Android
@@ -66,7 +122,6 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
               directamente desde tu teléfono.
             </p>
 
-            {/* Feature pills */}
             <div className="flex flex-wrap gap-2 mb-10">
               {features.map(({ icon: Icon, label }) => (
                 <span
@@ -93,13 +148,21 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
             </p>
           </div>
 
-          {/* ── Right: abstract phone ── */}
-          <div
-            className="flex justify-center lg:justify-end will-change-transform"
-            style={{ transform: `translateY(${-cardOffset}px)` }}
-          >
-            <div className="relative w-52">
-              <div className="absolute inset-0 bg-gradient-brand opacity-10 rounded-[2.5rem] blur-2xl scale-125" />
+          {/* Right: phone with parallax + tilt */}
+          <div className="flex justify-center lg:justify-end">
+            <div
+              className="relative w-52 will-change-transform"
+              style={{
+                transform: `translateY(${-phoneY}px) rotateY(${phoneTilt}deg) rotateX(${phoneTilt * 0.4}deg)`,
+                transformStyle: 'preserve-3d',
+                transition: 'transform 0.1s linear',
+              }}
+            >
+              {/* Glow behind phone — moves with phone */}
+              <div
+                className="absolute inset-0 bg-gradient-brand rounded-[2.5rem] blur-2xl scale-125 pointer-events-none"
+                style={{ opacity: 0.18 }}
+              />
 
               {/* Phone shell */}
               <div className="relative bg-gray-900 rounded-[2.5rem] p-2.5 shadow-2xl ring-1 ring-white/5">
@@ -111,17 +174,14 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
 
                   <div className="px-4 pb-6 space-y-3">
                     <div className="h-16 bg-gradient-brand rounded-2xl opacity-90" />
-
                     <div className="space-y-2">
                       <div className="h-2.5 bg-gray-700 rounded-full w-3/4" />
                       <div className="h-2   bg-gray-800 rounded-full w-1/2" />
                     </div>
-
                     <div className="grid grid-cols-2 gap-2">
                       <div className="h-16 bg-gray-800 rounded-xl" />
                       <div className="h-16 bg-gray-800 rounded-xl" />
                     </div>
-
                     {[true, false].map((accent, i) => (
                       <div key={i} className="h-10 bg-gray-800 rounded-xl flex items-center px-3">
                         <div className={`w-6 h-6 rounded-lg mr-2 flex-shrink-0 ${accent ? 'bg-gradient-brand' : 'bg-gray-700'}`} />
@@ -133,7 +193,6 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
                     ))}
                   </div>
 
-                  {/* Bottom nav */}
                   <div className="flex justify-around items-center px-4 py-3 border-t border-gray-800">
                     {[...Array(4)].map((_, i) => (
                       <div key={i} className={`w-6 h-6 rounded-lg ${i === 0 ? 'bg-gradient-brand' : 'bg-gray-800'}`} />
@@ -142,8 +201,11 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
                 </div>
               </div>
 
-              {/* Floating label */}
-              <div className="absolute -bottom-5 -left-8 bg-white/8 backdrop-blur border border-white/10 rounded-2xl px-4 py-2.5">
+              {/* Floating label — own parallax speed */}
+              <div
+                className="absolute -bottom-5 -left-8 bg-white/8 backdrop-blur border border-white/10 rounded-2xl px-4 py-2.5 will-change-transform"
+                style={{ transform: `translateY(${labelY * 0.4}px)` }}
+              >
                 <p className="text-xs font-bold text-white">100% gratis</p>
                 <p className="text-[10px] text-gray-500">Sin publicidad</p>
               </div>

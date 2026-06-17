@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { clearAuthToken } from "@/shared/services/apiClient";
-import { AlertCircle, LogOut, Scissors } from "lucide-react";
+import { AlertCircle, LogOut } from "lucide-react";
 import { Navigation } from "@/shared/components/Navigation";
-import { Hero } from "@/shared/components/Hero";
 import { ServiceList } from "@/features/services/components/ServiceList";
-import { Footer } from "@/shared/components/Footer";
-import { AppDownload } from "@/shared/components/AppDownload";
+import { LandingLayout } from "@/shared/components/LandingLayout";
 import { AppointmentList } from "@/features/appointments/components/AppointmentList";
 import { ClientAppointments } from "@/features/appointments/components/ClientAppointments";
 import { AppointmentBooking } from "@/features/appointments/components/AppointmentBooking";
@@ -374,16 +372,7 @@ function App() {
           );
         default:
           return (
-            <>
-              <Hero
-                onBookAppointment={navigateToAppointments}
-              />
-              <ServiceList
-                onBookAppointment={navigateToAppointments}
-              />
-              <AppDownload />
-              <Footer />
-            </>
+            <LandingLayout onBookAppointment={navigateToAppointments} />
           );
       }
     }
@@ -479,14 +468,7 @@ function App() {
           );
         }
         return (
-          <>
-            <Hero onBookAppointment={navigateToAppointments} />
-            <ServiceList
-              onBookAppointment={navigateToAppointments}
-            />
-            <AppDownload />
-            <Footer />
-          </>
+          <LandingLayout onBookAppointment={navigateToAppointments} />
         );
     }
   };

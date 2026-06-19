@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Calendar, Home, Sparkles, Settings, Shield, Eye, ArrowLeft, ChevronDown, Edit, LogOut, Menu, X } from 'lucide-react';
+import { User, Calendar, Home, Sparkles, Download, Settings, Shield, Eye, ArrowLeft, ChevronDown, Edit, LogOut, Menu, X } from 'lucide-react';
 import { NotificationBell } from './NotificationBell';
 
 interface NavigationProps {
@@ -27,6 +27,8 @@ export function Navigation({
 }: NavigationProps) {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeLandingSection, setActiveLandingSection] = useState('home');
+  const [isHeroVisible, setIsHeroVisible] = useState(true);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
@@ -52,10 +54,46 @@ export function Navigation({
     setIsMenuOpen(false);
   }, [currentView]);
 
+  // Track which landing section is currently visible so nav buttons can reflect it.
+  useEffect(() => {
+    const sectionIds = ['hero-section', 'services-section', 'app-download-section'];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (!visibleEntry) return;
+
+        if (visibleEntry.target.id === 'services-section') {
+          setActiveLandingSection('services');
+          setIsHeroVisible(false);
+        } else if (visibleEntry.target.id === 'app-download-section') {
+          setActiveLandingSection('app-download');
+          setIsHeroVisible(false);
+        } else if (visibleEntry.target.id === 'hero-section') {
+          setActiveLandingSection('home');
+          setIsHeroVisible(true);
+        }
+      },
+      {
+        threshold: [0.2, 0.5, 0.8],
+      }
+    );
+
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   // Base menu items available to all users
   const baseMenuItems = [
     { id: 'home', label: 'Inicio', icon: Home },
-    { id: 'services', label: 'Servicios', icon: Sparkles }
+    { id: 'services', label: 'Servicios', icon: Sparkles },
+    { id: 'app-download', label: 'Descargar App', icon: Download }
   ];
 
   // Menu items for authenticated users
@@ -89,6 +127,65 @@ export function Navigation({
       });
     }
   }
+
+  const scrollToSection = (sectionId: string) => {
+    const tryScroll = (attempt = 0) => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      if (attempt < 3) {
+        window.setTimeout(() => tryScroll(attempt + 1), 100);
+      }
+    };
+
+    tryScroll();
+  };
+
+  const isNavItemActive = (itemId: string) => {
+    if (currentView === itemId) return true;
+    if (currentView !== 'home') return false;
+    return activeLandingSection === itemId;
+  };
+
+  const handleMenuClick = (viewId: string) => {
+    if (viewId === 'home') {
+      if (currentView !== 'home') {
+        setCurrentView('home');
+      }
+
+      window.setTimeout(() => {
+        scrollToSection('hero-section');
+      }, 50);
+      return;
+    }
+
+    if (viewId === 'services') {
+      if (currentView !== 'home') {
+        setCurrentView('home');
+      }
+
+      window.setTimeout(() => {
+        scrollToSection('services-section');
+      }, 50);
+      return;
+    }
+
+    if (viewId === 'app-download') {
+      if (currentView !== 'home') {
+        setCurrentView('home');
+      }
+
+      window.setTimeout(() => {
+        scrollToSection('app-download-section');
+      }, 50);
+      return;
+    }
+
+    setCurrentView(viewId);
+  };
 
   const getRoleDisplayName = (role) => {
     switch (role) {
@@ -132,7 +229,7 @@ export function Navigation({
             </div>
             <div className="flex flex-col">
               <span className="text-2xl font-black tracking-tight text-gradient-brand leading-none">
-                AsthroApp
+                AstrhoApp
               </span>
               {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'asistente') && (
                 <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
@@ -147,11 +244,11 @@ export function Navigation({
           <div className="hidden md:flex items-center space-x-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentView === item.id;
+              const isActive = isNavItemActive(item.id);
               return (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentView(item.id)}
+                  onClick={() => handleMenuClick(item.id)}
                   aria-current={isActive ? 'page' : undefined}
                   className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center space-x-2 group relative focus:outline-none focus:ring-2 focus:ring-brand-indigo/30 ${
                     isActive
@@ -312,12 +409,12 @@ export function Navigation({
           <div className="grid grid-cols-1 gap-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = currentView === item.id;
+              const isActive = isNavItemActive(item.id);
               return (
                 <button
                   key={item.id}
                   onClick={() => {
-                    setCurrentView(item.id);
+                    handleMenuClick(item.id);
                     setIsMenuOpen(false);
                   }}
                   aria-current={isActive ? 'page' : undefined}

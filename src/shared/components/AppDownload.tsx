@@ -28,6 +28,7 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
 
   return (
     <section
+      id="app-download-section"
       className="relative overflow-hidden bg-gray-950 min-h-screen flex items-center py-24"
       style={{ scrollSnapAlign: 'start' }}
     >

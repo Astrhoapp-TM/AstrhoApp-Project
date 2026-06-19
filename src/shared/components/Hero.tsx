@@ -13,7 +13,8 @@ export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
 
   return (
     <section
-      className="relative overflow-hidden bg-white min-h-screen flex items-center"
+      id="hero-section"
+      className="relative overflow-hidden bg-white min-h-[calc(100vh-4rem)] flex items-center"
       style={{ scrollSnapAlign: 'start' }}
     >
       {/* ── Parallax background decorations ── */}
@@ -39,7 +40,7 @@ export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
       </div>
 
       {/* ── Content ── */}
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 w-full py-28 lg:py-0">
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
 
           {/* Left */}
@@ -52,7 +53,7 @@ export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
 
             <h1 className="text-5xl lg:text-7xl font-black leading-[1.0] mb-6 tracking-tight">
               <span className="block text-gray-900">Bienvenido a</span>
-              <span className="text-gradient-brand">AsthroApp</span>
+              <span className="text-gradient-brand">AstrhoApp</span>
             </h1>
 
             <p className="text-gray-500 text-lg leading-relaxed mb-4 max-w-md">
@@ -101,7 +102,7 @@ export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
             <div className="relative w-full max-w-sm bg-white border border-gray-100 rounded-3xl p-5 shadow-xl shadow-gray-200/80">
               <ImageWithFallback
                 src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=500&h=600&fit=crop&crop=center"
-                alt="AsthroApp - Salón de belleza en Medellín"
+                alt="Astrho - Salón de belleza en Medellín"
                 className="w-full h-80 object-cover rounded-2xl"
               />
 

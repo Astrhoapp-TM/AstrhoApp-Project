@@ -595,7 +595,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
               )}
               <div>
                 <h3 className="text-xl font-bold leading-tight">{headerContent.title}</h3>
-                <p className="text-white/80 text-[10px] font-medium uppercase tracking-widest">{headerContent.subtitle}</p>
+                <p className="text-white/80 text-[10px] font-medium tracking-widest">{headerContent.subtitle}</p>
               </div>
             </div>
             <button
@@ -618,7 +618,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
           {apiError && (
             <div className="mb-6 p-4 bg-gray-50 border border-red-100 rounded-2xl flex items-center space-x-3 animate-in fade-in slide-in-from-top-2 duration-300">
               <AlertCircle className="w-5 h-5 text-brand-pink flex-shrink-0" />
-              <p className="text-[10px] font-black text-brand-pink uppercase tracking-widest">{apiError}</p>
+              <p className="text-[10px] font-black text-brand-pink tracking-widest">{apiError}</p>
             </div>
           )}
 
@@ -636,7 +636,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                 <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-6">
                   <p className="font-bold text-brand-indigo">{forgotEmail}</p>
                 </div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <p className="text-[10px] font-black text-gray-400 tracking-widest">
                   Si no lo ves, revisa tu carpeta de spam.
                 </p>
               </div>
@@ -645,14 +645,14 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                 <button
                   type="button"
                   onClick={handleViewPasswordRecovery}
-                  className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md"
+                  className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md"
                 >
                   Ver proceso de recuperación
                 </button>
                 <button
                   type="button"
                   onClick={resetForgotPasswordState}
-                  className="w-full bg-white text-gray-400 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all border border-gray-100"
+                  className="w-full bg-white text-gray-400 py-4 rounded-2xl font-black text-xs tracking-widest hover:bg-gray-50 transition-all border border-gray-100"
                 >
                   Volver al inicio
                 </button>
@@ -664,12 +664,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-indigo mb-6">
                   <Mail className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Recuperación de Cuenta</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Recuperación de Cuenta</h4>
                 </div>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Correo Electrónico *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Correo Electrónico *</label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-indigo transition-colors w-5 h-5" />
                       <input
@@ -689,7 +689,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
+                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 <span>Enviar Código</span>
@@ -701,7 +701,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-6">
                   <Lock className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Verificar Identidad</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Verificar Identidad</h4>
                 </div>
                 
                 <p className="text-sm text-gray-500 mb-6">
@@ -709,24 +709,24 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                 </p>
 
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Código de Verificación *</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Código de Verificación *</label>
                   <input
                     type="text"
                     value={recoveryCode}
                     onChange={(e) => { setRecoveryCode(e.target.value); setCodeError(''); }}
                     required
                     disabled={loading}
-                    className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-center text-2xl font-black tracking-[0.5em] uppercase"
+                    className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-center text-2xl font-black tracking-[0.5em]"
                     placeholder="000000"
                   />
-                  {codeError && <p className="text-[10px] text-brand-pink font-bold mt-2 uppercase text-center">{codeError}</p>}
+                  {codeError && <p className="text-[10px] text-brand-pink font-bold mt-2 text-center">{codeError}</p>}
                 </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
+                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                 <span>Verificar Código</span>
@@ -738,12 +738,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-indigo mb-6">
                   <Lock className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Seguridad de la Cuenta</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Seguridad de la Cuenta</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nueva Contraseña *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Nueva Contraseña *</label>
                     <div className="relative group">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-indigo transition-colors w-5 h-5" />
                       <input
@@ -770,7 +770,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
 
                   {showResetPasswordForm && (
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Confirmar Contraseña *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Confirmar Contraseña *</label>
                       <div className="relative group">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-indigo transition-colors w-5 h-5" />
                         <input
@@ -788,13 +788,13 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                     </div>
                   )}
                 </div>
-                {passwordError && <p className="text-[10px] text-brand-pink font-bold mt-4 uppercase">{passwordError}</p>}
+                {passwordError && <p className="text-[10px] text-brand-pink font-bold mt-4">{passwordError}</p>}
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
+                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 <span>{showResetPasswordForm ? 'Restablecer Contraseña' : 'Cambiar Contraseña'}</span>
@@ -817,7 +817,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
               <button
                 type="button"
                 onClick={resetForgotPasswordState}
-                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md"
+                className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs tracking-widest hover:shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-95 transition-all shadow-md"
               >
                 Iniciar Sesión Ahora
               </button>
@@ -831,11 +831,11 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center space-x-2 text-brand-violet mb-4">
                       <IdCard className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Identificación</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Identificación</h4>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Tipo de Documento *</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Tipo de Documento *</label>
                         <select
                           name="documentType"
                           value={formData.documentType}
@@ -850,7 +850,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Número de Documento *</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Número de Documento *</label>
                         <input
                           type="text"
                           name="userDocument"
@@ -872,11 +872,11 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center space-x-2 text-brand-pink mb-4">
                       <User className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Personal</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Información Personal</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nombres *</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Nombres *</label>
                         <input
                           type="text"
                           name="firstName"
@@ -890,7 +890,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                         {fieldErrors.firstName && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.firstName}</p>}
                       </div>
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Apellidos *</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Apellidos *</label>
                         <input
                           type="text"
                           name="lastName"
@@ -904,7 +904,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                         {fieldErrors.lastName && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.lastName}</p>}
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Teléfono *</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Teléfono *</label>
                         <input
                           type="tel"
                           name="phone"
@@ -921,7 +921,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                         {fieldErrors.phone && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.phone}</p>}
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Dirección de Residencia</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Dirección de Residencia</label>
                         <input
                           type="text"
                           name="address"
@@ -938,11 +938,11 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center space-x-2 text-brand-indigo mb-4">
                       <Mail className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Acceso y Seguridad</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Acceso y Seguridad</h4>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Correo Electrónico *</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Correo Electrónico *</label>
                         <input
                           type="email"
                           name="email"
@@ -958,7 +958,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Contraseña *</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Contraseña *</label>
                           <input
                             type={showRegisterPassword ? 'text' : 'password'}
                             name="password"
@@ -972,7 +972,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                           {fieldErrors.password && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.password}</p>}
                         </div>
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Confirmar *</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Confirmar *</label>
                           <input
                             type={showRegisterPassword ? 'text' : 'password'}
                             name="confirmPassword"
@@ -989,7 +989,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                       <button
                         type="button"
                         onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                        className="text-[9px] font-black text-brand-indigo uppercase tracking-widest hover:text-brand-violet transition-colors"
+                        className="text-[9px] font-black text-brand-indigo tracking-widest hover:text-brand-violet transition-colors"
                       >
                         {showRegisterPassword ? 'Ocultar Contraseñas' : 'Ver Contraseñas'}
                       </button>
@@ -1001,12 +1001,12 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                 <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
                   <div className="flex items-center space-x-2 text-brand-violet">
                     <Lock className="w-4 h-4" />
-                    <h4 className="font-bold uppercase text-[10px] tracking-widest">Credenciales de Acceso</h4>
+                    <h4 className="font-bold text-[10px] tracking-widest">Credenciales de Acceso</h4>
                   </div>
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Correo Electrónico</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Correo Electrónico</label>
                       <div className="relative group">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-brand-indigo transition-colors w-5 h-5" />
                         <input
@@ -1023,11 +1023,11 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
 
                     <div>
                       <div className="flex justify-between items-center mb-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Contraseña</label>
+                        <label className="text-[10px] font-black text-gray-400 tracking-widest">Contraseña</label>
                         <button
                           type="button"
                           onClick={() => setShowForgotPassword(true)}
-                          className="text-[9px] font-black text-brand-pink uppercase tracking-widest hover:text-brand-violet transition-colors"
+                          className="text-[9px] font-black text-brand-pink tracking-widest hover:text-brand-violet transition-colors"
                         >
                           ¿Olvidaste tu contraseña?
                         </button>
@@ -1060,7 +1060,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
+                  className="w-full bg-gradient-brand text-white py-4 rounded-2xl font-black text-xs tracking-widest hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all shadow-md flex items-center justify-center space-x-2 disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -1071,7 +1071,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                 </button>
 
                 <div className="text-center">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                  <p className="text-[10px] font-black text-gray-400 tracking-widest mb-2">
                     {isLogin ? '¿Aún no tienes una cuenta?' : '¿Ya eres parte de AsthroApp?'}
                   </p>
                   <button
@@ -1091,7 +1091,7 @@ export function AuthModal({ onClose, onLogin, onPasswordRecoveryDemo }: AuthModa
                         confirmPassword: ''
                       });
                     }}
-                    className="text-[11px] font-black text-brand-pink uppercase tracking-[0.2em] hover:text-brand-indigo transition-colors"
+                    className="text-[11px] font-black text-brand-pink tracking-[0.2em] hover:text-brand-indigo transition-colors"
                   >
                     {isLogin ? 'Regístrate Gratis' : 'Inicia Sesión'}
                   </button>

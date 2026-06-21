@@ -744,7 +744,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-4">
                   <FileText className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de la Compra</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Información de la Compra</h4>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-sm">
@@ -768,7 +768,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-pink mb-4">
                   <Truck className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información del Proveedor</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Información del Proveedor</h4>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-sm">
@@ -795,16 +795,16 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
               <div className="flex items-center space-x-2 text-brand-violet mb-4">
                 <Package className="w-4 h-4" />
-                <h4 className="font-bold uppercase text-[10px] tracking-widest">Insumos Ordenados</h4>
+                <h4 className="font-bold text-[10px] tracking-widest">Insumos Ordenados</h4>
               </div>
               <div className="overflow-x-auto rounded-2xl border border-gray-100">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Insumo</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Cantidad</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Precio Unit.</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-600 text-xs uppercase tracking-wider">Subtotal</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600 text-xs tracking-wider">Insumo</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600 text-xs tracking-wider">Cantidad</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600 text-xs tracking-wider">Precio Unit.</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-600 text-xs tracking-wider">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 bg-white">
@@ -852,7 +852,7 @@ function PurchaseDetailModal({ purchase, suppliers, onClose }: { purchase: Purch
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>
@@ -1507,13 +1507,13 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
               <div className="flex items-center space-x-2 text-brand-violet">
                 <FileText className="w-4 h-4" />
-                <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de la Orden</h4>
+                <h4 className="font-bold text-[10px] tracking-widest">Información de la Orden</h4>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Proveedor *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Proveedor *</label>
                     <SupplierSearchSelect
                       selectedId={formData.proveedorId}
                       onSelect={(s: SupplierAPI) => setFormData({ ...formData, proveedorId: String(s.proveedorId) })}
@@ -1523,7 +1523,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">N° de Factura / Referencia *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">N° de Factura / Referencia *</label>
                     <div className="relative">
                       <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -1544,7 +1544,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Fecha de Registro *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Fecha de Registro *</label>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -1564,7 +1564,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Observaciones</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Observaciones</label>
                     <textarea
                       name="notes"
                       value={formData.notes}
@@ -1588,7 +1588,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                 <button
                   type="button"
                   onClick={addProduct}
-                  className="bg-gradient-brand text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all flex items-center space-x-2"
+                  className="bg-gradient-brand text-white px-4 py-2 rounded-xl text-xs font-black tracking-widest hover:shadow-lg transition-all flex items-center space-x-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Añadir Insumo</span>
@@ -1601,7 +1601,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                     {formData.items.map((item, index) => (
                       <div key={index} className="flex flex-wrap md:flex-nowrap items-end gap-4 py-4 group">
                         <div className="flex-1 min-w-[200px]">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Insumo *</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Insumo *</label>
                           <SupplySearchSelect
                             selectedId={item.insumoId}
                             onSelect={(s: Supply) => updateProduct(index, 'insumoId', s)}
@@ -1611,7 +1611,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                         </div>
 
                         <div className="w-24">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Cant. *</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Cant. *</label>
                           <input
                             type="number"
                             min="1"
@@ -1626,7 +1626,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                         </div>
 
                         <div className="w-32">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Precio Unit. *</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Precio Unit. *</label>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">$</span>
                             <input
@@ -1680,7 +1680,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                         </div>
 
                         <div className="w-32">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Subtotal</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Subtotal</label>
                           <div className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl font-bold text-gray-500 text-sm">
                             ${item.subtotal.toLocaleString()}
                           </div>
@@ -1702,7 +1702,7 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
                     <p className="text-sm text-gray-400 font-medium">No has agregado ningún insumo aún</p>
                   </div>
                 )}
-                {errors.items && <p className="text-brand-pink text-[10px] mt-2 text-center font-black uppercase tracking-widest">{errors.items}</p>}
+                {errors.items && <p className="text-brand-pink text-[10px] mt-2 text-center font-black tracking-widest">{errors.items}</p>}
               </div>
             </div>
 
@@ -1750,13 +1750,13 @@ function PurchaseCreateModal({ purchase, onClose, onSave, suppliers, supplies }:
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
-            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2"
           >
             <Save className="w-4 h-4" />
             <span>{purchase ? 'Actualizar Compra' : 'Registrar Compra'}</span>
@@ -1836,7 +1836,7 @@ function CancelConfirmationModal({ purchase, onClose, onConfirm }: {
               <ShoppingCart className="w-5 h-5 text-brand-pink" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Compra a anular</p>
+              <p className="text-[10px] font-black text-red-400 tracking-widest">Compra a anular</p>
               <p className="font-bold text-brand-pink">Compra #{purchase.compraId}</p>
               <p className="text-xs text-brand-pink">{purchase.proveedorNombre} | ${(purchase.total ?? 0).toLocaleString()}</p>
             </div>
@@ -1844,7 +1844,7 @@ function CancelConfirmationModal({ purchase, onClose, onConfirm }: {
 
           {/* Motivo */}
           <div>
-            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Motivo de Anulación *</label>
+            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Motivo de Anulación *</label>
             <textarea
               value={observation}
               onChange={(e) => setObservation(e.target.value)}
@@ -1858,13 +1858,13 @@ function CancelConfirmationModal({ purchase, onClose, onConfirm }: {
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all uppercase text-xs tracking-widest"
+              className="flex-1 px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all text-xs tracking-widest"
             >
               Cancelar
             </button>
             <button
               onClick={handleConfirm}
-              className="flex-1 px-6 py-3 bg-gray-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-200 uppercase text-xs tracking-widest flex items-center justify-center gap-2"
+              className="flex-1 px-6 py-3 bg-gray-500 text-white rounded-xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-200 text-xs tracking-widest flex items-center justify-center gap-2"
             >
               <Ban className="w-4 h-4" />
               Anular

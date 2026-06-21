@@ -906,12 +906,12 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
             <table className="w-full">
               <thead className="bg-gradient-to-r from-purple-50 to-pink-50">
                 <tr>
-                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Empleado</th>
-                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha</th>
-                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Inicio</th>
-                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Fin</th>
-                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción</th>
-                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Acciones</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest">Empleado</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest">Fecha</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest">Hora Inicio</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest">Hora Fin</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest">Descripción</th>
+                  <th className="text-left px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1260,23 +1260,23 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
               
               <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 space-y-3">
                 <div>
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fecha</span>
+                  <span className="text-xs font-bold text-gray-400 tracking-widest">Fecha</span>
                   <p className="text-gray-800 font-semibold">
                     {new Date(pendingMotivoData.fecha + 'T00:00:00').toLocaleDateString('es-ES')}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Hora Inicio</span>
+                    <span className="text-xs font-bold text-gray-400 tracking-widest">Hora Inicio</span>
                     <p className="text-gray-800 font-semibold">{formatTo12Hour(pendingMotivoData.horaInicio)}</p>
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Hora Fin</span>
+                    <span className="text-xs font-bold text-gray-400 tracking-widest">Hora Fin</span>
                     <p className="text-gray-800 font-semibold">{formatTo12Hour(pendingMotivoData.horaFin)}</p>
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Descripción</span>
+                  <span className="text-xs font-bold text-gray-400 tracking-widest">Descripción</span>
                   <p className="text-gray-800">{pendingMotivoData.descripcion}</p>
                 </div>
               </div>
@@ -1331,31 +1331,31 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
             <div className="p-6 overflow-y-auto">
               <div className="space-y-4">
                 <div>
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Empleado</span>
+                  <span className="text-xs font-bold text-gray-400 tracking-widest">Empleado</span>
                   <p className="text-lg font-semibold text-gray-800">{selectedMotivo.nombreEmpleado || selectedMotivo.documentoEmpleado}</p>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Fecha</span>
+                    <span className="text-xs font-bold text-gray-400 tracking-widest">Fecha</span>
                     <p className="text-lg font-semibold text-gray-800">{new Date(selectedMotivo.fecha + 'T00:00:00').toLocaleDateString('es-ES')}</p>
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Estado</span>
+                    <span className="text-xs font-bold text-gray-400 tracking-widest">Estado</span>
                     <p className="text-lg font-semibold text-gray-800">{String(selectedMotivo.estado).charAt(0).toUpperCase() + String(selectedMotivo.estado).slice(1).toLowerCase()}</p>
                   </div>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Hora Inicio</span>
+                    <span className="text-xs font-bold text-gray-400 tracking-widest">Hora Inicio</span>
                     <p className="text-lg font-semibold text-gray-800">{formatTo12Hour(selectedMotivo.horaInicio)}</p>
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Hora Fin</span>
+                    <span className="text-xs font-bold text-gray-400 tracking-widest">Hora Fin</span>
                     <p className="text-lg font-semibold text-gray-800">{formatTo12Hour(selectedMotivo.horaFin)}</p>
                   </div>
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Descripción</span>
+                  <span className="text-xs font-bold text-gray-400 tracking-widest">Descripción</span>
                   <p className="text-gray-800 mt-1">{selectedMotivo.descripcion}</p>
                 </div>
               </div>
@@ -1463,7 +1463,7 @@ function AssistantScheduleView({ currentUser, horarioEmpleados, horarios }: { cu
         
         <div className="relative z-10">
           <div className="inline-flex items-center space-x-2 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-100 mb-3 shadow-sm">
-            <span className="text-[10px] font-bold tracking-widest text-indigo-700 uppercase">Horario Oficial</span>
+            <span className="text-[10px] font-bold tracking-widest text-indigo-700">Horario Oficial</span>
           </div>
           
           <h3 className="text-2xl sm:text-3xl font-extrabold mb-2 flex items-center space-x-3 tracking-tight text-gray-900">
@@ -1509,12 +1509,12 @@ function AssistantScheduleView({ currentUser, horarioEmpleados, horarios }: { cu
                       {dia}
                     </h4>
                     {isWorking && isActive && (
-                       <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-full border border-indigo-200">
+                       <span className="bg-indigo-50 text-indigo-700 text-[10px] font-bold tracking-wider py-1 px-2.5 rounded-full border border-indigo-200">
                          Turno
                        </span>
                     )}
                     {isWorking && !isActive && (
-                       <span className="bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider py-1 px-2.5 rounded-full border border-amber-200">
+                       <span className="bg-amber-100 text-amber-700 text-[10px] font-bold tracking-wider py-1 px-2.5 rounded-full border border-amber-200">
                          Inactivo
                        </span>
                     )}
@@ -1531,7 +1531,7 @@ function AssistantScheduleView({ currentUser, horarioEmpleados, horarios }: { cu
                           <Clock className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Horario</p>
+                          <p className="text-xs font-semibold text-gray-500 tracking-wider mb-1">Horario</p>
                           <div className={`font-extrabold text-[15px] ${isActive ? 'text-gray-900' : 'text-amber-800'}`}>
                             {shift ? formatTo12Hour(shift.horaInicio || '') : ''} 
                             <span className="text-gray-400 mx-2">-</span> 
@@ -1559,7 +1559,7 @@ function AssistantScheduleView({ currentUser, horarioEmpleados, horarios }: { cu
                       <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
                          <Calendar className="w-6 h-6 text-gray-400 opacity-60" />
                       </div>
-                      <span className="text-sm font-semibold tracking-wide uppercase">Día sin Horario</span>
+                      <span className="text-sm font-semibold tracking-wide">Día sin Horario</span>
                     </div>
                   )}
                 </div>
@@ -1675,7 +1675,7 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
 
           {isAdmin && (
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Empleado</label>
+              <label className="block text-xs font-bold text-gray-400 tracking-widest mb-1">Empleado</label>
               <select
                 value={selectedEmpleado}
                 onChange={(e) => setSelectedEmpleado(e.target.value)}
@@ -1693,7 +1693,7 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
           )}
 
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Fecha</label>
+            <label className="block text-xs font-bold text-gray-400 tracking-widest mb-1">Fecha</label>
             <input
               type="date"
               value={fecha}
@@ -1705,7 +1705,7 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Hora Inicio</label>
+              <label className="block text-xs font-bold text-gray-400 tracking-widest mb-1">Hora Inicio</label>
               <input
                 type="time"
                 value={horaInicio}
@@ -1715,7 +1715,7 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Hora Fin</label>
+              <label className="block text-xs font-bold text-gray-400 tracking-widest mb-1">Hora Fin</label>
               <input
                 type="time"
                 value={horaFin}
@@ -1727,7 +1727,7 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Descripción / Motivo</label>
+            <label className="block text-xs font-bold text-gray-400 tracking-widest mb-1">Descripción / Motivo</label>
             <textarea
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
@@ -2015,7 +2015,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
             {validationError && (
               <div className="bg-gray-50 border border-red-100 text-brand-pink px-4 py-3 rounded-2xl flex items-center space-x-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                <p className="text-xs font-bold uppercase tracking-wide">{validationError}</p>
+                <p className="text-xs font-bold tracking-wide">{validationError}</p>
               </div>
             )}
 
@@ -2026,10 +2026,10 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                   <div className="flex items-center space-x-2 text-brand-violet mb-4">
                     <FileText className="w-4 h-4" />
-                    <h4 className="font-bold uppercase text-[10px] tracking-widest">Identidad del Horario</h4>
+                    <h4 className="font-bold text-[10px] tracking-widest">Identidad del Horario</h4>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nombre del Horario *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Nombre del Horario *</label>
                     <input
                       type="text"
                       value={nombre}
@@ -2046,13 +2046,13 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2 text-brand-pink">
                       <Calendar className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Configuración de Días</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Configuración de Días</h4>
                     </div>
                     {enabledCount > 1 && (
                       <button
                         type="button"
                         onClick={applyToAllEnabled}
-                        className="text-[9px] font-black uppercase tracking-widest text-brand-indigo hover:text-brand-indigo transition-colors flex items-center space-x-1"
+                        className="text-[9px] font-black tracking-widest text-brand-indigo hover:text-brand-indigo transition-colors flex items-center space-x-1"
                       >
                         <Copy className="w-3 h-3" />
                         <span>Copiar a todos</span>
@@ -2073,7 +2073,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                         key={day.dia}
                         type="button"
                         onClick={() => toggleDay(day.dia)}
-                        className={`py-2 px-1 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all border ${day.enabled
+                        className={`py-2 px-1 rounded-lg text-[10px] font-black tracking-tighter transition-all border ${day.enabled
                           ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
                           : 'bg-white border-gray-100 text-gray-400 hover:border-purple-200'
                           }`}
@@ -2087,7 +2087,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                   <div className="space-y-3">
                     {days.filter(d => d.enabled).map(day => (
                       <div key={day.dia} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100 group transition-colors hover:bg-white hover:border-purple-100">
-                        <div className="w-8 font-black text-[10px] text-gray-400 uppercase">{day.dia.substring(0, 3)}</div>
+                        <div className="w-8 font-black text-[10px] text-gray-400">{day.dia.substring(0, 3)}</div>
                         <div className="flex-1 grid grid-cols-2 gap-2">
                           <input
                             type="time"
@@ -2108,7 +2108,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                     {enabledCount === 0 && (
                       <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-2xl">
                         <Calendar className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Selecciona días para configurar</p>
+                        <p className="text-[10px] font-bold text-gray-400 tracking-widest">Selecciona días para configurar</p>
                       </div>
                     )}
                   </div>
@@ -2121,12 +2121,12 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                   <div className="p-5 border-b border-gray-100 bg-gray-50/50">
                     <div className="flex items-center space-x-2 text-blue-500 mb-4">
                       <Users className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Asignación de Personal</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Asignación de Personal</h4>
                     </div>
 
                     {!group ? (
                       <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
-                        <p className="text-[10px] text-amber-700 font-bold uppercase tracking-wider leading-relaxed">
+                        <p className="text-[10px] text-amber-700 font-bold tracking-wider leading-relaxed">
                           La asignación de personal estará disponible una vez registrado el horario.
                         </p>
                       </div>
@@ -2134,14 +2134,14 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                       <>
                         {/* Day selector for assignment */}
                         <div className="mb-4">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Ver personal por día:</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Ver personal por día:</label>
                           <div className="flex flex-wrap gap-1.5">
                             {days.filter(d => d.enabled).map(d => (
                               <button
                                 key={d.dia}
                                 type="button"
                                 onClick={() => setSelectedDayForAssign(d.dia)}
-                                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all border ${selectedDayForAssign === d.dia
+                                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-wider transition-all border ${selectedDayForAssign === d.dia
                                   ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
                                   : 'bg-white border-gray-100 text-gray-400 hover:border-blue-200'
                                   }`}
@@ -2154,7 +2154,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
 
                         {/* List of currently assigned */}
                         <div className="space-y-2 mb-4">
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Personal Asignado ({existingAssignmentsForDay.length + pendingAssignmentsForDay.length})</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest">Personal Asignado ({existingAssignmentsForDay.length + pendingAssignmentsForDay.length})</label>
                           <div className="flex flex-wrap gap-2">
                             {existingAssignmentsForDay.map(a => (
                               <div key={a.horarioEmpleadoId} className="flex items-center space-x-2 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg border border-blue-100 group">
@@ -2189,7 +2189,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                         {/* Available personnel list */}
                         <div className="flex-1 overflow-hidden flex flex-col">
                           <div className="flex items-center justify-between mb-2">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Personal Disponible ({totalAvailableRecords})</label>
+                            <label className="block text-[10px] font-black text-gray-400 tracking-widest">Personal Disponible ({totalAvailableRecords})</label>
                             <div className="relative">
                               <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                               <input
@@ -2252,7 +2252,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                             ) : (
                               <div className="text-center py-8">
                                 <Users className="w-8 h-8 text-gray-100 mx-auto mb-2" />
-                                <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                                <p className="text-[10px] font-bold text-gray-300 tracking-widest">
                                   {searchTermAvailable ? 'No se encontraron resultados' : 'Sin personal disponible'}
                                 </p>
                               </div>
@@ -2262,7 +2262,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                           {/* Mini Pagination for Available Personnel */}
                           {totalAvailablePages > 1 && (
                             <div className="flex items-center justify-between mt-4 px-1">
-                              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                              <p className="text-[9px] font-bold text-gray-400 tracking-widest">
                                 Página {availablePage} de {totalAvailablePages}
                               </p>
                               <div className="flex items-center space-x-1">
@@ -2297,14 +2297,14 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
 
         {/* Footer */}
         <div className="p-5 bg-white border-t border-gray-100 flex items-center justify-between shrink-0 z-20">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-gray-400 tracking-widest">
             * Campos obligatorios para el registro
           </p>
           <div className="flex space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+              className="px-6 py-2.5 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
             >
               Cancelar
             </button>
@@ -2312,7 +2312,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
               type="submit"
               form="schedule-form"
               disabled={saving}
-              className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center space-x-2"
+              className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center space-x-2"
             >
               {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>{group ? 'Actualizar' : 'Registrar'}</span>
@@ -2372,15 +2372,15 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
               <div className="flex items-center space-x-2 text-brand-violet mb-4">
                 <FileText className="w-4 h-4" />
-                <h4 className="font-bold uppercase text-[10px] tracking-widest">Información General</h4>
+                <h4 className="font-bold text-[10px] tracking-widest">Información General</h4>
               </div>
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Nombre del Horario:</span>
+                  <span className="text-[10px] font-bold text-gray-400 tracking-tight">Nombre del Horario:</span>
                   <p className="font-bold text-gray-800 text-lg">{group.nombre}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Días Configurados:</span>
+                  <span className="text-[10px] font-bold text-gray-400 tracking-tight">Días Configurados:</span>
                   <p className="font-bold text-gray-800 text-lg">
                     {horarios.reduce((acc, h) => acc + (extractArray(h).length), 0)} días
                   </p>
@@ -2401,9 +2401,9 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Día de la Semana</th>
-                      <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Inicio</th>
-                      <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Hora Fin</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 tracking-widest">Día de la Semana</th>
+                      <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 tracking-widest">Hora Inicio</th>
+                      <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 tracking-widest">Hora Fin</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -2450,7 +2450,7 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
                         <div key={d.horarioDiaId} className="space-y-3">
                           <div className="flex items-center space-x-2 text-brand-indigo border-b border-purple-50 pb-2">
                             <Calendar className="w-4 h-4" />
-                            <h5 className="font-bold text-xs uppercase tracking-widest">
+                            <h5 className="font-bold text-xs tracking-widest">
                               {d.diaSemana} ({d.horaInicio ? formatTo12Hour(d.horaInicio.substring(0, 5)) : '--:--'} - {d.horaFin ? formatTo12Hour(d.horaFin.substring(0, 5)) : '--:--'})
                             </h5>
                           </div>
@@ -2486,7 +2486,7 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>
@@ -2551,14 +2551,14 @@ function DeleteScheduleModal({ group, horarios, onClose, onConfirm, saving }: De
             <button
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
             >
               Cancelar
             </button>
             <button
               onClick={onConfirm}
               disabled={saving}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
             >
               {saving ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -2716,7 +2716,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
             <div className="flex items-center space-x-2 text-brand-violet mb-4">
               <Calendar className="w-4 h-4" />
-              <h4 className="font-bold uppercase text-[10px] tracking-widest">Seleccionar Día</h4>
+              <h4 className="font-bold text-[10px] tracking-widest">Seleccionar Día</h4>
             </div>
             <div className="flex flex-wrap gap-2">
               {horarios.flatMap(h => extractArray(h).map(d => (
@@ -2724,7 +2724,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
                   key={d.horarioDiaId}
                   type="button"
                   onClick={() => { setSelectedDayId(d.horarioDiaId!); setSelectedEmpleados([]); }}
-                  className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedDayId === d.horarioDiaId
+                  className={`px-3 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all border ${selectedDayId === d.horarioDiaId
                     ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
                     : 'bg-white border-gray-100 text-gray-400 hover:border-purple-200'
                     }`}
@@ -2739,7 +2739,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2 text-blue-500">
                 <Users className="w-4 h-4" />
-                <h4 className="font-bold uppercase text-[10px] tracking-widest">Seleccionar Personal ({totalAvailableRecords})</h4>
+                <h4 className="font-bold text-[10px] tracking-widest">Seleccionar Personal ({totalAvailableRecords})</h4>
               </div>
               <div className="relative">
                 <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -2807,7 +2807,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
 
                       <div className="flex-1">
                         <div className="text-[11px] font-bold text-gray-700 leading-none">{emp.nombre}</div>
-                        <div className="text-[9px] font-medium text-gray-400 mt-1 uppercase tracking-wider">
+                        <div className="text-[9px] font-medium text-gray-400 mt-1 tracking-wider">
                           {isOverlapping ? (
                             <span className="text-brand-pink flex items-center">
                               <AlertCircle className="w-3 h-3 mr-1" />
@@ -2825,7 +2825,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
             ) : (
               <div className="text-center py-8">
                 <Users className="w-10 h-10 text-gray-100 mx-auto mb-2" />
-                <p className="text-[10px] font-bold text-gray-300 uppercase tracking-widest leading-relaxed">
+                <p className="text-[10px] font-bold text-gray-300 tracking-widest leading-relaxed">
                   {searchTermAvailable ? 'No se encontraron resultados' : 'No hay personal disponible para este horario'}
                 </p>
               </div>
@@ -2834,7 +2834,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
             {/* Mini Pagination for Available Personnel */}
             {totalAvailablePages > 1 && (
               <div className="flex items-center justify-between mt-4 px-1">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                <p className="text-[9px] font-bold text-gray-400 tracking-widest">
                   Página {availablePage} de {totalAvailablePages}
                 </p>
                 <div className="flex items-center space-x-1">
@@ -2864,7 +2864,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
             >
               Cancelar
             </button>
@@ -2872,7 +2872,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
               <button
                 type="submit"
                 disabled={saving || selectedEmpleados.length === 0}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 {saving ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />

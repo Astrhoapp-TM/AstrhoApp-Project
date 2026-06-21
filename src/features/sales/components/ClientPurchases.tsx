@@ -161,7 +161,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                         <div className="flex items-start justify-between mb-4">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="text-xs font-black text-brand-pink uppercase tracking-widest">Factura</span>
+                              <span className="text-xs font-black text-brand-pink tracking-widest">Factura</span>
                               <h4 className="text-xl font-bold text-gray-800">
                                 {sale.id}
                               </h4>
@@ -202,7 +202,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                               <span>{getStatusLabel(sale.status)}</span>
                             </div>
                             <div className="mt-3">
-                              <span className="text-xs text-gray-400 block uppercase font-bold tracking-widest">Total Pagado</span>
+                              <span className="text-xs text-gray-400 block font-bold tracking-widest">Total Pagado</span>
                               <span className="text-2xl font-black text-brand-indigo">{formatCurrency(sale.total)}</span>
                             </div>
                           </div>
@@ -326,7 +326,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center space-x-2 text-brand-pink mb-3">
                       <Calendar className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Fecha de Venta</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Fecha de Venta</h4>
                     </div>
                     <div className="space-y-1">
                       <p className="font-bold text-gray-800">
@@ -348,7 +348,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center space-x-2 text-brand-violet mb-3">
                       <CreditCard className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Método de Pago</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Método de Pago</h4>
                     </div>
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center">
@@ -356,7 +356,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                       </div>
                       <div>
                         <p className="font-bold text-gray-800">{getPaymentMethodLabel(selectedSale.paymentMethod)}</p>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Transacción</p>
+                        <p className="text-[10px] text-gray-400 font-bold tracking-widest">Transacción</p>
                       </div>
                     </div>
                   </div>
@@ -365,11 +365,11 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center space-x-2 text-blue-500 mb-3">
                       <User className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Cliente</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Información Cliente</h4>
                     </div>
                     <div className="space-y-1">
                       <p className="font-bold text-gray-800">{selectedSale.customerName}</p>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest truncate">{selectedSale.customerEmail}</p>
+                      <p className="text-[10px] text-gray-400 font-bold tracking-widest truncate">{selectedSale.customerEmail}</p>
                     </div>
                   </div>
                 </div>
@@ -379,9 +379,9 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                   <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
                     <div className="flex items-center space-x-2 text-gray-800">
                       <Sparkles className="w-5 h-5 text-brand-pink" />
-                      <h4 className="font-bold uppercase text-xs tracking-widest">Servicios Adquiridos</h4>
+                      <h4 className="font-bold text-xs tracking-widest">Servicios Adquiridos</h4>
                     </div>
-                    <span className="bg-gray-50 text-brand-indigo px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    <span className="bg-gray-50 text-brand-indigo px-3 py-1 rounded-full text-[10px] font-black tracking-widest">
                       {selectedSale.services.length} Item{selectedSale.services.length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -389,8 +389,8 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                     <table className="w-full">
                       <thead>
                         <tr className="bg-gray-50/30 text-left">
-                          <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Servicio</th>
-                          <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Precio</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest">Servicio</th>
+                          <th className="px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest text-right">Precio</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
@@ -420,7 +420,7 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                   <div className="flex flex-col h-full">
                     <div className="flex items-center space-x-2 text-gray-400 mb-3 ml-2">
                       <MessageCircle className="w-4 h-4" />
-                      <h4 className="font-bold text-[10px] uppercase tracking-widest">Notas de Venta</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Notas de Venta</h4>
                     </div>
                     <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex-1 min-h-[120px]">
                       <p className="text-gray-600 text-sm italic leading-relaxed">
@@ -432,24 +432,24 @@ export function ClientPurchases({ currentUser }: ClientPurchasesProps) {
                   {/* Summary */}
                   <div className="bg-gray-50 rounded-3xl p-8 border border-gray-200 shadow-sm flex flex-col justify-center space-y-3">
                     <div className="flex justify-between items-center text-sm">
-                      <span className="font-bold uppercase tracking-widest text-pink-700/70 text-[10px]">Subtotal</span>
+                      <span className="font-bold tracking-widest text-pink-700/70 text-[10px]">Subtotal</span>
                       <span className="font-bold text-gray-700">{formatCurrency(selectedSale.subtotal)}</span>
                     </div>
                     {selectedSale.discount > 0 && (
                       <div className="flex justify-between items-center text-sm">
-                        <span className="font-bold uppercase tracking-widest text-green-600 text-[10px]">Descuento</span>
+                        <span className="font-bold tracking-widest text-green-600 text-[10px]">Descuento</span>
                         <span className="font-bold text-green-600">-{formatCurrency(selectedSale.discount)}</span>
                       </div>
                     )}
                     {selectedSale.tax > 0 && (
                       <div className="flex justify-between items-center text-sm">
-                        <span className="font-bold uppercase tracking-widest text-pink-700/70 text-[10px]">IVA</span>
+                        <span className="font-bold tracking-widest text-pink-700/70 text-[10px]">IVA</span>
                         <span className="font-bold text-gray-700">{formatCurrency(selectedSale.tax)}</span>
                       </div>
                     )}
                     <div className="h-px bg-gray-50/50 w-full" />
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-black uppercase tracking-widest text-pink-800">Total Pagado</span>
+                      <span className="text-sm font-black tracking-widest text-pink-800">Total Pagado</span>
                       <span className="font-black text-2xl text-brand-indigo">{formatCurrency(selectedSale.total)}</span>
                     </div>
                   </div>

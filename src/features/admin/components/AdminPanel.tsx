@@ -132,7 +132,7 @@ export function AdminPanel({ currentUser, hasPermission }: AdminPanelProps) {
                   <li key={category.name || `category-${index}`}>
                     {/* Category Title - only show if category name exists and sidebar is not collapsed */}
                     {category.name && !isSidebarCollapsed && (
-                      <h3 className="text-xs font-bold text-gray-500 uppercase mb-2 px-2">{category.name}</h3>
+                      <h3 className="text-xs font-bold text-gray-500 mb-2 px-2">{category.name}</h3>
                     )}
                     {/* Category Divider when collapsed - show a line if not first category */}
                     {category.name && isSidebarCollapsed && index > 0 && (

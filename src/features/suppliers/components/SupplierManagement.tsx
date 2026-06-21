@@ -602,13 +602,13 @@ function SupplierDetailModal({ supplier, onClose }) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-4">
                   <Package className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Comercial</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Información Comercial</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Tipo de Proveedor:</span>
+                      <span className="text-[10px] font-bold text-gray-400 tracking-tight">Tipo de Proveedor:</span>
                       <div className="mt-1">
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${supplier.supplierType === 'juridica'
                           ? 'bg-blue-100 text-blue-800'
@@ -619,7 +619,7 @@ function SupplierDetailModal({ supplier, onClose }) {
                       </div>
                     </div>
                     <div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Estado:</span>
+                      <span className="text-[10px] font-bold text-gray-400 tracking-tight">Estado:</span>
                       <div className="mt-1">
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(supplier.status)}`}>
                           {getStatusLabel(supplier.status)}
@@ -629,14 +629,14 @@ function SupplierDetailModal({ supplier, onClose }) {
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+                    <span className="text-[10px] font-bold text-gray-400 tracking-tight">
                       {supplier.supplierType === 'juridica' ? 'NIT:' : 'Cédula:'}
                     </span>
                     <p className="font-mono text-gray-800 font-semibold">{supplier.taxId}</p>
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Persona de Contacto / Rep. Legal:</span>
+                    <span className="text-[10px] font-bold text-gray-400 tracking-tight">Persona de Contacto / Rep. Legal:</span>
                     <p className="text-gray-800 font-semibold">{supplier.supplierType === 'juridica' ? supplier.contactPerson : supplier.name}</p>
                   </div>
                 </div>
@@ -646,14 +646,14 @@ function SupplierDetailModal({ supplier, onClose }) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-pink mb-4">
                   <Phone className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de Contacto</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Información de Contacto</h4>
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight block">Teléfono</span>
+                      <span className="text-[10px] font-bold text-gray-400 tracking-tight block">Teléfono</span>
                       <span className="text-gray-800 font-medium">{supplier.phone}</span>
                     </div>
                   </div>
@@ -661,7 +661,7 @@ function SupplierDetailModal({ supplier, onClose }) {
                   <div className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <Mail className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight block">Correo Electrónico</span>
+                      <span className="text-[10px] font-bold text-gray-400 tracking-tight block">Correo Electrónico</span>
                       <span className="text-gray-800 font-medium break-all">{supplier.email}</span>
                     </div>
                   </div>
@@ -669,7 +669,7 @@ function SupplierDetailModal({ supplier, onClose }) {
                   <div className="flex items-start space-x-3 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                     <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight block">Ubicación</span>
+                      <span className="text-[10px] font-bold text-gray-400 tracking-tight block">Ubicación</span>
                       <div className="text-gray-800 font-medium">{supplier.address}</div>
                       <div className="text-gray-500 text-sm mt-0.5">{supplier.city}, {supplier.department || 'N/A'}</div>
                     </div>
@@ -685,7 +685,7 @@ function SupplierDetailModal({ supplier, onClose }) {
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>
@@ -1079,13 +1079,13 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                 <div className="flex items-center space-x-2 text-brand-violet">
                   <Package className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Información Básica</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo de Proveedor *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Tipo de Proveedor *</label>
                       <select
                         name="supplierType"
                         value={formData.supplierType}
@@ -1097,7 +1097,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Documento / NIT *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Documento / NIT *</label>
                       <input
                         type="text"
                         name="taxId"
@@ -1114,7 +1114,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">
                       {formData.supplierType === 'juridica' ? 'Razón Social / Empresa *' : 'Nombre Completo *'}
                     </label>
                     <input
@@ -1133,7 +1133,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
 
                   {formData.supplierType === 'juridica' && (
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Persona de Contacto *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Persona de Contacto *</label>
                       <input
                         type="text"
                         name="contactPerson"
@@ -1155,12 +1155,12 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                 <div className="flex items-center space-x-2 text-brand-pink">
                   <Phone className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Datos de Contacto</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Datos de Contacto</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Correo Electrónico *</label>
                     <input
                       type="email"
                       name="email"
@@ -1174,7 +1174,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono de Contacto *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Teléfono de Contacto *</label>
                     <input
                       type="tel"
                       name="phone"
@@ -1196,12 +1196,12 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
               <div className="flex items-center space-x-2 text-blue-500">
                 <MapPin className="w-4 h-4" />
-                <h4 className="font-bold uppercase text-[10px] tracking-widest">Ubicación y Dirección</h4>
+                <h4 className="font-bold text-[10px] tracking-widest">Ubicación y Dirección</h4>
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Departamento *</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Departamento *</label>
                   <select
                     name="department"
                     value={formData.department}
@@ -1214,7 +1214,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Ciudad *</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Ciudad *</label>
                   <select
                     name="city"
                     value={formData.city}
@@ -1227,7 +1227,7 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección *</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Dirección *</label>
                   <input
                     type="text"
                     name="address"
@@ -1249,14 +1249,14 @@ function SupplierEditModal({ supplier, existingSuppliers = [], onClose, onSave }
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || hasErrors}
-            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{supplier ? 'Actualizar Proveedor' : 'Registrar Proveedor'}</span>
@@ -1335,15 +1335,15 @@ function DeleteConfirmationModal({ supplier, hasPurchases, isChecking, onClose, 
 
             <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Documento:</span>
+                <span className="text-[10px] font-black text-gray-400 tracking-widest">Documento:</span>
                 <span className="font-bold text-gray-700">{supplier.taxId}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nombre:</span>
+                <span className="text-[10px] font-black text-gray-400 tracking-widest">Nombre:</span>
                 <span className="font-bold text-gray-700">{supplier.name}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo:</span>
+                <span className="text-[10px] font-black text-gray-400 tracking-widest">Tipo:</span>
                 <span className="font-bold text-gray-700">{supplier.supplierType === 'juridica' ? 'Persona Jurídica' : 'Persona Natural'}</span>
               </div>
             </div>
@@ -1354,7 +1354,7 @@ function DeleteConfirmationModal({ supplier, hasPurchases, isChecking, onClose, 
               <button
                 onClick={onClose}
                 disabled={isChecking}
-                className="w-full bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-black hover:bg-gray-200 transition-all text-[10px] uppercase tracking-widest shadow-sm disabled:opacity-50"
+                className="w-full bg-gray-100 text-gray-500 px-6 py-3 rounded-xl font-black hover:bg-gray-200 transition-all text-[10px] tracking-widest shadow-sm disabled:opacity-50"
               >
                 Entendido
               </button>
@@ -1362,13 +1362,13 @@ function DeleteConfirmationModal({ supplier, hasPurchases, isChecking, onClose, 
               <>
                 <button
                   onClick={onClose}
-                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={onConfirm}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Eliminar</span>

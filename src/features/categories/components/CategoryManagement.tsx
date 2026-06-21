@@ -684,11 +684,11 @@ function CategoryEditModal({ category, onClose, onSave }) {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                 <FolderTree className="w-4 h-4 text-brand-pink" />
-                <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Detalles de la Categoría</h4>
+                <h4 className="font-bold text-gray-700 text-sm tracking-wider">Detalles de la Categoría</h4>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre de la Categoría *</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre de la Categoría *</label>
                   <div className="relative">
                     <FolderTree className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
@@ -708,7 +708,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción *</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Descripción *</label>
                   <div className="relative">
                     <AlertCircle className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
                     <textarea
@@ -737,7 +737,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
             disabled={isSaving}
           >
             Cancelar
@@ -746,7 +746,7 @@ function CategoryEditModal({ category, onClose, onSave }) {
             form="category-form"
             type="submit"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
             {isSaving ? <CheckCircle className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{category ? 'Actualizar' : 'Registrar'}</span>
@@ -795,23 +795,23 @@ function CategoryDetailModal({ category, onClose }) {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                 <FolderTree className="w-4 h-4 text-brand-violet" />
-                <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Información General</h4>
+                <h4 className="font-bold text-gray-700 text-sm tracking-wider">Información General</h4>
               </div>
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Nombre</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Nombre</span>
                     <p className="font-bold text-gray-800 text-lg">{category.name}</p>
                   </div>
                   <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Estado</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Estado</span>
                     <div className="mt-1">
                       {category.status === 'active' ? (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-700 border border-green-200">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-black tracking-widest bg-green-100 text-green-700 border border-green-200">
                           Activa
                         </span>
                       ) : (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-600 border border-gray-200">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-black tracking-widest bg-gray-100 text-gray-600 border border-gray-200">
                           Inactiva
                         </span>
                       )}
@@ -820,7 +820,7 @@ function CategoryDetailModal({ category, onClose }) {
                 </div>
 
                 <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Descripción Detallada</span>
+                  <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Descripción Detallada</span>
                   <p className="text-gray-700 italic">{category.description || 'Sin descripción disponible'}</p>
                 </div>
 
@@ -829,7 +829,7 @@ function CategoryDetailModal({ category, onClose }) {
                     <CheckCircle className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest block">Insumos Asociados</span>
+                    <span className="text-[9px] font-black text-blue-400 tracking-widest block">Insumos Asociados</span>
                     <span className="font-bold text-blue-700">{category.productCount} insumos</span>
                   </div>
                 </div>
@@ -840,7 +840,7 @@ function CategoryDetailModal({ category, onClose }) {
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-3 mb-3">
                 <Star className="w-5 h-5 text-brand-pink" />
-                <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Resumen Asthro</h4>
+                <h4 className="font-black text-[10px] tracking-[0.2em] text-gray-700">Resumen Asthro</h4>
               </div>
               <p className="text-sm text-gray-600 italic leading-relaxed">
                 Las categorías permiten organizar el inventario para facilitar el control de stock y auditorías periódicas.
@@ -853,7 +853,7 @@ function CategoryDetailModal({ category, onClose }) {
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>
@@ -907,9 +907,9 @@ function DeleteConfirmationModal({ category, onConfirm, onClose }) {
                 <FolderTree className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="text-left">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Categoría a eliminar</p>
+                <p className="text-[10px] font-black text-gray-400 tracking-widest">Categoría a eliminar</p>
                 <p className="font-bold text-gray-700">{category.name}</p>
-                <p className="text-[10px] text-gray-400 uppercase">{category.productCount} productos asociados</p>
+                <p className="text-[10px] text-gray-400">{category.productCount} productos asociados</p>
               </div>
             </div>
           </div>
@@ -917,13 +917,13 @@ function DeleteConfirmationModal({ category, onConfirm, onClose }) {
           <div className="flex space-x-3">
             <button
               onClick={onClose}
-              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
             >
               Cancelar
             </button>
             <button
               onClick={onConfirm}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Eliminar</span>

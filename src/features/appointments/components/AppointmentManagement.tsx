@@ -1369,12 +1369,12 @@ function AppointmentModal({
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                 <div className="flex items-center space-x-2 text-brand-pink">
                   <Users className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información del Cliente</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Información del Cliente</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div className="bg-gray-50/30 p-4 rounded-2xl border border-gray-200">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Buscar Cliente *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2 ml-1">Buscar Cliente *</label>
                     <ClientSearchSelect
                       selectedDocument={formData.documentoCliente}
                       onSelect={(cli: ClienteAPI) => setFormData({ ...formData, documentoCliente: cli.documentoCliente })}
@@ -1387,7 +1387,7 @@ function AppointmentModal({
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Método de Pago *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Método de Pago *</label>
                     <select
                       value={formData.metodoPagoId}
                       onChange={(e) => setFormData({ ...formData, metodoPagoId: parseInt(e.target.value) })}
@@ -1408,13 +1408,13 @@ function AppointmentModal({
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                 <div className="flex items-center space-x-2 text-brand-violet">
                   <Clock className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Profesional y Horario</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Profesional y Horario</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Fecha de la Cita *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Fecha de la Cita *</label>
                       <input
                         type="date"
                         value={formData.fechaCita}
@@ -1427,7 +1427,7 @@ function AppointmentModal({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Hora de Inicio *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Hora de Inicio *</label>
                       <select
                         value={formData.horaInicio}
                         onChange={(e) => setFormData({ ...formData, horaInicio: e.target.value })}
@@ -1457,7 +1457,7 @@ function AppointmentModal({
                   </div>
 
                   <div className="relative">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Profesional Asignado *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Profesional Asignado *</label>
                     <ProfessionalSearchSelect
                       selectedDocument={formData.documentoEmpleado}
                       onSelect={(emp) => setFormData({ ...formData, documentoEmpleado: emp.documentoEmpleado })}
@@ -1498,7 +1498,7 @@ function AppointmentModal({
                   type="button"
                   onClick={addServiceSlot}
                   disabled={isCompleted || formData.serviciosIds.length >= serviciosAPI.length}
-                  className="bg-gradient-brand text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all disabled:opacity-50 flex items-center space-x-2"
+                  className="bg-gradient-brand text-white px-4 py-2 rounded-xl text-xs font-black tracking-widest hover:shadow-lg transition-all disabled:opacity-50 flex items-center space-x-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Añadir</span>
@@ -1549,7 +1549,7 @@ function AppointmentModal({
                     <p className="text-sm text-gray-400 font-medium">No has seleccionado ningún servicio aún</p>
                   </div>
                 )}
-                {errors.services && <p className="text-brand-pink text-[10px] mt-2 text-center font-black uppercase tracking-widest">{errors.services}</p>}
+                {errors.services && <p className="text-brand-pink text-[10px] mt-2 text-center font-black tracking-widest">{errors.services}</p>}
               </div>
 
               {/* Totals Summary */}
@@ -1557,16 +1557,16 @@ function AppointmentModal({
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-wrap justify-between items-center gap-4">
                   <div className="flex items-center space-x-6">
                     <div>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Duración Total</span>
+                      <span className="text-[10px] font-black text-gray-400 tracking-widest block">Duración Total</span>
                       <span className="text-lg font-black text-brand-indigo">{totalDuration} min</span>
                     </div>
                     <div>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Servicios</span>
+                      <span className="text-[10px] font-black text-gray-400 tracking-widest block">Servicios</span>
                       <span className="text-lg font-black text-brand-indigo">{formData.serviciosIds.length}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Monto Estimado</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-widest block">Monto Estimado</span>
                     <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-brand">
                       ${totalCost.toLocaleString()}
                     </span>
@@ -1579,11 +1579,11 @@ function AppointmentModal({
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
               <div className="flex items-center space-x-2 text-gray-500">
                 <FileText className="w-4 h-4" />
-                <h4 className="font-bold uppercase text-[10px] tracking-widest">Observaciones y Estado</h4>
+                <h4 className="font-bold text-[10px] tracking-widest">Observaciones y Estado</h4>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Notas Internas</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Notas Internas</label>
                   <textarea
                     value={formData.observaciones}
                     onChange={(e) => setFormData({ ...formData, observaciones: e.target.value })}
@@ -1595,7 +1595,7 @@ function AppointmentModal({
                 </div>
                 {isEdit && (
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Estado de la Cita</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Estado de la Cita</label>
                     <select
                       value={formData.estadoId}
                       onChange={(e) => setFormData({ ...formData, estadoId: parseInt(e.target.value) })}
@@ -1610,7 +1610,7 @@ function AppointmentModal({
                     {isCompleted && (
                       <div className="mt-4 p-4 bg-green-50 rounded-xl border border-green-100 flex items-center space-x-3">
                         <CheckCircle className="w-5 h-5 text-green-500" />
-                        <p className="text-xs text-green-700 font-bold uppercase tracking-tight">Esta cita ya está finalizada</p>
+                        <p className="text-xs text-green-700 font-bold tracking-tight">Esta cita ya está finalizada</p>
                       </div>
                     )}
                   </div>
@@ -1625,7 +1625,7 @@ function AppointmentModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             {isCompleted ? 'Cerrar' : 'Cancelar'}
           </button>
@@ -1633,7 +1633,7 @@ function AppointmentModal({
             <button
               onClick={handleSubmit}
               disabled={saving}
-              className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+              className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span>{isEdit ? 'Actualizar Cita' : 'Crear Cita'}</span>
@@ -1715,10 +1715,10 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <Users className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Cliente</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Cliente</h4>
                 </div>
                 <div className="mb-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Documento:</span>
+                  <span className="text-[10px] font-bold text-gray-400 tracking-tight">Documento:</span>
                   <p className="font-mono text-gray-600 text-sm">{appointment.documentoCliente}</p>
                 </div>
                 <p className="font-bold text-gray-800 text-lg mb-1 truncate">
@@ -1730,7 +1730,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <Clock className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Programación</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Programación</h4>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -1766,7 +1766,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
                   }`}>
                   <CheckCircle className="w-5 h-5" />
                 </div>
-                <span className="font-black uppercase text-[10px] tracking-[0.2em]">
+                <span className="font-black text-[10px] tracking-[0.2em]">
                   {appointment.estado}
                 </span>
               </div>
@@ -1779,7 +1779,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
                   <Scissors className="w-4 h-4 text-brand-pink" />
                   <span>Servicios Solicitados</span>
                 </h4>
-                <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
+                <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full">
                   {appointmentServices.length} servicios
                 </span>
               </div>
@@ -1788,9 +1788,9 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
                 <table className="w-full">
                   <thead className="bg-gray-50/80 sticky top-0 backdrop-blur-sm z-10">
                     <tr>
-                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Nombre del Servicio</th>
-                      <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Duración</th>
-                      <th className="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Precio</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 tracking-widest border-b border-gray-100">Nombre del Servicio</th>
+                      <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 tracking-widest border-b border-gray-100">Duración</th>
+                      <th className="px-6 py-3 text-right text-[10px] font-black text-gray-400 tracking-widest border-b border-gray-100">Precio</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -1818,7 +1818,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
               <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-blue-500">
                   <Briefcase className="w-4 h-4" />
-                  <h4 className="font-bold text-[10px] uppercase tracking-widest">Profesional Asignado</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Profesional Asignado</h4>
                 </div>
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                   <div className="flex items-center space-x-4">
@@ -1832,7 +1832,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
                   </div>
                 </div>
                 <div className="mt-4">
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Método de Pago Preferido</span>
+                  <span className="text-[10px] font-black text-gray-400 tracking-widest mb-1 block">Método de Pago Preferido</span>
                   <div className="inline-flex items-center gap-2 bg-gray-50 text-brand-indigo px-4 py-2 rounded-xl font-bold text-sm">
                     <CreditCard className="w-4 h-4" />
                     {appointment.metodoPago}
@@ -1844,11 +1844,11 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
               <div className="bg-green-50 rounded-3xl p-8 border border-green-100 shadow-sm flex flex-col justify-center min-h-[160px]">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold uppercase tracking-widest text-green-700/70">Subtotal</span>
+                    <span className="text-xs font-bold tracking-widest text-green-700/70">Subtotal</span>
                     <span className="font-bold text-lg text-green-600">${totalAmount.toLocaleString()}</span>
                   </div>
                   <div className="pt-6 mt-2 border-t border-green-200 flex justify-between items-center px-2">
-                    <span className="text-sm font-black uppercase tracking-[0.2em] text-green-800">Total Estimado</span>
+                    <span className="text-sm font-black tracking-[0.2em] text-green-800">Total Estimado</span>
                     <span className="font-bold text-2xl text-green-600">
                       ${totalAmount.toLocaleString()}
                     </span>
@@ -1863,7 +1863,7 @@ function AppointmentDetailModal({ appointment, servicios, getStatusColor, onClos
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>
@@ -1932,9 +1932,9 @@ function DeleteAppointmentModal({ appointment, serviciosMap, onClose, onConfirm 
                 <Calendar className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Información de la Cita</p>
+                <p className="text-[10px] font-black text-gray-400 tracking-widest">Información de la Cita</p>
                 <p className="font-bold text-gray-700 truncate">{new Date(appointment.fechaCita.split('T')[0] + 'T00:00:00').toLocaleDateString('es-ES')} - {appointment.horaInicio ? formatTo12Hour(appointment.horaInicio.substring(0, 5)) : '--:--'}</p>
-                <p className="text-[10px] font-mono text-gray-400 uppercase mt-0.5">Duración: {totalDuration} min</p>
+                <p className="text-[10px] font-mono text-gray-400 mt-0.5">Duración: {totalDuration} min</p>
               </div>
             </div>
           </div>
@@ -1942,13 +1942,13 @@ function DeleteAppointmentModal({ appointment, serviciosMap, onClose, onConfirm 
           <div className="flex space-x-3">
             <button
               onClick={onClose}
-              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
             >
               Cancelar
             </button>
             <button
               onClick={onConfirm}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Eliminar</span>
@@ -2295,7 +2295,7 @@ function ProfessionalSearchSelect({
                       <div className="flex flex-col">
                         <span className="font-medium">{emp.nombre}</span>
                         {statusText && (
-                          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">
+                          <span className="text-[10px] tracking-wider font-bold text-gray-400">
                             {statusText}
                           </span>
                         )}

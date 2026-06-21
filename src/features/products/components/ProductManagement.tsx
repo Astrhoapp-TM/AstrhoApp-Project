@@ -909,11 +909,11 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                   <Package className="w-4 h-4 text-brand-pink" />
-                  <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Datos del Insumo</h4>
+                  <h4 className="font-bold text-gray-700 text-sm tracking-wider">Datos del Insumo</h4>
                 </div>
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Insumo *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre del Insumo *</label>
                     <div className="relative">
                       <Package className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -936,7 +936,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
 
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">SKU / Código *</label>
                       <div className="relative">
                         <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -951,7 +951,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Categoría *</label>
                       <CategorySearchSelect
                         initialData={categories}
                         selectedId={formData.categoryId}
@@ -970,13 +970,13 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                   <TrendingUp className="w-4 h-4 text-brand-violet" />
-                  <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Estado y Descripción</h4>
+                  <h4 className="font-bold text-gray-700 text-sm tracking-wider">Estado y Descripción</h4>
                 </div>
                 <div className="p-6 space-y-4">
                   {/* removed status block */}
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción (Opcional)</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Descripción (Opcional)</label>
                     <div className="relative">
                       <FileText className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
                       <textarea
@@ -1003,7 +1003,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
             disabled={isSaving}
           >
             Cancelar
@@ -1012,7 +1012,7 @@ function ProductModal({ product, onClose, onSave, categories }: ProductModalProp
             form="product-form"
             type="submit"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
             {isSaving ? <CheckCircle className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{product ? 'Actualizar' : 'Registrar'}</span>
@@ -1063,10 +1063,10 @@ function ProductDetailModal({ product, onClose }: any) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <FileText className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Información Básica</h4>
                 </div>
                 <div className="mb-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Nombre del Insumo:</span>
+                  <span className="text-[10px] font-bold text-gray-400 tracking-tight">Nombre del Insumo:</span>
                   <p className="font-bold text-gray-800 text-lg mb-1 truncate">{product.name}</p>
                 </div>
                 <div className="flex items-center space-x-2 text-gray-500">
@@ -1078,7 +1078,7 @@ function ProductDetailModal({ product, onClose }: any) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <TrendingUp className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Inventario y Categoría</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Inventario y Categoría</h4>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -1130,7 +1130,7 @@ function ProductDetailModal({ product, onClose }: any) {
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>
@@ -1184,7 +1184,7 @@ function DeleteConfirmModal({ productName, onConfirm, onCancel }: any) {
                 <Package className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="text-left">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Insumo a eliminar</p>
+                <p className="text-[10px] font-black text-gray-400 tracking-widest">Insumo a eliminar</p>
                 <p className="font-bold text-gray-700">{productName}</p>
               </div>
             </div>
@@ -1193,13 +1193,13 @@ function DeleteConfirmModal({ productName, onConfirm, onCancel }: any) {
           <div className="flex space-x-3">
             <button
               onClick={onCancel}
-              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
             >
               Cancelar
             </button>
             <button
               onClick={onConfirm}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Eliminar</span>

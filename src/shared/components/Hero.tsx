@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Calendar, Sparkles, MapPin, ArrowDown } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -128,7 +128,7 @@ export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
         aria-hidden="true"
       >
         <ArrowDown className="w-4 h-4" />
-        <span className="text-[10px] tracking-widest uppercase">Scroll</span>
+        <span className="text-[10px] tracking-widest">Scroll</span>
       </div>
     </section>
   );

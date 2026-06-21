@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { ShoppingCart, Star, Heart, Filter, Search } from 'lucide-react';
 import { ImageWithFallback } from '@/shared/components/figma/ImageWithFallback';
 
@@ -238,7 +238,7 @@ export function Products({ addToCart, limit }: ProductsProps) {
               {/* Content */}
               <div className="p-5">
                 <div className="mb-2">
-                  <span className="text-xs text-brand-indigo font-semibold uppercase tracking-wide">
+                  <span className="text-xs text-brand-indigo font-semibold tracking-wide">
                     {product.category}
                   </span>
                 </div>

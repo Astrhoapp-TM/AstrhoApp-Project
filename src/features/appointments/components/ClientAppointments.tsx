@@ -675,7 +675,7 @@ function AppointmentDetailModal({
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <User className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Profesional</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Profesional</h4>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center">
@@ -683,7 +683,7 @@ function AppointmentDetailModal({
                   </div>
                   <div>
                     <p className="font-bold text-gradient-brand inline-block">{appointment.empleado}</p>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Especialista</p>
+                    <p className="text-[10px] text-gray-400 font-bold tracking-widest">Especialista</p>
                   </div>
                 </div>
               </div>
@@ -692,7 +692,7 @@ function AppointmentDetailModal({
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <Calendar className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Fecha y Hora</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Fecha y Hora</h4>
                 </div>
                 <div className="space-y-1">
                   <p className="font-bold text-gray-800">
@@ -716,9 +716,9 @@ function AppointmentDetailModal({
               <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
                 <div className="flex items-center space-x-2 text-gray-800">
                   <Scissors className="w-5 h-5 text-brand-pink" />
-                  <h4 className="font-bold uppercase text-xs tracking-widest">Servicios Contratados</h4>
+                  <h4 className="font-bold text-xs tracking-widest">Servicios Contratados</h4>
                 </div>
-                <span className="bg-gray-50 text-brand-indigo px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                <span className="bg-gray-50 text-brand-indigo px-3 py-1 rounded-full text-[10px] font-black tracking-widest">
                   {appointmentServices.length} Item{appointmentServices.length !== 1 ? 's' : ''}
                 </span>
               </div>
@@ -726,9 +726,9 @@ function AppointmentDetailModal({
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50/30 text-left">
-                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Servicio</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">Duración</th>
-                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Precio</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest">Servicio</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest text-center">Duración</th>
+                      <th className="px-6 py-4 text-[10px] font-black text-gray-400 tracking-widest text-right">Precio</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -761,7 +761,7 @@ function AppointmentDetailModal({
               <div className="flex flex-col h-full">
                 <div className="flex items-center space-x-2 text-gray-400 mb-3 ml-2">
                   <MessageCircle className="w-4 h-4" />
-                  <h4 className="font-bold text-[10px] uppercase tracking-widest">Observaciones</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Observaciones</h4>
                 </div>
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex-1 min-h-[120px]">
                   <p className="text-gray-600 text-sm italic leading-relaxed">
@@ -774,12 +774,12 @@ function AppointmentDetailModal({
               <div className="bg-gray-50 rounded-3xl p-8 border border-gray-200 shadow-sm flex flex-col justify-center min-h-[160px]">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold uppercase tracking-widest text-pink-700/70">Duración Total</span>
+                    <span className="text-xs font-bold tracking-widest text-pink-700/70">Duración Total</span>
                     <span className="font-bold text-lg text-brand-indigo">{totalDuration} min</span>
                   </div>
                   <div className="h-px bg-gray-50/50 w-full" />
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-black uppercase tracking-widest text-pink-800">Total Estimado</span>
+                    <span className="text-sm font-black tracking-widest text-pink-800">Total Estimado</span>
                     <span className="font-black text-2xl text-brand-indigo">${totalAmount.toLocaleString()}</span>
                   </div>
                 </div>

@@ -263,7 +263,7 @@ export function ServiceList({ onBookAppointment }: ServicesProps) {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-14">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-2">
+            <p className="text-xs font-semibold tracking-widest text-brand-pink mb-2">
               Lo que ofrecemos
             </p>
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight tracking-tight">
@@ -416,7 +416,7 @@ function ServiceCard({ service, Icon, isActive, onBook }: CardProps) {
           >
             <Icon className="w-5 h-5" style={{ color: accent.from }} />
           </div>
-          <span className="text-[10px] font-semibold uppercase tracking-widest"
+          <span className="text-[10px] font-semibold tracking-widest"
             style={{ color: 'rgba(255,255,255,0.3)' }}>
             {service.category}
           </span>

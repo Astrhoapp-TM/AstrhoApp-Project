@@ -536,7 +536,7 @@ function ServiceDetailModal({ service, onClose }) {
               </div>
               <div>
                 <h3 className="text-xl font-bold leading-tight">Detalle del Servicio</h3>
-                <p className="text-pink-50 text-[10px] font-black uppercase tracking-widest mt-0.5">ID: {service.id}</p>
+                <p className="text-pink-50 text-[10px] font-black tracking-widest mt-0.5">ID: {service.id}</p>
               </div>
             </div>
             <button
@@ -564,7 +564,7 @@ function ServiceDetailModal({ service, onClose }) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col h-full">
                 <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <Tag className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">General</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">General</h4>
                 </div>
                 <p className="font-bold text-gray-800 text-lg mb-2 truncate">
                   {service.name}
@@ -578,15 +578,15 @@ function ServiceDetailModal({ service, onClose }) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col h-full">
                 <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <Clock className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Detalles</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Detalles</h4>
                 </div>
                 <div className="space-y-4 mt-2">
                   <div className="flex justify-between items-center pb-2 border-b border-gray-50">
-                    <span className="text-gray-400 text-[10px] font-bold uppercase tracking-tight">Duración:</span>
+                    <span className="text-gray-400 text-[10px] font-bold tracking-tight">Duración:</span>
                     <span className="font-bold text-gray-700">{service.duration} min</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-[10px] font-bold uppercase tracking-tight">Precio:</span>
+                    <span className="text-gray-400 text-[10px] font-bold tracking-tight">Precio:</span>
                     <span className="font-bold text-green-600 text-lg">${service.price.toLocaleString()}</span>
                   </div>
                 </div>
@@ -596,7 +596,7 @@ function ServiceDetailModal({ service, onClose }) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col h-full">
                 <div className="flex items-center space-x-2 text-blue-500 mb-3">
                   <FileText className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Descripción</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Descripción</h4>
                 </div>
                 <div className="flex-1 overflow-y-auto no-scrollbar max-h-[120px]">
                   <p className="text-gray-600 text-xs leading-relaxed italic">
@@ -610,7 +610,7 @@ function ServiceDetailModal({ service, onClose }) {
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-3 mb-3">
                 <Star className="w-5 h-5 text-brand-pink" />
-                <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Resumen del Servicio</h4>
+                <h4 className="font-black text-[10px] tracking-[0.2em] text-gray-700">Resumen del Servicio</h4>
               </div>
               <p className="text-sm text-gray-600 italic leading-relaxed">
                 Este servicio forma parte del catálogo oficial de AsthroApp. Los precios y duraciones son aproximados y pueden variar según la complejidad.
@@ -623,7 +623,7 @@ function ServiceDetailModal({ service, onClose }) {
         <div className="p-5 bg-white border-t border-gray-100 flex justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>
@@ -881,11 +881,11 @@ function ServiceEditModal({ service, onClose, onSave }) {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                 <Tag className="w-4 h-4 text-brand-pink" />
-                <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Información Básica</h4>
+                <h4 className="font-bold text-gray-700 text-sm tracking-wider">Información Básica</h4>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Servicio *</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre del Servicio *</label>
                   <div className="relative">
                     <Scissors className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
@@ -906,7 +906,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Duración (Minutos) *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Duración (Minutos) *</label>
                     <div className="relative">
                       <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -926,7 +926,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Precio (COP) *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Precio (COP) *</label>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -950,7 +950,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción del Servicio</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Descripción del Servicio</label>
                   <div className="relative">
                     <FileText className="absolute left-3 top-3 text-gray-400 w-4 h-4" />
                     <textarea
@@ -978,7 +978,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
             disabled={isSaving}
           >
             Cancelar
@@ -987,7 +987,7 @@ function ServiceEditModal({ service, onClose, onSave }) {
             form="service-form"
             type="submit"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
             {isSaving ? <Clock className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{service ? 'Actualizar' : 'Registrar'}</span>
@@ -1042,9 +1042,9 @@ function DeleteConfirmationModal({ service, onClose, onConfirm }) {
                 <Scissors className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="text-left">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Servicio a eliminar</p>
+                <p className="text-[10px] font-black text-gray-400 tracking-widest">Servicio a eliminar</p>
                 <p className="font-bold text-gray-700 line-clamp-1">{service.name}</p>
-                <p className="text-[10px] text-gray-400 uppercase">Duración: {service.duration} min | ${service.price.toLocaleString()}</p>
+                <p className="text-[10px] text-gray-400">Duración: {service.duration} min | ${service.price.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -1052,13 +1052,13 @@ function DeleteConfirmationModal({ service, onClose, onConfirm }) {
           <div className="flex space-x-3">
             <button
               onClick={onClose}
-              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-500 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-500 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
             >
               Cancelar
             </button>
             <button
               onClick={onConfirm}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Eliminar</span>

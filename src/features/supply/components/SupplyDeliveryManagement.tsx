@@ -497,11 +497,11 @@ export function SupplyDeliveryManagement({ hasPermission, currentUser }: SupplyD
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Responsable</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Insumos</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
-                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 tracking-wider">Responsable</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 tracking-wider">Insumos</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 tracking-wider">Fecha</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 tracking-wider">Estado</th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -1138,11 +1138,11 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                   <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2 rounded-t-2xl">
                     <User className="w-4 h-4 text-brand-pink" />
-                    <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Información de Entrega</h4>
+                    <h4 className="font-bold text-gray-700 text-sm tracking-wider">Información de Entrega</h4>
                   </div>
                   <div className="p-6">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Fecha de Entrega *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1.5 ml-1">Fecha de Entrega *</label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -1162,7 +1162,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                   <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2 rounded-t-2xl">
                     <FileText className="w-4 h-4 text-brand-violet" />
-                    <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Notas Adicionales</h4>
+                    <h4 className="font-bold text-gray-700 text-sm tracking-wider">Notas Adicionales</h4>
                   </div>
                   <div className="p-6">
                     <textarea
@@ -1186,7 +1186,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
                   <button
                     type="button"
                     onClick={addInsumo}
-                    className="bg-gradient-brand text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:shadow-lg transition-all flex items-center space-x-2"
+                    className="bg-gradient-brand text-white px-4 py-2 rounded-xl text-xs font-black tracking-widest hover:shadow-lg transition-all flex items-center space-x-2"
                   >
                     <Plus className="w-4 h-4" />
                     <span>Añadir Insumo</span>
@@ -1206,7 +1206,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
                         return (
                           <div key={index} className="flex flex-wrap md:flex-nowrap items-end gap-4 py-4 group">
                             <div className="flex-1 min-w-[200px]">
-                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Insumo *</label>
+                              <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Insumo *</label>
                               <ProductSearchSelect
                                 supplies={supplies}
                                 selectedSupplyId={parseInt(item.supplyId)}
@@ -1221,7 +1221,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
                             </div>
 
                             <div className="w-24">
-                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Cant. *</label>
+                              <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Cant. *</label>
                               <input
                                 type="text"
                                 inputMode="numeric"
@@ -1250,7 +1250,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
 
                             {item.supplyId && (
                               <div className="w-28">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Disponible</label>
+                                <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Disponible</label>
                                 <div className={`w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl font-bold text-sm ${isOverStock ? 'text-brand-pink' : 'text-gray-500'}`}>
                                   {availableStock} {supply?.unidad_medida || ''}
                                 </div>
@@ -1274,7 +1274,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
                       <p className="text-sm text-gray-400 font-medium">No has agregado ningún insumo aún</p>
                     </div>
                   )}
-                  {errors.items && <p className="text-brand-pink text-[10px] mt-2 text-center font-black uppercase tracking-widest">{errors.items}</p>}
+                  {errors.items && <p className="text-brand-pink text-[10px] mt-2 text-center font-black tracking-widest">{errors.items}</p>}
                 </div>
               </div>
             </div>
@@ -1287,7 +1287,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cancelar
           </button>
@@ -1295,7 +1295,7 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
             type="button"
             onClick={() => handleSubmit()}
             disabled={isProcessing || formData.items.length === 0}
-            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{isProcessing ? 'Procesando...' : 'Registrar Entrega'}</span>
@@ -1321,7 +1321,7 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
               </div>
               <div>
                 <h3 className="text-2xl font-black tracking-tight">Detalle de Entrega #{delivery.id}</h3>
-                <p className="text-pink-100 text-xs font-medium uppercase tracking-widest opacity-80">Información completa de la entrega interna</p>
+                <p className="text-pink-100 text-xs font-medium tracking-widest opacity-80">Información completa de la entrega interna</p>
               </div>
             </div>
             <button
@@ -1347,10 +1347,10 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <User className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Responsable</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Responsable</h4>
                 </div>
                 <div className="mb-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">ID Empleado:</span>
+                  <span className="text-[10px] font-bold text-gray-400 tracking-tight">ID Empleado:</span>
                   <p className="font-mono text-gray-600 text-sm">{delivery.documentoEmpleado || 'No registrado'}</p>
                 </div>
                 <p className="font-bold text-gray-800 text-lg mb-1 truncate">
@@ -1366,7 +1366,7 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <Calendar className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Fechas y Tiempos</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Fechas y Tiempos</h4>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -1391,7 +1391,7 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${delivery.estado ? 'bg-green-100' : 'bg-gray-100'}`}>
                   {delivery.estado ? <CheckCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
                 </div>
-                <span className="font-black uppercase text-[10px] tracking-[0.2em]">
+                <span className="font-black text-[10px] tracking-[0.2em]">
                   {delivery.estado ? 'Entregado' : 'Pendiente'}
                 </span>
               </div>
@@ -1404,7 +1404,7 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
                   <Package className="w-4 h-4 text-brand-pink" />
                   <span>Insumos Entregados</span>
                 </h4>
-                <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
+                <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full">
                   {delivery.detalles?.length || 0} productos
                 </span>
               </div>
@@ -1413,9 +1413,9 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
                 <table className="w-full">
                   <thead className="bg-gray-50/80 sticky top-0 backdrop-blur-sm z-10">
                     <tr>
-                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Insumo</th>
-                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">SKU</th>
-                      <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Cantidad</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 tracking-widest border-b border-gray-100">Insumo</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 tracking-widest border-b border-gray-100">SKU</th>
+                      <th className="px-6 py-3 text-center text-[10px] font-black text-gray-400 tracking-widest border-b border-gray-100">Cantidad</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -1442,7 +1442,7 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
               <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-blue-500">
                   <FileText className="w-4 h-4" />
-                  <h4 className="font-bold text-[10px] uppercase tracking-widest">Notas de Entrega</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Notas de Entrega</h4>
                 </div>
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm min-h-[120px]">
                   <p className="text-gray-600 text-sm italic leading-relaxed">
@@ -1455,13 +1455,13 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
               <div className="bg-gray-50 rounded-3xl p-8 border border-purple-100 shadow-sm flex flex-col justify-center min-h-[160px]">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold uppercase tracking-widest text-brand-indigo">Total Insumos</span>
+                    <span className="text-xs font-bold tracking-widest text-brand-indigo">Total Insumos</span>
                     <span className="font-bold text-lg text-brand-indigo">
                       {delivery.detalles?.reduce((sum, item) => sum + item.cantidad, 0)} unidades
                     </span>
                   </div>
                   <div className="pt-6 mt-2 border-t border-purple-200 flex justify-between items-center px-2">
-                    <span className="text-sm font-black uppercase tracking-[0.2em] text-purple-800">Estado</span>
+                    <span className="text-sm font-black tracking-[0.2em] text-purple-800">Estado</span>
                     <span className={`font-bold text-lg ${delivery.estado ? 'text-green-600' : 'text-gray-600'}`}>
                       {delivery.estado ? 'Entregado' : 'Pendiente'}
                     </span>
@@ -1476,7 +1476,7 @@ function DeliveryDetailModal({ delivery, onClose, responsible, getSupplyInfo }: 
         <div className="p-5 bg-white border-t border-gray-100 flex justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>

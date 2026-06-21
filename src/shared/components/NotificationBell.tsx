@@ -227,7 +227,7 @@ export function NotificationBell({ currentUser, onNavigateFromNotification }: No
           </div>
 
           <div className="p-3 border-b border-gray-100 bg-gray-50/50 space-y-2">
-            <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-[11px] font-bold text-gray-500 tracking-wider">
               <Filter className="w-3.5 h-3.5" />
               <span>Filtros</span>
             </div>

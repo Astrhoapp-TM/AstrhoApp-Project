@@ -55,6 +55,5 @@ import { defineConfig } from 'vite';
     },
     server: {
       port: 3000,
-      open: true,
     },
   });

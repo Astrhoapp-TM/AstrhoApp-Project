@@ -109,7 +109,7 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
 
           {/* Left: text */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-pink mb-5">
+            <p className="text-xs font-semibold tracking-widest text-brand-pink mb-5">
               Aplicación móvil · Android
             </p>
 

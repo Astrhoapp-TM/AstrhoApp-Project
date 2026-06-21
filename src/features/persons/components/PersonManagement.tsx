@@ -702,15 +702,15 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
 
                                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col space-y-2">
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Documento:</span>
+                                        <span className="text-[10px] font-black text-gray-400 tracking-widest">Documento:</span>
                                         <span className="font-bold text-gray-700">{personToDelete.userDocument || personToDelete.documentId}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Nombre:</span>
+                                        <span className="text-[10px] font-black text-gray-400 tracking-widest">Nombre:</span>
                                         <span className="font-bold text-gray-700">{personToDelete.name}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-sm">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Tipo:</span>
+                                        <span className="text-[10px] font-black text-gray-400 tracking-widest">Tipo:</span>
                                         <span className="font-bold text-gray-700">{personType === 'client' ? 'Cliente' : 'Empleado'}</span>
                                     </div>
                                 </div>
@@ -720,14 +720,14 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                                 <button
                                     onClick={() => setShowDeleteModal(false)}
                                     disabled={loading}
-                                    className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest disabled:opacity-50"
+                                    className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest disabled:opacity-50"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={confirmDeletePerson}
                                     disabled={loading}
-                                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+                                    className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
                                 >
                                     {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                                     <span>{loading ? 'Eliminando...' : 'Eliminar'}</span>
@@ -821,12 +821,12 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                                 <div className="flex items-center space-x-2 text-brand-pink mb-5">
                                     <Phone className="w-5 h-5" />
-                                    <h4 className="font-bold uppercase text-[10px] tracking-widest">Información de Contacto</h4>
+                                    <h4 className="font-bold text-[10px] tracking-widest">Información de Contacto</h4>
                                 </div>
 
                                 <div className="space-y-4">
                                     <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Teléfono Principal</span>
+                                        <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Teléfono Principal</span>
                                         <div className="flex items-center space-x-3">
                                             <Phone className="w-4 h-4 text-brand-pink" />
                                             <span className="font-bold text-gray-700">{person.phone || 'No registrado'}</span>
@@ -834,7 +834,7 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                                     </div>
 
                                     <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Dirección de Residencia</span>
+                                        <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Dirección de Residencia</span>
                                         <div className="flex items-center space-x-3">
                                             <MapPin className="w-4 h-4 text-purple-400" />
                                             <span className="font-bold text-gray-700">{person.address || 'No registrada'}</span>
@@ -847,12 +847,12 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                                 <div className="flex items-center space-x-2 text-brand-violet mb-5">
                                     <Shield className="w-5 h-5" />
-                                    <h4 className="font-bold uppercase text-[10px] tracking-widest">Detalles del Registro</h4>
+                                    <h4 className="font-bold text-[10px] tracking-widest">Detalles del Registro</h4>
                                 </div>
 
                                 <div className="space-y-4">
                                     <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Correo Electrónico</span>
+                                        <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Correo Electrónico</span>
                                         <div className="flex items-center space-x-3">
                                             <Mail className="w-4 h-4 text-purple-400" />
                                             <span className="font-bold text-gray-700 break-all">{person.email || 'Sin correo asignado'}</span>
@@ -860,7 +860,7 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                                     </div>
 
                                     <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Tipo de Perfil</span>
+                                        <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Tipo de Perfil</span>
                                         <div className="flex items-center space-x-3">
                                             <UserCheck className="w-4 h-4 text-blue-400" />
                                             <span className="font-bold text-gray-700">
@@ -878,7 +878,7 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                 <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
                     <button
                         onClick={onClose}
-                        className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+                        className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
                     >
                         Cerrar
                     </button>
@@ -1150,12 +1150,12 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                                     <Shield className="w-4 h-4 text-brand-pink" />
-                                    <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Identificación</h4>
+                                    <h4 className="font-bold text-gray-700 text-sm tracking-wider">Identificación</h4>
                                 </div>
                                 <div className="p-6 space-y-4">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo de Documento *</label>
+                                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Tipo de Documento *</label>
                                             <div className="relative">
                                                 <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <select
@@ -1182,7 +1182,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Número Documento *</label>
+                                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Número Documento *</label>
                                             <div className="relative">
                                                 <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input
@@ -1204,7 +1204,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo *</label>
+                                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre Completo *</label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
@@ -1224,7 +1224,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
 
                                     {personType === 'employee' && !editingPerson && (
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Rol del Colaborador</label>
+                                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Rol del Colaborador</label>
                                             <div className="relative">
                                                 <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <select
@@ -1248,11 +1248,11 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                                     <Phone className="w-4 h-4 text-brand-violet" />
-                                    <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Contacto y Ubicación</h4>
+                                    <h4 className="font-bold text-gray-700 text-sm tracking-wider">Contacto y Ubicación</h4>
                                 </div>
                                 <div className="p-6 space-y-4">
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono Móvil *</label>
+                                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Teléfono Móvil *</label>
                                         <div className="relative">
                                             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
@@ -1273,7 +1273,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección de Residencia</label>
+                                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Dirección de Residencia</label>
                                         <div className="relative">
                                             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                             <input
@@ -1290,7 +1290,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
 
                                     {!editingPerson && (
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico {!editingPerson && '*'}</label>
+                                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Correo Electrónico {!editingPerson && '*'}</label>
                                             <div className="relative">
                                                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                                 <input
@@ -1321,7 +1321,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+                        className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
                         disabled={isSaving}
                     >
                         Cancelar
@@ -1330,7 +1330,7 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                         form="person-form"
                         type="submit"
                         disabled={isSaving}
-                        className={`px-8 py-2.5 rounded-xl font-black text-white active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg flex items-center space-x-2 ${personType === 'client'
+                        className={`px-8 py-2.5 rounded-xl font-black text-white active:scale-95 transition-all text-sm tracking-widest shadow-lg flex items-center space-x-2 ${personType === 'client'
                                 ? 'bg-gradient-brand hover:shadow-pink-200'
                                 : 'bg-gradient-to-r from-purple-500 to-blue-600 hover:shadow-purple-200'
                             } disabled:opacity-50`}

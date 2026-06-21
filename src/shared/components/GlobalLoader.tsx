@@ -41,7 +41,7 @@ export function SalonLoader({ isLoading, message, isFullPage = true }: SalonLoad
           <h3 className="text-xl font-black tracking-tight mb-1 text-transparent bg-clip-text bg-gradient-brand">
             AstrhoApp
           </h3>
-          <p className="text-gray-500 font-bold text-[10px] uppercase tracking-widest animate-pulse-soft">
+          <p className="text-gray-500 font-bold text-[10px] tracking-widest animate-pulse-soft">
             {message}
           </p>
           

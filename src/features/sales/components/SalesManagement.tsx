@@ -664,12 +664,12 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                 <div className="flex items-center space-x-2 text-brand-pink">
                   <Users className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Información del Cliente</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Información del Cliente</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div className="bg-gray-50/30 p-4 rounded-2xl border border-gray-200">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Buscar Cliente *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2 ml-1">Buscar Cliente *</label>
                     <ClientSearchSelect
                       selectedDocument={selectedClientId}
                       onSelect={(cli: any) => setSelectedClientId(cli.documentoCliente)}
@@ -681,7 +681,7 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Método de Pago *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Método de Pago *</label>
                     <div className="relative">
                       <select
                         value={paymentMethodId}
@@ -713,12 +713,12 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                 <div className="flex items-center space-x-2 text-brand-violet">
                   <Briefcase className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Profesional Asignado</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Profesional Asignado</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div className="relative">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Atendido por *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Atendido por *</label>
                     <ProfessionalSearchSelect
                       selectedDocument={selectedEmployeeId}
                       onSelect={(emp: any) => setSelectedEmployeeId(emp.documentoEmpleado)}
@@ -734,7 +734,7 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
                   </div>
 
                   <div className="bg-gray-50/30 p-4 rounded-2xl border border-purple-100 min-h-[100px]">
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Observaciones</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Observaciones</label>
                     <textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
@@ -791,7 +791,7 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
                     <p className="text-sm text-gray-400 font-medium">No has agregado ningún servicio aún</p>
                   </div>
                 )}
-                {errors.servicios && <p className="text-brand-pink text-[10px] mt-2 text-center font-black uppercase tracking-widest">{errors.servicios}</p>}
+                {errors.servicios && <p className="text-brand-pink text-[10px] mt-2 text-center font-black tracking-widest">{errors.servicios}</p>}
               </div>
 
               {/* Totals Summary */}
@@ -799,17 +799,17 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
                 <div className="px-8 py-6 bg-gray-900 text-white border-t border-gray-100 flex flex-wrap justify-between items-center gap-4">
                   <div className="flex items-center space-x-8">
                     <div>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Items</span>
+                      <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Items</span>
                       <span className="text-xl font-bold text-purple-400">{selectedServices.length}</span>
                     </div>
                     <div className="w-px h-10 bg-gray-700 hidden md:block"></div>
                     <div>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Subtotal</span>
+                      <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Subtotal</span>
                       <span className="text-xl font-bold text-gray-300">${total.toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] block mb-1">Total a Pagar</span>
+                    <span className="text-[10px] font-black text-purple-400 tracking-[0.2em] block mb-1">Total a Pagar</span>
                     <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-brand">
                       ${total.toLocaleString()}
                     </span>
@@ -825,14 +825,14 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cancelar
           </button>
           <button
             onClick={handleFormSubmit}
             disabled={submitting || selectedServices.length === 0}
-            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{submitting ? 'Procesando...' : 'Finalizar Venta'}</span>
@@ -900,16 +900,16 @@ function CancelSaleModal({ sale, isConfirming, onClose, onConfirm }: {
                 <ShoppingBag className="w-6 h-6 text-brand-pink" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Información de Venta</p>
+                <p className="text-[10px] font-black text-gray-400 tracking-widest">Información de Venta</p>
                 <p className="font-bold text-gray-700 truncate">{sale.customerName || 'Cliente no registrado'}</p>
-                <p className="text-[10px] font-mono text-gray-400 uppercase mt-0.5">Total: ${(sale.total || 0).toLocaleString()}</p>
+                <p className="text-[10px] font-mono text-gray-400 mt-0.5">Total: ${(sale.total || 0).toLocaleString()}</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1 text-left">Motivo de Anulación *</label>
+              <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1 text-left">Motivo de Anulación *</label>
               <textarea
                 value={observation}
                 onChange={(e) => setObservation(e.target.value)}
@@ -925,14 +925,14 @@ function CancelSaleModal({ sale, isConfirming, onClose, onConfirm }: {
             <button
               onClick={onClose}
               disabled={isConfirming}
-              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest disabled:opacity-50"
+              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               onClick={handleConfirm}
               disabled={!observation.trim() || isConfirming}
-              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+              className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
             >
               {isConfirming ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1264,7 +1264,7 @@ function ProfessionalSearchSelect({
                       <div className="flex flex-col">
                         <span className="font-medium">{emp.nombre}</span>
                         {statusText && (
-                          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">
+                          <span className="text-[10px] tracking-wider font-bold text-gray-400">
                             {statusText}
                           </span>
                         )}
@@ -1356,7 +1356,7 @@ function ServiceSearchSelect({
         {!isOpen && !selectedService ? (
           <div className="flex items-center gap-2">
             <Plus className="w-3 h-3 text-brand-pink" />
-            <span className="text-gray-500 text-xs font-bold uppercase tracking-widest">Añadir Servicio</span>
+            <span className="text-gray-500 text-xs font-bold tracking-widest">Añadir Servicio</span>
           </div>
         ) : !isOpen && selectedService ? (
           <div className="flex items-center gap-2">
@@ -1367,7 +1367,7 @@ function ServiceSearchSelect({
             {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-brand-pink" /> : <Search className="text-gray-400 w-4 h-4 mr-2" />}
             <input
               type="text"
-              className="w-full bg-transparent text-xs focus:outline-none font-bold uppercase tracking-widest"
+              className="w-full bg-transparent text-xs focus:outline-none font-bold tracking-widest"
               placeholder="Buscar servicio..."
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
@@ -1569,10 +1569,10 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-violet mb-3">
                   <Users className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Cliente</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Cliente</h4>
                 </div>
                 <div className="mb-1">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Documento:</span>
+                  <span className="text-[10px] font-bold text-gray-400 tracking-tight">Documento:</span>
                   <p className="font-mono text-gray-600 text-sm">{sale.customerId || 'No registrado'}</p>
                 </div>
                 <p className="font-bold text-gray-800 text-lg mb-1 truncate">
@@ -1588,7 +1588,7 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center space-x-2 text-brand-pink mb-3">
                   <CreditCard className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Pago y Atención</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Pago y Atención</h4>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
@@ -1615,7 +1615,7 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
                   }`}>
                   {sale.status === 'completed' ? <CheckCircle className="w-5 h-5" /> : <Ban className="w-5 h-5" />}
                 </div>
-                <span className="font-black uppercase text-[10px] tracking-[0.2em]">
+                <span className="font-black text-[10px] tracking-[0.2em]">
                   {sale.status === 'completed' ? 'Venta Exitosa' : 'Venta Anulada'}
                 </span>
               </div>
@@ -1628,7 +1628,7 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
                   <Scissors className="w-4 h-4 text-brand-pink" />
                   <span>Servicios y Productos</span>
                 </h4>
-                <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
+                <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full">
                   {servicesWithNames?.length || 0} ítems
                 </span>
               </div>
@@ -1637,8 +1637,8 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
                 <table className="w-full">
                   <thead className="bg-gray-50/80 sticky top-0 backdrop-blur-sm z-10">
                     <tr>
-                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Nombre del Servicio</th>
-                      <th className="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100">Precio</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-black text-gray-400 tracking-widest border-b border-gray-100">Nombre del Servicio</th>
+                      <th className="px-6 py-3 text-right text-[10px] font-black text-gray-400 tracking-widest border-b border-gray-100">Precio</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -1663,7 +1663,7 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
               <div className="space-y-3">
                 <div className="flex items-center space-x-2 text-blue-500">
                   <FileText className="w-4 h-4" />
-                  <h4 className="font-bold text-[10px] uppercase tracking-widest">Observaciones</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Observaciones</h4>
                 </div>
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm min-h-[120px]">
                   <p className="text-gray-600 text-sm italic leading-relaxed">
@@ -1676,17 +1676,17 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
               <div className="bg-green-50 rounded-3xl p-8 border border-green-100 shadow-sm flex flex-col justify-center min-h-[160px]">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold uppercase tracking-widest text-green-700/70">Subtotal</span>
+                    <span className="text-xs font-bold tracking-widest text-green-700/70">Subtotal</span>
                     <span className="font-bold text-lg text-green-600">${(sale.subtotal || 0).toLocaleString()}</span>
                   </div>
                   {(sale.discount || 0) > 0 && (
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold uppercase tracking-widest text-green-700/70">Descuento</span>
+                      <span className="text-xs font-bold tracking-widest text-green-700/70">Descuento</span>
                       <span className="font-bold text-lg text-green-600">-${(sale.discount || 0).toLocaleString()}</span>
                     </div>
                   )}
                   <div className="pt-6 mt-2 border-t border-green-200 flex justify-between items-center px-2">
-                    <span className="text-sm font-black uppercase tracking-[0.2em] text-green-800">Total</span>
+                    <span className="text-sm font-black tracking-[0.2em] text-green-800">Total</span>
                     <span className="font-bold text-lg text-green-600">
                       ${(sale.total || 0).toLocaleString()}
                     </span>
@@ -1701,7 +1701,7 @@ function SaleDetailModal({ sale, onClose, onCancel, onPrint, hasPermission }) {
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>

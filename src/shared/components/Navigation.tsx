@@ -232,7 +232,7 @@ export function Navigation({
                 AstrhoApp
               </span>
               {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin' || currentUser?.role === 'asistente') && (
-                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">
+                <div className="text-[10px] font-bold tracking-widest text-gray-400 mt-1">
                   {(currentUser?.role === 'admin' || currentUser?.role === 'super_admin') && !isClientView ? 'Admin Panel' : 
                    isClientView ? 'Portal Cliente' : 'Gestión'}
                 </div>
@@ -336,7 +336,7 @@ export function Navigation({
                         <div>
                           <div className="font-bold text-lg leading-tight">{currentUser.name}</div>
                           <div className="text-xs text-white/80 font-medium truncate max-w-[160px]">{currentUser.email}</div>
-                          <div className="inline-block px-2 py-0.5 bg-white/20 rounded-lg text-[10px] font-bold uppercase tracking-wider mt-2">
+                          <div className="inline-block px-2 py-0.5 bg-white/20 rounded-lg text-[10px] font-bold tracking-wider mt-2">
                             {getRoleDisplayName(currentUser.role)}
                           </div>
                         </div>

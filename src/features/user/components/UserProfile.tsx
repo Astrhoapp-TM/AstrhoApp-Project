@@ -366,7 +366,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                         {personData?.name || 'Usuario'}
                       </p>
                       <div className="flex items-center mt-0.5">
-                        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${getRoleBadgeColor(user.role)}`}>
+                        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black tracking-wider ${getRoleBadgeColor(user.role)}`}>
                           {getRoleDisplayName(user.role)}
                         </span>
                       </div>
@@ -374,7 +374,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                   </div>
                   {/* Always show document, even if personData is null */}
                   <div className="text-right border-l border-gray-100 pl-4 shrink-0">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Documento</p>
+                    <p className="text-[9px] font-black text-gray-400 tracking-widest mb-0.5">Documento</p>
                     <p className="font-bold text-gray-700 text-xs">{personData?.documentType || 'CC'} {user.documento || 'N/A'}</p>
                   </div>
                 </div>
@@ -390,7 +390,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                       {/* Column 1 */}
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre Completo</label>
                           <div className="relative">
                             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
@@ -404,7 +404,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Correo Electrónico</label>
                           <div className="relative">
                             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
@@ -418,7 +418,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nueva Contraseña</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nueva Contraseña</label>
                           <div className="relative">
                             <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
@@ -451,7 +451,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                       {/* Column 2 */}
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Teléfono</label>
                           <div className="relative">
                             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
@@ -465,7 +465,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Dirección</label>
                           <div className="relative">
                             <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
@@ -479,7 +479,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Confirmar Contraseña</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Confirmar Contraseña</label>
                           <div className="relative">
                             <Key className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             <input
@@ -527,7 +527,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
             disabled={saving}
             type="button"
           >
@@ -537,7 +537,7 @@ export function UserProfile({ user, onClose, onUpdateProfile, onLogout }: UserPr
             type="submit"
             form="profile-form"
             disabled={saving || loading || !personData}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand hover:opacity-90 shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest flex items-center space-x-2 disabled:opacity-50"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand hover:opacity-90 shadow-lg active:scale-95 transition-all text-sm tracking-widest flex items-center space-x-2 disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{saving ? 'Guardando...' : 'Guardar Cambios'}</span>

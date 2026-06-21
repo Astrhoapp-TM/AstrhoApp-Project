@@ -822,12 +822,12 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                   <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                     <div className="flex items-center space-x-2 text-brand-pink">
                       <Settings className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Información del Rol</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Información del Rol</h4>
                     </div>
 
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Rol *</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre del Rol *</label>
                         <input
                           type="text"
                           value={newRoleData.name}
@@ -849,7 +849,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción *</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Descripción *</label>
                         <textarea
                           value={newRoleData.description}
                           onChange={(e) => {
@@ -882,7 +882,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                       <p className="text-sm text-gray-500 px-4">Has seleccionado <span className="font-bold text-brand-indigo">{newRoleData.permissions.length}</span> permisos para este rol.</p>
                     </div>
                     <div className="w-full h-px bg-gray-100 my-2"></div>
-                    <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    <div className="flex items-center space-x-2 text-[10px] font-black tracking-widest text-gray-400">
                       <Shield className="w-3 h-3" />
                       <span>Seguridad del Sistema</span>
                     </div>
@@ -896,7 +896,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                       <Lock className="w-4 h-4 text-purple-400" />
                       <span>Configuración de Permisos por Módulo</span>
                     </h4>
-                    <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
+                    <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full">
                       Selecciona los módulos
                     </span>
                   </div>
@@ -979,14 +979,14 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                   setShowCreateModal(false);
                   setNewRoleData({ name: '', description: '', permissions: [] });
                 }}
-                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreateRole}
                 disabled={loading}
-                className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+                className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>{loading ? 'Creando...' : 'Crear Rol'}</span>
@@ -1034,20 +1034,20 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm md:col-span-2">
                     <div className="flex items-center space-x-2 text-brand-pink mb-3">
                       <Shield className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Información General</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Información General</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Identificador:</span>
+                        <span className="text-[10px] font-bold text-gray-400 tracking-tight">Identificador:</span>
                         <p className="font-mono text-gray-600 text-sm">#{viewingRole.id}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Creado el:</span>
+                        <span className="text-[10px] font-bold text-gray-400 tracking-tight">Creado el:</span>
                         <p className="font-bold text-gray-700 text-sm">{viewingRole.createdAt || 'N/A'}</p>
                       </div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-gray-50">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Descripción:</span>
+                      <span className="text-[10px] font-bold text-gray-400 tracking-tight">Descripción:</span>
                       <p className="text-gray-700 text-sm mt-1 italic">{viewingRole.description || 'Sin descripción disponible.'}</p>
                     </div>
                   </div>
@@ -1074,7 +1074,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                       <Lock className="w-4 h-4 text-purple-400" />
                       <span>Permisos y Accesos Asignados</span>
                     </h4>
-                    <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
+                    <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full">
                       {viewingRole.isSuperUser ? 'Acceso Total' : `${viewingRole.permissions.length} permisos`}
                     </span>
                   </div>
@@ -1091,7 +1091,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         </div>
                         <div className="flex flex-wrap justify-center gap-2 mt-2">
                           {mockPermissions.map((permission) => (
-                            <span key={permission.id} className="px-3 py-1 bg-white border border-purple-100 text-[10px] font-bold text-brand-indigo rounded-full uppercase tracking-wider">
+                            <span key={permission.id} className="px-3 py-1 bg-white border border-purple-100 text-[10px] font-bold text-brand-indigo rounded-full tracking-wider">
                               {permission.name}
                             </span>
                           ))}
@@ -1129,7 +1129,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
             <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
               <button
                 onClick={() => setViewingRole(null)}
-                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
               >
                 Cerrar
               </button>
@@ -1231,12 +1231,12 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                     <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                       <div className="flex items-center space-x-2 text-brand-pink">
                         <Settings className="w-4 h-4" />
-                        <h4 className="font-bold uppercase text-[10px] tracking-widest">Identidad del Rol</h4>
+                        <h4 className="font-bold text-[10px] tracking-widest">Identidad del Rol</h4>
                       </div>
 
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre del Rol</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre del Rol</label>
                           <input
                             type="text"
                             name="name"
@@ -1260,7 +1260,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Descripción</label>
                           <textarea
                             name="description"
                             value={editingRole.description}
@@ -1295,7 +1295,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         <p className="text-sm text-gray-500 px-4">Este rol cuenta con <span className="font-bold text-brand-indigo">{editingRole.permissions.length}</span> permisos activos en el sistema.</p>
                       </div>
                       <div className="w-full h-px bg-gray-100 my-2"></div>
-                      <div className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                      <div className="flex items-center space-x-2 text-[10px] font-black tracking-widest text-gray-400">
                         <Shield className="w-3 h-3" />
                         <span>Estado: </span>
                       </div>
@@ -1310,7 +1310,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                         <span>Configuración de Accesos</span>
                       </h4>
                       {isSuperAdmin && (
-                        <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full uppercase">
+                        <span className="text-[10px] font-black bg-gray-50 text-brand-indigo px-2 py-0.5 rounded-full">
                           Control Total Habilitado
                         </span>
                       )}
@@ -1396,7 +1396,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                 <button
                   type="button"
                   onClick={() => setEditingRole(null)}
-                  className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+                  className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
                 >
                   {isSuperAdmin ? 'Cerrar' : 'Cancelar'}
                 </button>
@@ -1404,7 +1404,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                   <button
                     onClick={handleSaveRole}
                     disabled={loading}
-                    className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+                    className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2"
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     <span>{loading ? 'Guardando...' : 'Actualizar Rol'}</span>
@@ -1459,9 +1459,9 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                     {React.createElement(getRoleIcon(roleToDelete.id), { className: "w-6 h-6 text-white" })}
                   </div>
                   <div className="text-left">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Rol a eliminar</p>
+                    <p className="text-[10px] font-black text-gray-400 tracking-widest">Rol a eliminar</p>
                     <p className="font-bold text-gray-700">{roleToDelete.name}</p>
-                    <p className="text-[10px] text-gray-400 uppercase">{roleToDelete.permissions.length} permisos asignados</p>
+                    <p className="text-[10px] text-gray-400">{roleToDelete.permissions.length} permisos asignados</p>
                   </div>
                 </div>
               </div>
@@ -1470,14 +1470,14 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
                 <button
                   onClick={() => setShowDeleteModal(false)}
                   disabled={loading}
-                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest disabled:opacity-50"
+                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest disabled:opacity-50"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmDeleteRole}
                   disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
                 >
                   {loading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1531,7 +1531,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
               
               <button
                 onClick={() => setShowInactiveWarningModal(false)}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded-xl font-black text-[10px] tracking-widest transition-all"
               >
                 Entendido
               </button>
@@ -1579,7 +1579,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
               
               <button
                 onClick={() => setShowDeleteWarningModal(false)}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded-xl font-black text-[10px] tracking-widest transition-all"
               >
                 Cerrar Advertencia
               </button>
@@ -1626,7 +1626,7 @@ export function RoleManagement({ hasPermission }: RoleManagementProps) {
               
               <button
                 onClick={() => setShowValidationErrorModal(false)}
-                className="w-full bg-gray-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-md shadow-red-200"
+                className="w-full bg-gray-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest transition-all shadow-md shadow-red-200"
               >
                 Entendido
               </button>

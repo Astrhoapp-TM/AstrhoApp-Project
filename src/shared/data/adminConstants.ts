@@ -30,14 +30,14 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
     label: 'Usuarios',
     icon: Users,
     permission: 'module_users',
-    category: 'CONFIGURACIÓN'
+    category: 'Configuración'
   },
   {
     id: 'roles',
     label: 'Roles',
     icon: Settings,
     permission: 'module_roles',
-    category: 'CONFIGURACIÓN'
+    category: 'Configuración'
   },
   // AGENDA
   {
@@ -45,14 +45,14 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
     label: 'Agendamiento',
     icon: CalendarPlus,
     permission: 'module_appointments',
-    category: 'AGENDA'
+    category: 'Agenda'
   },
   {
     id: 'schedules',
     label: 'Horarios',
     icon: Calendar,
     permission: 'module_schedules',
-    category: 'AGENDA'
+    category: 'Agenda'
   },
   // VENTAS
   {
@@ -60,28 +60,28 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
     label: 'Ventas',
     icon: DollarSign,
     permission: 'module_sales',
-    category: 'VENTAS'
+    category: 'Ventas'
   },
   {
     id: 'services',
     label: 'Servicios',
     icon: Scissors,
     permission: 'module_services',
-    category: 'VENTAS'
+    category: 'Ventas'
   },
   {
     id: 'clients',
     label: 'Clientes',
     icon: UserCheck,
     permission: 'module_clients',
-    category: 'VENTAS'
+    category: 'Ventas'
   },
   {
     id: 'employees',
     label: 'Empleados',
     icon: Users,
     permission: 'module_clients',
-    category: 'VENTAS'
+    category: 'Ventas'
   },
   // COMPRAS
   {
@@ -89,35 +89,35 @@ export const ADMIN_MENU_ITEMS: MenuItem[] = [
     label: 'Insumos',
     icon: Package,
     permission: 'module_supplies',
-    category: 'COMPRAS'
+    category: 'Compras'
   },
   {
     id: 'purchases',
     label: 'Compras',
     icon: ShoppingCart,
     permission: 'module_purchases',
-    category: 'COMPRAS'
+    category: 'Compras'
   },
   {
     id: 'categories',
     label: 'Categoría de Insumos',
     icon: Tag,
     permission: 'module_categories',
-    category: 'COMPRAS'
+    category: 'Compras'
   },
   {
     id: 'suppliers',
     label: 'Proveedores',
     icon: Truck,
     permission: 'module_suppliers',
-    category: 'COMPRAS'
+    category: 'Compras'
   },
   {
     id: 'deliveries',
     label: 'Entrega de insumos',
     icon: Send,
     permission: 'module_deliveries',
-    category: 'COMPRAS'
+    category: 'Compras'
   }
 ];
 
@@ -150,7 +150,7 @@ export const getMenuItemsByCategory = (
   }
 
   // Agrupar por categorías en el orden deseado
-  const categoryOrder = ['CONFIGURACIÓN', 'AGENDA', 'VENTAS', 'COMPRAS'];
+    const categoryOrder = ['Configuración', 'Agenda', 'Ventas', 'Compras'];
 
   categoryOrder.forEach(categoryName => {
     const categoryItems = visibleItems.filter(item => item.category === categoryName);

@@ -811,9 +811,9 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
                     </span>
                   </div>
                   <div className="text-left">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cuenta a eliminar</p>
+                    <p className="text-[10px] font-black text-gray-400 tracking-widest">Cuenta a eliminar</p>
                     <p className="font-bold text-gray-700 line-clamp-1">{userToDelete.email}</p>
-                    <p className="text-[10px] text-gray-400 uppercase">{userToDelete.rolNombre}</p>
+                    <p className="text-[10px] text-gray-400">{userToDelete.rolNombre}</p>
                   </div>
                 </div>
               </div>
@@ -821,13 +821,13 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmDeleteUser}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Eliminar</span>
@@ -877,7 +877,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
               
               <button
                 onClick={() => setShowInactiveWarningModal(false)}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded-xl font-black text-[10px] tracking-widest transition-all"
               >
                 Entendido
               </button>
@@ -925,7 +925,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
               
               <button
                 onClick={() => setShowDeleteWarningModal(false)}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded-xl font-black text-[10px] tracking-widest transition-all"
               >
                 Cerrar Advertencia
               </button>
@@ -1329,11 +1329,11 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                   <Shield className="w-4 h-4 text-brand-pink" />
-                  <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Acceso y Rol</h4>
+                  <h4 className="font-bold text-gray-700 text-sm tracking-wider">Acceso y Rol</h4>
                 </div>
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Rol del Sistema *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Rol del Sistema *</label>
                     <div className="relative">
                       <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <select
@@ -1354,7 +1354,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Correo Electrónico *</label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -1384,11 +1384,11 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100 flex items-center space-x-2">
                   <IdCard className="w-4 h-4 text-brand-violet" />
-                  <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Ficha de Identidad</h4>
+                  <h4 className="font-bold text-gray-700 text-sm tracking-wider">Ficha de Identidad</h4>
                 </div>
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre Completo *</label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <input
@@ -1409,7 +1409,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo de Documento *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Tipo de Documento *</label>
                       <div className="relative">
                         <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <select
@@ -1427,7 +1427,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Número Documento *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Número Documento *</label>
                       <div className="relative">
                         <IdCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -1449,7 +1449,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Teléfono *</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Teléfono *</label>
                       <div className="relative">
                         <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -1474,7 +1474,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                       {fieldErrors.phone && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.phone}</p>}
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Dirección</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Dirección</label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <input
@@ -1501,7 +1501,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center space-x-3 mb-3">
                   <Star className="w-5 h-5 text-brand-pink" />
-                  <h4 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-700">Aviso de Seguridad</h4>
+                  <h4 className="font-black text-[10px] tracking-[0.2em] text-gray-700">Aviso de Seguridad</h4>
                 </div>
                 <p className="text-sm text-gray-600 italic leading-relaxed">
                   {user 
@@ -1517,7 +1517,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
             disabled={isSaving}
           >
             Cancelar
@@ -1526,7 +1526,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
             form="user-form"
             type="submit"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm uppercase tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
           >
             {isSaving ? (
               <>
@@ -1617,7 +1617,7 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
                 </div>
                 <h4 className="font-bold text-gray-800 text-lg line-clamp-1">{personData?.name || 'Usuario'}</h4>
                 <div className="mt-2">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getRoleBadgeColor(rolNombre)}`}>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest ${getRoleBadgeColor(rolNombre)}`}>
                     {getRoleDisplayName(rolNombre)}
                   </span>
                 </div>
@@ -1627,30 +1627,30 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
               <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm col-span-2">
                 <div className="flex items-center space-x-2 text-brand-pink mb-4">
                   <Shield className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Estado y Datos</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Estado y Datos</h4>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">ID Usuario</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">ID Usuario</span>
                     <p className="font-mono font-bold text-gray-700">{user.usuarioId}</p>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Estado</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Estado</span>
                     <p className={`font-bold ${user.estado ? 'text-green-600' : 'text-brand-pink'} flex items-center space-x-1`}>
                       {user.estado ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                       <span>{user.estado ? 'ACTIVA' : 'INACTIVA'}</span>
                     </p>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Documento Usuario</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Documento Usuario</span>
                     <p className="font-bold text-gray-700">{personData?.documentType || 'CC'} {user.documento || 'N/A'}</p>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Teléfono</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Teléfono</span>
                     <p className="font-bold text-gray-700">{personData?.phone || 'N/A'}</p>
                   </div>
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 col-span-2">
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Dirección</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Dirección</span>
                     <p className="font-bold text-gray-700">{personData?.address || 'No registrada'}</p>
                   </div>
                 </div>
@@ -1663,7 +1663,7 @@ function UserDetailModal({ user, onClose }: { user: any; onClose: () => void }) 
         <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
           <button
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cerrar
           </button>

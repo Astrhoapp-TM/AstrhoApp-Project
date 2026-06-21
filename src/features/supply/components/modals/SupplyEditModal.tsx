@@ -440,7 +440,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
                 <div className="flex items-center space-x-2 text-blue-500">
                   <ImageIcon className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Imagen del Insumo</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Imagen del Insumo</h4>
                 </div>
 
                 <div className="flex flex-col items-center space-y-4">
@@ -475,12 +475,12 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
                 <div className="flex items-center space-x-2 text-brand-violet">
                   <Plus className="w-4 h-4" />
-                  <h4 className="font-bold uppercase text-[10px] tracking-widest">Datos del Insumo</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest">Datos del Insumo</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre *</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre *</label>
                     <input
                       type="text"
                       name="name"
@@ -496,7 +496,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
                   </div>
 
                   <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código</label>
+                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">SKU / Código</label>
                             <input
                               type="text"
                               name="sku"
@@ -511,7 +511,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo</label>
+                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Tipo</label>
                       <select
                         name="type"
                         value={formData.type}
@@ -527,7 +527,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Categoría</label>
                     <CategorySearchSelect
                       selectedId={formData.categoriaId}
                       initialData={categories}
@@ -542,13 +542,13 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-6">
               <div className="flex items-center space-x-2 text-brand-pink">
                 <ImageIcon className="w-4 h-4" />
-                <h4 className="font-bold uppercase text-[10px] tracking-widest">Configuración y Stock</h4>
+                <h4 className="font-bold text-[10px] tracking-widest">Configuración y Stock</h4>
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Unidad de Medida</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Unidad de Medida</label>
                     <input
                       type="text"
                       name="unit"
@@ -562,7 +562,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Costo Unitario ($)</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Costo Unitario ($)</label>
                     <input
                       type="number"
                       name="unitCost"
@@ -600,7 +600,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Stock Mínimo</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Stock Mínimo</label>
                     <input
                       type="number"
                       name="minStock"
@@ -614,7 +614,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
                     {errors.minStock && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.minStock}</p>}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Stock Máximo</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Stock Máximo</label>
                     <input
                       type="number"
                       name="maxStock"
@@ -630,7 +630,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Fecha de Vencimiento</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Fecha de Vencimiento</label>
                     <input
                       type="date"
                       name="expirationDate"
@@ -641,7 +641,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Proveedor Asignado</label>
+                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Proveedor Asignado</label>
                     <select
                       name="supplierId"
                       value={formData.supplierId}
@@ -660,7 +660,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción Detallada *</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Descripción Detallada *</label>
                   <textarea
                     name="description"
                     value={formData.description}
@@ -675,7 +675,7 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
                   {errors.description && <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.description}</p>}
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Notas Adicionales</label>
+                  <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Notas Adicionales</label>
                   <textarea
                     name="notes"
                     value={formData.notes}
@@ -698,14 +698,14 @@ function SingleSupplyForm({ supply, onClose, onSave, suppliers, categories }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSaving}
-            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2"
           >
             {isSaving ? <Plus className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{isSaving ? 'Guardando...' : 'Actualizar Insumo'}</span>
@@ -857,7 +857,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
             <div className="flex items-center space-x-3">
               <button
                 onClick={addSupply}
-                className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition-all font-bold text-xs uppercase tracking-widest backdrop-blur-sm shadow-sm"
+                className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl transition-all font-bold text-xs tracking-widest backdrop-blur-sm shadow-sm"
               >
                 <Plus className="w-4 h-4" />
                 <span>Agregar Otro</span>
@@ -881,7 +881,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex items-center justify-between px-2">
-              <p className="text-xs font-black text-gray-400 uppercase tracking-[0.2em]">
+              <p className="text-xs font-black text-gray-400 tracking-[0.2em]">
                 Lista de nuevos insumos ({supplies.length})
               </p>
             </div>
@@ -912,7 +912,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                     <div className="grid lg:grid-cols-4 gap-6">
                       {/* Image Preview for Multiple Form */}
                       <div className="lg:col-span-1">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Imagen</label>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2 ml-1">Imagen</label>
                         <div className="relative group aspect-square rounded-2xl overflow-hidden bg-gray-50 border-2 border-dashed border-gray-200 hover:border-blue-400 transition-all">
                           {imageFiles[index] ? (
                             <img src={imageFiles[index]} alt="Preview" className="w-full h-full object-cover" />
@@ -934,7 +934,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                       <div className="lg:col-span-3 space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre *</label>
+                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Nombre *</label>
                             <input
                               type="text"
                               value={supply.name}
@@ -946,7 +946,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">SKU / Código</label>
+                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">SKU / Código</label>
                             <input
                               type="text"
                               value={supply.sku}
@@ -960,7 +960,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
 
                         <div className="grid md:grid-cols-3 gap-4">
                           <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Tipo</label>
+                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Tipo</label>
                             <select
                               value={supply.type}
                               onChange={(e) => updateSupply(index, 'type', e.target.value)}
@@ -972,7 +972,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                             </select>
                           </div>
                           <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Proveedor</label>
+                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Proveedor</label>
                             <select
                               value={supply.supplierId}
                               onChange={(e) => updateSupply(index, 'supplierId', e.target.value)}
@@ -985,7 +985,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                             </select>
                           </div>
                           <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Costo Unit.</label>
+                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Costo Unit.</label>
                             <input
                               type="number"
                               value={supply.unitCost}
@@ -1031,7 +1031,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Categoría</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Categoría</label>
                           <CategorySearchSelect
                             selectedId={supply.categoriaId}
                             initialData={[]}
@@ -1040,7 +1040,7 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Descripción *</label>
+                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Descripción *</label>
                           <textarea
                             value={supply.description}
                             onChange={(e) => updateSupply(index, 'description', e.target.value)}
@@ -1065,14 +1065,14 @@ function MultipleSupplyForm({ onClose, onSave, suppliers, categories }) {
           <button
             type="button"
             onClick={onClose}
-            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+            className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSaving}
-            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm uppercase tracking-widest shadow-md flex items-center space-x-2"
+            className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black hover:shadow-lg active:scale-95 transition-all text-sm tracking-widest shadow-md flex items-center space-x-2"
           >
             {isSaving ? <Plus className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             <span>{isSaving ? 'Guardando...' : `Registrar ${supplies.length} Insumos`}</span>

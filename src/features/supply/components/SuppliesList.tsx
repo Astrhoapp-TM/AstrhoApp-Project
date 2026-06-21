@@ -432,18 +432,18 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm space-y-3">
                   <div className="flex items-center space-x-2 text-brand-violet mb-1">
                     <Tag className="w-4 h-4" />
-                    <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
+                    <h4 className="font-bold text-[10px] tracking-widest">Información Básica</h4>
                   </div>
                   <div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Nombre</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-tight">Nombre</span>
                     <p className="font-bold text-gray-800">{selectedSupply.nombre}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">SKU</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-tight">SKU</span>
                     <p className="font-mono text-gray-700 text-sm">{selectedSupply.sku}</p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Categoría</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-tight">Categoría</span>
                     <p className="font-bold text-gray-700">{selectedSupply.categoriaNombre || 'N/A'}</p>
                   </div>
                 </div>
@@ -451,16 +451,16 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm space-y-3">
                   <div className="flex items-center space-x-2 text-brand-pink mb-1">
                     <TrendingUp className="w-4 h-4" />
-                    <h4 className="font-bold uppercase text-[10px] tracking-widest">Inventario</h4>
+                    <h4 className="font-bold text-[10px] tracking-widest">Inventario</h4>
                   </div>
                   <div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Stock actual</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-tight">Stock actual</span>
                     <p className={`font-bold text-lg ${(selectedSupply.stock ?? 0) <= 5 ? 'text-yellow-600' : 'text-blue-600'}`}>
                       {selectedSupply.stock ?? 0}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-tight">Estado</span>
+                    <span className="text-[10px] font-black text-gray-400 tracking-tight">Estado</span>
                     <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(selectedSupply.estado)}`}>
                       {getStatusDisplayName(selectedSupply.estado)}
                     </span>
@@ -486,7 +486,7 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
             <div className="p-5 bg-white border-t border-gray-100 flex justify-end">
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 active:scale-95 transition-all text-sm uppercase tracking-widest"
+                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 active:scale-95 transition-all text-sm tracking-widest"
               >
                 Cerrar
               </button>
@@ -535,9 +535,9 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
                     <Package className="w-6 h-6 text-brand-pink" />
                   </div>
                   <div className="text-left">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Insumo a eliminar</p>
+                    <p className="text-[10px] font-black text-gray-400 tracking-widest">Insumo a eliminar</p>
                     <p className="font-bold text-gray-700">{supplyToDelete.nombre}</p>
-                    <p className="text-[10px] font-mono text-gray-400 uppercase">SKU: {supplyToDelete.sku}</p>
+                    <p className="text-[10px] font-mono text-gray-400">SKU: {supplyToDelete.sku}</p>
                   </div>
                 </div>
               </div>
@@ -545,13 +545,13 @@ export function SuppliesList({ hasPermission }: SuppliesListProps) {
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmDeleteSupply}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg active:scale-95 transition-all flex items-center justify-center space-x-2"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Eliminar</span>

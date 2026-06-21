@@ -118,7 +118,7 @@ const ProgressHeader = ({ currentStep, isAdminBooking, isAsistente }: { currentS
               <div className={`text-center transition-all duration-300 ${
                 isActive ? 'scale-105' : 'opacity-70'
               }`}>
-                <span className={`text-[10px] font-black uppercase tracking-widest block mb-1 ${
+                <span className={`text-[10px] font-black tracking-widest block mb-1 ${
                   isActive ? 'text-brand-pink' : 'text-gray-400'
                 }`}>
                   Paso {step.num}
@@ -1788,7 +1788,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       <h3 className="text-3xl font-black text-gray-800 capitalize leading-none mb-1">
                         {currentWeek.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                       </h3>
-                      <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Agenda Semanal</p>
+                      <p className="text-gray-500 font-bold tracking-widest text-xs">Agenda Semanal</p>
                     </div>
                   </div>
                   
@@ -1839,7 +1839,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                               : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-brand-indigo cursor-pointer'
                         }`}
                       >
-                        <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-brand-pink'}`}>
+                        <div className={`text-[10px] font-black tracking-widest mb-1 ${isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-brand-pink'}`}>
                           {date.toLocaleDateString('es-ES', { weekday: 'short' })}
                         </div>
                         <div className="text-2xl font-black">
@@ -1867,7 +1867,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     </h4>
                     <p className="text-gray-500 text-sm font-semibold">Selecciona la hora de inicio de tu cita</p>
                   </div>
-                  <div className="hidden sm:flex items-center space-x-6 text-xs font-bold uppercase tracking-widest">
+                  <div className="hidden sm:flex items-center space-x-6 text-xs font-bold tracking-widest">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-white border-2 border-gray-200 rounded-sm"></div>
                       <span className="text-gray-400">Disponible</span>
@@ -1889,7 +1889,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     if (isAsistente && (!selectedProfessional || !asistenteHasSchedule)) {
                       return (
                         <div className="col-span-full py-10 text-center bg-red-50 rounded-2xl border-2 border-dashed border-red-200">
-                          <p className="text-red-600 font-bold uppercase tracking-widest text-sm">No tienes un horario asignado</p>
+                          <p className="text-red-600 font-bold tracking-widest text-sm">No tienes un horario asignado</p>
                         </div>
                       );
                     }
@@ -1897,7 +1897,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     if (currentSlots.length === 0) {
                       return (
                         <div className="col-span-full py-10 text-center bg-white rounded-2xl border-2 border-dashed border-gray-100">
-                          <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No hay horarios disponibles para este día</p>
+                          <p className="text-gray-400 font-bold tracking-widest text-sm">No hay horarios disponibles para este día</p>
                         </div>
                       );
                     }
@@ -1921,13 +1921,13 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       return (
                         <div key={time} className="relative group">
                           {appointment ? (
-                            <div className="w-full h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 text-[10px] font-black uppercase cursor-not-allowed border border-dashed border-gray-200 opacity-60">
+                            <div className="w-full h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 text-[10px] font-black cursor-not-allowed border border-dashed border-gray-200 opacity-60">
                               Reservado
                             </div>
                           ) : absence ? (
                             <div className="w-full h-16 bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-red-400 border-2 border-red-100 cursor-not-allowed opacity-60">
                               <span className="text-lg font-black">{formatTo12Hour(time)}</span>
-                              <span className="text-[9px] font-black uppercase tracking-tighter">Ausente</span>
+                              <span className="text-[9px] font-black tracking-tighter">Ausente</span>
                             </div>
                           ) : (
                             <button
@@ -1941,9 +1941,9 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                             >
                               <span>{formatTo12Hour(time)}</span>
                               {isAvailable ? (
-                                <span className="text-[9px] font-black opacity-60 uppercase tracking-tighter">Libre</span>
+                                <span className="text-[9px] font-black opacity-60 tracking-tighter">Libre</span>
                               ) : (
-                                <span className="text-[9px] font-black opacity-60 uppercase tracking-tighter">No disponible</span>
+                                <span className="text-[9px] font-black opacity-60 tracking-tighter">No disponible</span>
                               )}
                             </button>
                           )}
@@ -1982,7 +1982,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       <Calendar className="w-5 h-5 text-brand-indigo" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fecha y Hora</p>
+                      <p className="text-xs font-bold text-gray-400 tracking-wider mb-1">Fecha y Hora</p>
                       <p className="font-bold text-gray-800 capitalize leading-tight">
                         {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', {
                           weekday: 'long',
@@ -1999,7 +1999,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       <User className="w-5 h-5 text-brand-indigo" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Profesional</p>
+                      <p className="text-xs font-bold text-gray-400 tracking-wider mb-1">Profesional</p>
                       <p className="font-bold text-gray-800 text-base">{selectedProfessional?.name}</p>
                     </div>
                   </div>
@@ -2009,14 +2009,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       <ShoppingBag className="w-5 h-5 text-brand-indigo" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Método de Pago</p>
+                      <p className="text-xs font-bold text-gray-400 tracking-wider mb-1">Método de Pago</p>
                       <p className="font-bold text-gray-800 text-base">{selectedMetodoPago?.nombre || 'No seleccionado'}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-100">
-                      <p className="text-[10px] font-black text-brand-indigo uppercase tracking-widest mb-4">Servicios a Realizar</p>
+                      <p className="text-[10px] font-black text-brand-indigo tracking-widest mb-4">Servicios a Realizar</p>
                       <div className="space-y-3">
                         {selectedServices.map((service) => (
                           <div key={service.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-50 shadow-sm">
@@ -2025,7 +2025,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                           </div>
                         ))}
                         <div className="pt-4 border-t-2 border-dashed border-gray-200 flex justify-between items-center mt-4">
-                          <span className="font-black text-brand-indigo uppercase tracking-tighter">Total</span>
+                          <span className="font-black text-brand-indigo tracking-tighter">Total</span>
                           <span className="font-black text-brand-indigo text-3xl">${getTotalPrice().toLocaleString()}</span>
                         </div>
                       </div>
@@ -2133,14 +2133,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             </p>
 
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-8 mb-10 text-left border border-gray-200/50">
-              <h4 className="font-black text-gray-800 mb-6 uppercase tracking-widest text-sm">Resumen de la Cita</h4>
+              <h4 className="font-black text-gray-800 mb-6 tracking-widest text-sm">Resumen de la Cita</h4>
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
-                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Profesional</span>
+                  <span className="text-brand-indigo font-black tracking-widest text-[10px]">Profesional</span>
                   <span className="font-black text-gray-800">{selectedProfessional?.name}</span>
                 </div>
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
-                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Fecha</span>
+                  <span className="text-brand-indigo font-black tracking-widest text-[10px]">Fecha</span>
                   <span className="font-black text-gray-800 capitalize">
                     {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', {
                       weekday: 'long',
@@ -2150,11 +2150,11 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   </span>
                 </div>
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
-                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Hora</span>
+                  <span className="text-brand-indigo font-black tracking-widest text-[10px]">Hora</span>
                   <span className="font-black text-brand-indigo text-xl">{formatTo12Hour(selectedTime)}</span>
                 </div>
                 <div className="py-2">
-                  <span className="text-brand-indigo font-black text-[10px] uppercase tracking-widest mb-3 block">Servicios Agendados</span>
+                  <span className="text-brand-indigo font-black text-[10px] tracking-widest mb-3 block">Servicios Agendados</span>
                   <div className="space-y-2">
                     {selectedServices.map(s => (
                       <div key={s.id} className="flex justify-between items-center bg-white/50 p-2 rounded-xl border border-gray-200/30">
@@ -2165,7 +2165,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200 mt-2">
-                  <span className="text-brand-indigo font-black uppercase tracking-tighter">Total Pagado</span>
+                  <span className="text-brand-indigo font-black tracking-tighter">Total Pagado</span>
                   <span className="font-black text-gray-900 text-3xl">${getTotalPrice().toLocaleString()}</span>
                 </div>
               </div>
@@ -2174,14 +2174,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
               <button
                 onClick={resetBooking}
-                className="flex-1 bg-gradient-brand text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:shadow-2xl hover:scale-[1.02] transition-all"
+                className="flex-1 bg-gradient-brand text-white px-8 py-4 rounded-2xl font-black tracking-widest hover:shadow-2xl hover:scale-[1.02] transition-all"
               >
                 Nueva Cita
               </button>
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="flex-1 border-2 border-gray-100 text-gray-500 px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-50 transition-all"
+                  className="flex-1 border-2 border-gray-100 text-gray-500 px-8 py-4 rounded-2xl font-black tracking-widest hover:bg-gray-50 transition-all"
                 >
                   Mis Citas
                 </button>
@@ -2849,7 +2849,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             {/* Calendar Section - Redesigned to Day Selector + Time Slots */}
             {isAsistente && (!selectedProfessional || !asistenteHasSchedule) ? (
               <div className="col-span-full py-10 text-center bg-red-50 rounded-2xl border-2 border-dashed border-red-200">
-                <p className="text-red-600 font-bold uppercase tracking-widest text-sm">No tienes un horario asignado</p>
+                <p className="text-red-600 font-bold tracking-widest text-sm">No tienes un horario asignado</p>
               </div>
             ) : (
             <div className="w-full bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
@@ -2864,7 +2864,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       <h3 className="text-3xl font-black text-gray-800 capitalize leading-none mb-1">
                         {currentWeek.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
                       </h3>
-                      <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Agenda Semanal</p>
+                      <p className="text-gray-500 font-bold tracking-widest text-xs">Agenda Semanal</p>
                     </div>
                   </div>
                   
@@ -2915,7 +2915,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                               : 'bg-gray-50 text-gray-700 hover:bg-gray-100 hover:text-brand-indigo cursor-pointer'
                         }`}
                       >
-                        <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-brand-pink'}`}>
+                        <div className={`text-[10px] font-black tracking-widest mb-1 ${isActive ? 'text-white/90' : 'text-gray-400 group-hover:text-brand-pink'}`}>
                           {date.toLocaleDateString('es-ES', { weekday: 'short' })}
                         </div>
                         <div className="text-2xl font-black">
@@ -2943,7 +2943,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     </h4>
                     <p className="text-gray-500 text-sm font-semibold">Selecciona la hora de inicio de tu cita</p>
                   </div>
-                  <div className="hidden sm:flex items-center space-x-6 text-xs font-bold uppercase tracking-widest">
+                  <div className="hidden sm:flex items-center space-x-6 text-xs font-bold tracking-widest">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-white border-2 border-gray-200 rounded-sm"></div>
                       <span className="text-gray-400">Disponible</span>
@@ -2965,7 +2965,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     if (currentSlots.length === 0) {
                       return (
                         <div className="col-span-full py-10 text-center bg-white rounded-2xl border-2 border-dashed border-gray-100">
-                          <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No hay horarios disponibles para este día</p>
+                          <p className="text-gray-400 font-bold tracking-widest text-sm">No hay horarios disponibles para este día</p>
                         </div>
                       );
                     }
@@ -2989,13 +2989,13 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                       return (
                         <div key={time} className="relative group">
                           {appointment ? (
-                            <div className="w-full h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 text-[10px] font-black uppercase cursor-not-allowed border border-dashed border-gray-200 opacity-60">
+                            <div className="w-full h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 text-[10px] font-black cursor-not-allowed border border-dashed border-gray-200 opacity-60">
                               Reservado
                             </div>
                           ) : absence ? (
                             <div className="w-full h-16 bg-gray-50 rounded-2xl flex flex-col items-center justify-center text-red-400 border-2 border-red-100 cursor-not-allowed opacity-60">
                               <span className="text-lg font-black">{formatTo12Hour(time)}</span>
-                              <span className="text-[9px] font-black uppercase tracking-tighter">Ausente</span>
+                              <span className="text-[9px] font-black tracking-tighter">Ausente</span>
                             </div>
                           ) : (
                             <button
@@ -3009,9 +3009,9 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                             >
                               <span>{formatTo12Hour(time)}</span>
                               {isAvailable ? (
-                                <span className="text-[9px] font-black opacity-60 uppercase tracking-tighter">Libre</span>
+                                <span className="text-[9px] font-black opacity-60 tracking-tighter">Libre</span>
                               ) : (
-                                <span className="text-[9px] font-black opacity-60 uppercase tracking-tighter">No disponible</span>
+                                <span className="text-[9px] font-black opacity-60 tracking-tighter">No disponible</span>
                               )}
                             </button>
                           )}
@@ -3061,14 +3061,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             </p>
 
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-8 mb-10 text-left border border-gray-200/50">
-              <h4 className="font-black text-gray-800 mb-6 uppercase tracking-widest text-sm">Resumen de la Cita</h4>
+              <h4 className="font-black text-gray-800 mb-6 tracking-widest text-sm">Resumen de la Cita</h4>
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
-                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Profesional</span>
+                  <span className="text-brand-indigo font-black tracking-widest text-[10px]">Profesional</span>
                   <span className="font-black text-gray-800">{selectedProfessional?.name}</span>
                 </div>
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
-                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Fecha</span>
+                  <span className="text-brand-indigo font-black tracking-widest text-[10px]">Fecha</span>
                   <span className="font-black text-gray-800 capitalize">
                     {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', {
                       weekday: 'long',
@@ -3078,11 +3078,11 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   </span>
                 </div>
                 <div className="flex items-center justify-between pb-4 border-b border-gray-200/50">
-                  <span className="text-brand-indigo font-black uppercase tracking-widest text-[10px]">Hora</span>
+                  <span className="text-brand-indigo font-black tracking-widest text-[10px]">Hora</span>
                   <span className="font-black text-brand-indigo text-xl">{formatTo12Hour(selectedTime)}</span>
                 </div>
                 <div className="py-2">
-                  <span className="text-brand-indigo font-black text-[10px] uppercase tracking-widest mb-3 block">Servicios Agendados</span>
+                  <span className="text-brand-indigo font-black text-[10px] tracking-widest mb-3 block">Servicios Agendados</span>
                   <div className="space-y-2">
                     {selectedServices.map(s => (
                       <div key={s.id} className="flex justify-between items-center bg-white/50 p-2 rounded-xl border border-gray-200/30">
@@ -3093,7 +3093,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200 mt-2">
-                  <span className="text-brand-indigo font-black uppercase tracking-tighter">Total Pagado</span>
+                  <span className="text-brand-indigo font-black tracking-tighter">Total Pagado</span>
                   <span className="font-black text-gray-900 text-3xl">${getTotalPrice().toLocaleString()}</span>
                 </div>
               </div>
@@ -3102,14 +3102,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
               <button
                 onClick={resetBooking}
-                className="flex-1 bg-gradient-brand text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:shadow-2xl hover:scale-[1.02] transition-all"
+                className="flex-1 bg-gradient-brand text-white px-8 py-4 rounded-2xl font-black tracking-widest hover:shadow-2xl hover:scale-[1.02] transition-all"
               >
                 Nueva Cita
               </button>
               {onBack && (
                 <button
                   onClick={onBack}
-                  className="flex-1 border-2 border-gray-100 text-gray-500 px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-50 transition-all"
+                  className="flex-1 border-2 border-gray-100 text-gray-500 px-8 py-4 rounded-2xl font-black tracking-widest hover:bg-gray-50 transition-all"
                 >
                   Mis Citas
                 </button>
@@ -3150,7 +3150,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     <Calendar className="w-5 h-5 text-brand-indigo" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fecha y Hora</p>
+                    <p className="text-xs font-bold text-gray-400 tracking-wider mb-1">Fecha y Hora</p>
                     <p className="font-bold text-gray-800 capitalize leading-tight">
                       {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-ES', {
                         weekday: 'long',
@@ -3167,7 +3167,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     <User className="w-5 h-5 text-brand-indigo" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Profesional</p>
+                    <p className="text-xs font-bold text-gray-400 tracking-wider mb-1">Profesional</p>
                     <p className="font-bold text-gray-800 text-base">{selectedProfessional?.name}</p>
                   </div>
                 </div>
@@ -3177,14 +3177,14 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                     <ShoppingBag className="w-5 h-5 text-brand-indigo" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Método de Pago</p>
+                    <p className="text-xs font-bold text-gray-400 tracking-wider mb-1">Método de Pago</p>
                     <p className="font-bold text-gray-800 text-base">{selectedMetodoPago?.nombre || 'No seleccionado'}</p>
                   </div>
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-2xl p-6 border-2 border-gray-100">
-                    <p className="text-[10px] font-black text-brand-indigo uppercase tracking-widest mb-4">Servicios a Realizar</p>
+                    <p className="text-[10px] font-black text-brand-indigo tracking-widest mb-4">Servicios a Realizar</p>
                     <div className="space-y-3">
                       {selectedServices.map((service) => (
                         <div key={service.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-50 shadow-sm">
@@ -3193,7 +3193,7 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                         </div>
                       ))}
                       <div className="pt-4 border-t-2 border-dashed border-gray-200 flex justify-between items-center mt-4">
-                        <span className="font-black text-brand-indigo uppercase tracking-tighter">Total</span>
+                        <span className="font-black text-brand-indigo tracking-tighter">Total</span>
                         <span className="font-black text-brand-indigo text-3xl">${getTotalPrice().toLocaleString()}</span>
                       </div>
                     </div>

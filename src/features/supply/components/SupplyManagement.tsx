@@ -448,10 +448,10 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center space-x-2 text-brand-violet mb-3">
                       <Tag className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Información Básica</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Información Básica</h4>
                     </div>
                     <div className="mb-1">
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Nombre:</span>
+                      <span className="text-[10px] font-bold text-gray-400 tracking-tight">Nombre:</span>
                       <p className="font-bold text-gray-800 text-lg mb-1 truncate">{selectedSupply.nombre}</p>
                     </div>
                     <div className="flex items-center space-x-2 text-gray-500">
@@ -463,7 +463,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                   <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center space-x-2 text-brand-pink mb-3">
                       <TrendingUp className="w-4 h-4" />
-                      <h4 className="font-bold uppercase text-[10px] tracking-widest">Estado de Stock</h4>
+                      <h4 className="font-bold text-[10px] tracking-widest">Estado de Stock</h4>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
@@ -513,7 +513,7 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
             <div className="p-5 bg-white border-t border-gray-100 flex flex-wrap gap-3 justify-end shrink-0 z-20">
               <button
                 onClick={() => setShowDetailModal(false)}
-                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm uppercase tracking-widest shadow-sm"
+                className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
               >
                 Cerrar
               </button>
@@ -574,9 +574,9 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
                     <Package className="w-6 h-6 text-brand-pink" />
                   </div>
                   <div className="text-left">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Insumo a eliminar</p>
+                    <p className="text-[10px] font-black text-gray-400 tracking-widest">Insumo a eliminar</p>
                     <p className="font-bold text-gray-700">{supplyToDelete.nombre}</p>
-                    <p className="text-[10px] font-mono text-gray-400 uppercase">SKU: {supplyToDelete.sku}</p>
+                    <p className="text-[10px] font-mono text-gray-400">SKU: {supplyToDelete.sku}</p>
                   </div>
                 </div>
               </div>
@@ -584,13 +584,13 @@ export function SupplyManagement({ hasPermission }: SupplyManagementProps) {
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] uppercase tracking-widest"
+                  className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={confirmDeleteSupply}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
+                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Eliminar</span>

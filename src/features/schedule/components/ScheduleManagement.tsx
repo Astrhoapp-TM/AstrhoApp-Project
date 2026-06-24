@@ -1585,7 +1585,16 @@ interface MotivoModalProps {
 }
 
 function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModalProps) {
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  const today = new Date().toISOString().split('T')[0];
+
+  // Max date = exactly 1 month from today
+  const maxDate = (() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return d.toISOString().split('T')[0];
+  })();
+
+  const [fecha, setFecha] = useState(today);
   const [horaInicio, setHoraInicio] = useState('08:00');
   const [horaFin, setHoraFin] = useState('18:00');
   const [descripcion, setDescripcion] = useState('');
@@ -1614,6 +1623,11 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
     const today = new Date().toISOString().split('T')[0];
     if (fecha < today) {
       setError('No puedes registrar motivos en fechas pasadas');
+      return;
+    }
+
+    if (fecha > maxDate) {
+      setError('Solo puedes registrar motivos hasta 1 mes a partir de hoy');
       return;
     }
 
@@ -1697,6 +1711,8 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
             <input
               type="date"
               value={fecha}
+              min={today}
+              max={maxDate}
               onChange={(e) => setFecha(e.target.value)}
               className="w-full px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium"
               required

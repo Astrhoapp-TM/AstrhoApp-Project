@@ -104,11 +104,16 @@ export function NotificationBell({ currentUser, onNavigateFromNotification }: No
     }
   }, [currentUser, fetchAllAppointments]);
 
-  // Load notifications on mount and periodically
+  // Load notifications on mount, periodically, and on explicit refresh event
   useEffect(() => {
     loadNotifications();
     const interval = setInterval(loadNotifications, 60000);
-    return () => clearInterval(interval);
+    const onRefresh = () => loadNotifications();
+    window.addEventListener('notifications:refresh', onRefresh);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('notifications:refresh', onRefresh);
+    };
   }, [loadNotifications]);
 
   const handleDismiss = (id: string, e: React.MouseEvent) => {

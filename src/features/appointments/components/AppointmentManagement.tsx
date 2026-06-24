@@ -84,6 +84,33 @@ function getAppointmentDurationMinutesFromServices(
   return total > 0 ? total : 30;
 }
 
+function canDeleteAppointment(apt: AgendaItem): boolean {
+  const estadoLower = apt.estado.toLowerCase();
+  if (estadoLower === 'completado' || estadoLower === 'completed' || estadoLower === 'cancelado' || estadoLower === 'cancelled') {
+    return false;
+  }
+  
+  // Check if more than 1 hour has passed since creation (or use appointment time if creation time not available)
+  const now = new Date();
+  let creationTime: Date | null = null;
+  
+  if (apt.fechaCreacion) {
+    creationTime = new Date(apt.fechaCreacion);
+  } else if (apt.createdAt) {
+    creationTime = new Date(apt.createdAt);
+  }
+  
+  // If no creation time available, use the appointment time as fallback (less accurate but better than nothing)
+  if (!creationTime || isNaN(creationTime.getTime())) {
+    creationTime = toDateTime(apt.fechaCita, apt.horaInicio);
+  }
+  
+  const oneHourInMs = 60 * 60 * 1000;
+  const timeSinceCreation = now.getTime() - creationTime.getTime();
+  
+  return timeSinceCreation < oneHourInMs;
+}
+
 // getEstadoId now resolved dynamically inside the component using loaded estados
 
 export function AppointmentManagement({ hasPermission, currentUser }: AppointmentManagementProps) {
@@ -183,7 +210,8 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
         console.error(`Error en cancelación automática de cita ${apt.agendaId}:`, err);
       }
     }
-    toast.info(`${shouldAutoCancel.length} cita(s) cancelada(s) automáticamente por estado/tiempo.`);
+    // Dispatch event so NotificationBell refreshes immediately
+    window.dispatchEvent(new CustomEvent('notifications:refresh'));
   }, []);
 
   // ── Load all data ──
@@ -442,9 +470,15 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
   };
 
   const handleDeleteAppointment = (apt: AgendaItem) => {
-    const estadoLower = apt.estado.toLowerCase();
-    if (estadoLower === 'completado' || estadoLower === 'completed') {
-      toast.error('No se puede eliminar una cita que ya ha sido completada');
+    if (!canDeleteAppointment(apt)) {
+      const estadoLower = apt.estado.toLowerCase();
+      if (estadoLower === 'completado' || estadoLower === 'completed') {
+        toast.error('No se puede eliminar una cita que ya ha sido completada');
+      } else if (estadoLower === 'cancelado' || estadoLower === 'cancelled') {
+        toast.error('No se puede eliminar una cita que ya ha sido cancelada');
+      } else {
+        toast.error('No se puede eliminar una cita después de 1 hora de su creación');
+      }
       return;
     }
     setSelectedAppointment(apt);
@@ -794,8 +828,8 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                         {!isAsistente && (
                           <button
                             onClick={() => handleDeleteAppointment(apt)}
-                            disabled={estadoLower === 'completado' || estadoLower === 'completed'}
-                            className={`p-2 rounded-lg transition-colors ${(estadoLower === 'completado' || estadoLower === 'completed') ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-brand-pink hover:bg-red-200'}`}
+                            disabled={!canDeleteAppointment(apt)}
+                            className={`p-2 rounded-lg transition-colors ${!canDeleteAppointment(apt) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-brand-pink hover:bg-red-200'}`}
                             title="Eliminar cita"
                           >
                             <Trash2 className="w-4 h-4" />

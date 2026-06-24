@@ -215,6 +215,39 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
     }
   };
 
+  const toDateTime = (fecha: string, hora: string) => {
+    const safeDate = (fecha || '').split('T')[0];
+    const safeHour = (hora || '').length === 5 ? `${hora}:00` : hora;
+    return new Date(`${safeDate}T${safeHour}`);
+  };
+
+  const canCancelAppointment = (apt: AgendaItem): boolean => {
+    const estado = normalizeStatusForFilter(apt.estado);
+    if (estado === 'completed' || estado === 'cancelled') {
+      return false;
+    }
+
+    // Check if more than 1 hour has passed since creation
+    const now = new Date();
+    let creationTime: Date | null = null;
+
+    if (apt.fechaCreacion) {
+      creationTime = new Date(apt.fechaCreacion);
+    } else if (apt.createdAt) {
+      creationTime = new Date(apt.createdAt);
+    }
+
+    // If no creation time available, use the appointment time as fallback
+    if (!creationTime || isNaN(creationTime.getTime())) {
+      creationTime = toDateTime(apt.fechaCita, apt.horaInicio);
+    }
+
+    const oneHourInMs = 60 * 60 * 1000;
+    const timeSinceCreation = now.getTime() - creationTime.getTime();
+
+    return timeSinceCreation < oneHourInMs;
+  };
+
   const isUpcoming = (date: string, time?: string) => {
     // If we only have date, assume midnight local time
     const dateStr = time ? `${date.split('T')[0]}T${time}` : `${date.split('T')[0]}T00:00:00`;
@@ -228,6 +261,10 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
   };
 
   const handleCancelClick = (appointment: AgendaItem) => {
+    if (!canCancelAppointment(appointment)) {
+      toast.error('No se puede cancelar una cita después de 1 hora de su creación');
+      return;
+    }
     setAppointmentToCancel(appointment);
     setShowCancelConfirmModal(true);
   };
@@ -459,7 +496,8 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
                         {(normalizeStatusForFilter(appointment.estado) === 'confirmed' || normalizeStatusForFilter(appointment.estado) === 'pending') && (
                           <button 
                             onClick={() => handleCancelClick(appointment)}
-                            className="bg-gray-50 text-brand-pink px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all flex items-center justify-center space-x-2 border border-pink-100"
+                            disabled={!canCancelAppointment(appointment)}
+                            className={`px-4 py-2 rounded-xl font-bold transition-all flex items-center justify-center space-x-2 ${!canCancelAppointment(appointment) ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-50 text-brand-pink hover:bg-gray-100 border border-pink-100'}`}
                           >
                             <XCircle className="w-4 h-4" />
                             <span>Cancelar Cita</span>

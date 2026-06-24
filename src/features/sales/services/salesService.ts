@@ -65,14 +65,27 @@ function safeNumber(n: any, fallback = 0): number {
 
 function extractDateTime(dateStr: any): { date: string; time: string } {
   if (!dateStr) {
-    const d = new Date();
-    return { date: d.toISOString().split('T')[0], time: d.toTimeString().slice(0, 5) };
+    return { date: 'Fecha no disponible', time: '00:00' };
   }
-  const s = String(dateStr);
+  const s = String(dateStr).trim();
+  
+  // If it contains 'T', it's ISO format: split by T
   if (s.includes('T')) {
     const [d, t] = s.split('T');
     return { date: d, time: t.slice(0, 5) };
   }
+  
+  // If it contains space, try to split date and time
+  if (s.includes(' ')) {
+    const parts = s.split(' ');
+    return { date: parts[0], time: parts[1]?.slice(0, 5) || '00:00' };
+  }
+  
+  // If it looks like just a date (YYYY-MM-DD or DD/MM/YYYY or similar)
+  if (s.match(/^\d{4}-\d{2}-\d{2}$/) || s.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+    return { date: s, time: '00:00' };
+  }
+  
   return { date: s, time: '00:00' };
 }
 
@@ -84,7 +97,28 @@ function mapApiSaleToView(apiSale: any): SaleView {
     apiSale?.ventaId ||
     `VNT-${String(apiSale?.ventaId || Math.floor(Math.random() * 100000)).padStart(3, '0')}`;
 
-  const dt = extractDateTime(apiSale?.sale_date || apiSale?.fechaVenta || apiSale?.fecha || apiSale?.createdAt);
+  const dt = extractDateTime(
+    apiSale?.fechaRegistro ||
+    apiSale?.FechaRegistro ||
+    apiSale?.sale_date || 
+    apiSale?.SaleDate || 
+    apiSale?.fechaVenta || 
+    apiSale?.FechaVenta ||
+    apiSale?.fecha || 
+    apiSale?.Fecha ||
+    apiSale?.citaFecha || 
+    apiSale?.CitaFecha ||
+    apiSale?.fechaCita ||
+    apiSale?.FechaCita ||
+    apiSale?.appointment_date ||
+    apiSale?.AppointmentDate ||
+    apiSale?.cita?.fecha ||
+    apiSale?.cita?.Fecha ||
+    apiSale?.Cita?.Fecha ||
+    apiSale?.createdAt || 
+    apiSale?.created_at ||
+    apiSale?.CreatedAt
+  );
 
   const items: SaleProductItem[] = Array.isArray(apiSale?.items)
     ? apiSale.items

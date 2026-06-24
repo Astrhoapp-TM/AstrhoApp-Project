@@ -17,6 +17,8 @@ export interface AgendaItem {
   estado: string;
   estadoId: number;
   servicios: string[];
+  fechaCreacion?: string; // ISO date for creation time
+  createdAt?: string; // Alias for fechaCreacion
 }
 
 export interface CreateAgendaData {
@@ -219,6 +221,8 @@ function normalizeAgendaItem(raw: any): AgendaItem {
                           ? raw.servicios.$values
                           : [],
     observaciones:      raw.observaciones      ?? raw.Observaciones     ?? '',
+    fechaCreacion:      raw.fechaCreacion      ?? raw.FechaCreacion     ?? raw.createdAt ?? raw.CreatedAt ?? '',
+    createdAt:          raw.createdAt          ?? raw.CreatedAt         ?? raw.fechaCreacion ?? raw.FechaCreacion ?? '',
   };
 }
 

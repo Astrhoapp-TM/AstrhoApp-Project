@@ -176,7 +176,9 @@ export function NotificationBell({ currentUser, onNavigateFromNotification }: No
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Only show for admin and asistente users
-  if (!currentUser || currentUser.role === 'customer') {
+  const isClient = !currentUser || 
+    ['customer', 'cliente'].includes((currentUser.role || '').toLowerCase().trim());
+  if (isClient) {
     return null;
   }
 

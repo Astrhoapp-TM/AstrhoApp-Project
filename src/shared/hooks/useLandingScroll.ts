@@ -9,13 +9,10 @@ export function useLandingScroll(containerRef?: React.RefObject<HTMLElement>) {
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    const target = containerRef?.current ?? window;
-
     const update = () => {
-      const y =
-        containerRef?.current
-          ? containerRef.current.scrollTop
-          : window.scrollY;
+      const el = containerRef?.current;
+      const isScrollable = el && el.scrollHeight > el.clientHeight && window.getComputedStyle(el).overflowY !== 'visible';
+      const y = isScrollable ? el.scrollTop : window.scrollY;
       setScrollY(y);
       rafRef.current = requestAnimationFrame(update);
     };

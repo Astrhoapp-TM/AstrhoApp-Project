@@ -1266,8 +1266,15 @@ function AppointmentModal({
       }
     });
 
+    const targetEstado = getEstadoNameById(formData.estadoId);
+    const isTargetCancelled = targetEstado === 'cancelado' || formData.estadoId === estadoCanceladoId;
+    const isScheduleUnchanged = isEdit &&
+      appointment?.fechaCita === formData.fechaCita &&
+      appointment?.horaInicio?.substring(0, 5) === formData.horaInicio &&
+      appointment?.documentoEmpleado === formData.documentoEmpleado;
+
     // Check availability
-    if (formData.documentoEmpleado && formData.fechaCita && formData.horaInicio && totalDuration > 0) {
+    if (!isTargetCancelled && !isScheduleUnchanged && formData.documentoEmpleado && formData.fechaCita && formData.horaInicio && totalDuration > 0) {
       if (checkEmployeeOccupied(formData.documentoEmpleado)) {
         newErrors.horaInicio = 'El profesional ya tiene una cita en este horario. Los horarios se solapan.';
       }
@@ -1280,9 +1287,7 @@ function AppointmentModal({
       const endAt = new Date(startAt.getTime() + totalDuration * 60_000);
       const minLead = new Date(now.getTime() + 90 * 60 * 1000);
       const completeLimit = new Date(endAt.getTime() + 24 * 60 * 60 * 1000);
-      const targetEstado = getEstadoNameById(formData.estadoId);
       const isTargetCompleted = targetEstado === 'completado' || formData.estadoId === estadoCompletadoId;
-      const isTargetCancelled = targetEstado === 'cancelado' || formData.estadoId === estadoCanceladoId;
 
       if (isTargetCompleted) {
         const previousStatusName = appointment ? normalizeEstadoKey(appointment.estado) : '';
@@ -1294,7 +1299,7 @@ function AppointmentModal({
         } else if (now > completeLimit) {
           newErrors.estadoId = 'La ventana de 24 horas para completar ya expiró.';
         }
-      } else if (!isTargetCancelled) {
+      } else if (!isTargetCancelled && !isScheduleUnchanged) {
         if (startAt <= now) {
           newErrors.horaInicio = 'La cita debe programarse en una fecha y hora futura.';
         } else if (startAt < minLead) {
@@ -1465,16 +1470,16 @@ function AppointmentModal({
                       <select
                         value={formData.horaInicio}
                         onChange={(e) => setFormData({ ...formData, horaInicio: e.target.value })}
-                        disabled={isCompleted || daySlots.length === 0}
-                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.horaInicio ? 'border-red-300' : 'border-gray-200'} ${isCompleted || availableSlots.length === 0 ? 'bg-gray-100' : ''}`}
+                        disabled={isCompleted || (daySlots.length === 0 && !isEdit)}
+                        className={`w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 ${errors.horaInicio ? 'border-red-300' : 'border-gray-200'} ${isCompleted || (availableSlots.length === 0 && !isEdit) ? 'bg-gray-100' : ''}`}
                       >
-                        {daySlots.length === 0 ? (
+                        {daySlots.length === 0 && !isEdit ? (
                           <option value="">No hay disponibilidad</option>
                         ) : (
                           <>
                             {formData.horaInicio && !availableSlots.includes(formData.horaInicio) && (
                               <option value={formData.horaInicio}>
-                                {formatTo12Hour(formData.horaInicio)} {isEdit ? '(Actual - no disponible)' : '(No disponible)'}
+                                {formatTo12Hour(formData.horaInicio)} {isEdit ? '(Actual)' : '(No disponible)'}
                               </option>
                             )}
                             {!formData.horaInicio && <option value="">Seleccionar hora...</option>}
@@ -2295,7 +2300,8 @@ function ProfessionalSearchSelect({
               searchResults.map((emp: any) => {
                 const occupied = checkEmployeeOccupied(emp.documentoEmpleado);
                 const isWithinSchedule = checkEmployeeHasSchedule(emp.documentoEmpleado);
-                const isDisabled = occupied || !isWithinSchedule;
+                const isCurrentSelection = emp.documentoEmpleado === selectedDocument;
+                const isDisabled = !isCurrentSelection && (occupied || !isWithinSchedule);
                 const statusText = occupied
                   ? 'Ocupado'
                   : !isWithinSchedule

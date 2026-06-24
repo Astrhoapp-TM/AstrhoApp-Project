@@ -642,7 +642,7 @@ export function DashboardOverview({
       // Omitir completados y cancelados
       if (status === "completado" || status === "cancelado") return false;
 
-      // Mantener solo citas de hoy o del futuro
+      // Solo citas de HOY (no días futuros)
       const aptDateStr = a.fechaCita || "";
       const aptDate = new Date(aptDateStr + (aptDateStr.includes("T") ? "" : "T00:00:00"));
       aptDate.setHours(0, 0, 0, 0);
@@ -650,15 +650,12 @@ export function DashboardOverview({
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      return aptDate >= today;
+      return aptDate.getTime() === today.getTime();
     })
-    .sort((a, b) => {
-      // Ordenar por fecha y luego por hora
-      const dateA = a.fechaCita || "";
-      const dateB = b.fechaCita || "";
-      if (dateA !== dateB) return dateA.localeCompare(dateB);
-      return (a.horaInicio || "").localeCompare(b.horaInicio || "");
-    })
+    .sort((a, b) =>
+      // Ordenar únicamente por hora (todas son del mismo día)
+      (a.horaInicio || "").localeCompare(b.horaInicio || "")
+    )
     .slice(0, 5);
 
   const servicioFreq: Record<string, { count: number; revenue: number }> = {};
@@ -878,7 +875,7 @@ export function DashboardOverview({
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-gray-800">
-              Próximas Citas
+              Próximas Citas (Hoy)
             </h3>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <Clock className="w-4 h-4" />

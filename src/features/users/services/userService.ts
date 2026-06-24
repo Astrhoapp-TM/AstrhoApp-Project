@@ -169,6 +169,9 @@ export const userService = {
             const targetId = Number(userId);
             console.log('🔍 [getPersonForUser] targetId:', targetId);
 
+            // Try direct fetch if the user object contains a document ID
+            let docId = user.documento || user.documentId || user.documentoCliente || user.documentoEmpleado;
+
             // Helper: fetch full detail and extract address from it
             const fetchDetail = async (documentId: string, type: 'client' | 'employee', fallbackData: any) => {
                 try {
@@ -191,6 +194,43 @@ export const userService = {
                         : (d.direccionEmpleado || d.direccion_empleado || d['direcciónEmpleado'] || common);
                 }
             };
+
+            // If we don't have docId on the user object, try fetching user details first
+            if (!docId && targetId) {
+                try {
+                    console.log('🔍 [getPersonForUser] No docId in user object, fetching user detail from /api/Usuarios/', targetId);
+                    const userDetail = await userService.getById(targetId);
+                    docId = userDetail?.documento || userDetail?.documentoCliente || userDetail?.documentoEmpleado;
+                    console.log('🔍 [getPersonForUser] Obtained docId from user detail:', docId);
+                } catch (err) {
+                    console.error('❌ [getPersonForUser] Error fetching user detail:', err);
+                }
+            }
+
+            // If we have docId, fetch details directly instead of scanning the full list
+            if (docId) {
+                console.log('🔍 [getPersonForUser] Attempting direct fetch using docId:', docId);
+                try {
+                    const type = isClient ? 'client' : 'employee';
+                    const address = await fetchDetail(docId, type, {});
+                    const endpoint = isClient ? `/api/Clientes/${docId}` : `/api/Empleados/${docId}`;
+                    const person = await apiClient.get<any>(endpoint);
+                    
+                    if (person) {
+                        console.log('✅ [getPersonForUser] Direct fetch succeeded');
+                        return {
+                            documentId: docId,
+                            documentType: person.tipoDocumento || 'CC',
+                            name: person.nombre || (isClient ? 'Cliente' : 'Empleado'),
+                            phone: person.telefono || '',
+                            address,
+                            type: isClient ? 'client' : 'employee'
+                        };
+                    }
+                } catch (err) {
+                    console.warn('⚠️ [getPersonForUser] Direct fetch failed, falling back to list scan:', err);
+                }
+            }
 
             // 1. First priority: Search by usuarioId in the corresponding table
             if (isClient) {

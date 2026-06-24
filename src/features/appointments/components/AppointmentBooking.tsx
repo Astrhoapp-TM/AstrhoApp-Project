@@ -250,9 +250,13 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       setSelectedTime(appointmentToReschedule.horaInicio?.substring(0, 5) || '');
       
       // Pre-select client
-      setClientDocument(appointmentToReschedule.documentoCliente);
+      const resolvedDoc = appointmentToReschedule.documentoCliente || 
+                          currentUser?.documento || 
+                          currentUser?.documentId || 
+                          currentUser?.documentoCliente || '';
+      setClientDocument(resolvedDoc);
       setSelectedClient({
-        id: appointmentToReschedule.documentoCliente,
+        id: resolvedDoc,
         name: appointmentToReschedule.cliente,
         phone: '',
         role: 'Cliente',
@@ -495,8 +499,9 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
         // Fetch client document only if it's a client booking
         if (currentUser && !isAdminBooking) {
           const person = await userService.getPersonForUser(currentUser);
-          if (person) {
-            setClientDocument(person.documentId);
+          const resolved = person?.documentId || currentUser.documento || currentUser.documentId || currentUser.documentoCliente;
+          if (resolved) {
+            setClientDocument(resolved);
           }
         }
       } catch (error) {

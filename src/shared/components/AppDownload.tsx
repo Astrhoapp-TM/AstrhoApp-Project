@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Calendar, Bell, Star, Zap } from 'lucide-react';
 
 const features = [
@@ -14,22 +14,33 @@ interface AppDownloadProps {
 }
 
 export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadProps) {
+  const [isLargeScreen, setIsLargeScreen] = useState(true);
+
+  useEffect(() => {
+    const checkScreen = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
+
   // Local scroll: 0 when section enters viewport
   const local = Math.max(0, scrollY - sectionOffsetTop);
 
   // ── Parallax offsets at different "depths" ──────────────────
-  const bgFar    = local * 0.45;   // slowest  — far background glows
-  const bgMid    = local * 0.28;   // medium   — mid-layer rings
-  const phoneY   = local * 0.14;   // phone vertical drift (upward)
-  const phoneTilt = Math.min(local * 0.015, 6); // subtle tilt in deg, max 6°
-  const labelY   = local * 0.22;   // floating label, between bg and phone
-  const orbA     = local * 0.38;   // fast orb
-  const orbB     = local * 0.18;   // slow orb
+  const bgFar    = isLargeScreen ? local * 0.45 : 0;   // slowest  — far background glows
+  const bgMid    = isLargeScreen ? local * 0.28 : 0;   // medium   — mid-layer rings
+  const phoneY   = isLargeScreen ? local * 0.14 : 0;   // phone vertical drift (upward)
+  const phoneTilt = isLargeScreen ? Math.min(local * 0.015, 6) : 0; // subtle tilt in deg, max 6°
+  const labelY   = isLargeScreen ? local * 0.22 : 0;   // floating label, between bg and phone
+  const orbA     = isLargeScreen ? local * 0.38 : 0;   // fast orb
+  const orbB     = isLargeScreen ? local * 0.18 : 0;   // slow orb
 
   return (
     <section
       id="app-download-section"
-      className="relative overflow-hidden bg-gray-950 min-h-screen flex items-center py-24"
+      className="relative overflow-hidden bg-gray-950 min-h-screen flex items-center py-16 sm:py-24"
       style={{ scrollSnapAlign: 'start' }}
     >
 
@@ -104,8 +115,8 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
       />
 
       {/* ── Content ── */}
-      <div className="relative max-w-5xl mx-auto px-6 lg:px-8 w-full">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="relative max-w-5xl mx-auto px-5 sm:px-6 lg:px-8 w-full">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
           {/* Left: text */}
           <div>
@@ -150,7 +161,7 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
           </div>
 
           {/* Right: phone with parallax + tilt */}
-          <div className="flex justify-center lg:justify-end">
+          <div className="flex justify-center lg:justify-end mt-8 lg:mt-0">
             <div
               className="relative w-52 will-change-transform"
               style={{

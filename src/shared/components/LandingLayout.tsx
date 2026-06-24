@@ -27,11 +27,8 @@ export function LandingLayout({ onBookAppointment }: LandingLayoutProps) {
   return (
     <div
       ref={containerRef}
-      className="overflow-y-scroll"
+      className="w-full h-auto overflow-y-visible lg:h-[calc(100vh-4rem)] lg:overflow-y-scroll lg:snap-y lg:snap-mandatory scroll-smooth"
       style={{
-        height: 'calc(100vh - 4rem)', // 4rem = 16 = h-16 nav height (pt-16 on main)
-        scrollSnapType: 'y mandatory',
-        scrollBehavior: 'smooth',
         scrollbarWidth: 'thin',
         scrollbarColor: 'rgba(242,121,222,0.3) transparent',
       }}
@@ -45,10 +42,15 @@ export function LandingLayout({ onBookAppointment }: LandingLayoutProps) {
       </div>
 
       {/* App Download — snap point 3 */}
-      <AppDownload scrollY={scrollY} sectionOffsetTop={appDownloadOffset} />
-
-      {/* Footer — no snap, natural flow */}
       <div style={{ scrollSnapAlign: 'start' }}>
+        <AppDownload scrollY={scrollY} sectionOffsetTop={appDownloadOffset} />
+      </div>
+
+      {/* Footer — snap point 4
+          min-height must equal the snap-container height (calc(100vh - 4rem))
+          so that scroll-snap-mandatory can actually reach this stop.
+          Content sits at the top; remaining space is transparent dead area. */}
+      <div style={{ scrollSnapAlign: 'start', minHeight: 'calc(100vh - 4rem)' }}>
         <Footer />
       </div>
     </div>

@@ -59,10 +59,12 @@ function App() {
                     const person = await userService.getPersonForUser(currentUser);
                     const userDetail = await userService.getById(currentUser.usuarioId || currentUser.id);
                     
+                    const resolvedDoc = person?.documentId || userDetail?.documento || userDetail?.documentoCliente || userDetail?.documentoEmpleado || prev.documentId || prev.documento;
+                    
                     setCurrentUser(prev => ({
                         ...prev,
-                        documentId: person?.documentId || prev.documentId,
-                        documento: userDetail?.documento || prev.documento,
+                        documentId: resolvedDoc,
+                        documento: resolvedDoc,
                         name: person?.name || prev.name,
                         firstName: person?.name ? person.name.split(' ')[0] : prev.firstName,
                         lastName: person?.name ? person.name.split(' ').slice(1).join(' ') : prev.lastName,

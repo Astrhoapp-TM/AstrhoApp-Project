@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Sparkles, MapPin, ArrowDown } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -8,13 +8,24 @@ interface HeroProps {
 }
 
 export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
-  const bgOffset  = scrollY * 0.4;
-  const imgOffset = scrollY * 0.18;
+  const [isLargeScreen, setIsLargeScreen] = useState(true);
+
+  useEffect(() => {
+    const checkScreen = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+    return () => window.removeEventListener('resize', checkScreen);
+  }, []);
+
+  const bgOffset  = isLargeScreen ? scrollY * 0.4 : 0;
+  const imgOffset = isLargeScreen ? scrollY * 0.18 : 0;
 
   return (
     <section
       id="hero-section"
-      className="relative overflow-hidden bg-white min-h-[calc(100vh-4rem)] flex items-center"
+      className="relative overflow-hidden bg-white min-h-[calc(100vh-4rem)] flex items-center py-12 lg:py-0 px-0"
       style={{ scrollSnapAlign: 'start' }}
     >
       {/* ── Parallax background decorations ── */}
@@ -40,8 +51,8 @@ export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
       </div>
 
       {/* ── Content ── */}
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 w-full">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <div className="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 w-full">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
           {/* Left */}
           <div>
@@ -51,7 +62,7 @@ export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
               <span>Medellín, Antioquia · Cll 55 #42-16</span>
             </div>
 
-            <h1 className="text-5xl lg:text-7xl font-black leading-[1.0] mb-6 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-[1.0] mb-6 tracking-tight">
               <span className="block text-gray-900">Bienvenido a</span>
               <span className="text-gradient-brand">AstrhoApp</span>
             </h1>
@@ -93,26 +104,26 @@ export function Hero({ onBookAppointment, scrollY = 0 }: HeroProps) {
 
           {/* Right — parallax image card */}
           <div
-            className="relative flex justify-center lg:justify-end will-change-transform"
+            className="relative flex justify-center lg:justify-end will-change-transform mt-6 lg:mt-0"
             style={{ transform: `translateY(${-imgOffset}px)` }}
           >
             {/* Soft glow behind card */}
             <div className="absolute inset-4 bg-gradient-brand opacity-10 rounded-3xl blur-2xl" />
 
-            <div className="relative w-full max-w-sm bg-white border border-gray-100 rounded-3xl p-5 shadow-xl shadow-gray-200/80">
+            <div className="relative w-full max-w-sm bg-white border border-gray-100 rounded-3xl p-5 shadow-xl shadow-gray-200/80 mx-6 sm:mx-0">
               <ImageWithFallback
                 src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=500&h=600&fit=crop&crop=center"
                 alt="Astrho - Salón de belleza en Medellín"
-                className="w-full h-80 object-cover rounded-2xl"
+                className="w-full h-64 sm:h-80 object-cover rounded-2xl"
               />
 
-              {/* Floating badge top-right */}
-              <div className="absolute -top-3 -right-3 bg-white border border-gray-100 text-gray-700 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md">
+              {/* Floating badge top-right — clamped inside card on mobile */}
+              <div className="absolute top-2 right-2 sm:-top-3 sm:-right-3 bg-white border border-gray-100 text-gray-700 rounded-2xl px-3 py-2 text-xs font-semibold shadow-md">
                 ✨ Cuidado Premium
               </div>
 
-              {/* Floating badge bottom-left */}
-              <div className="absolute -bottom-3 -left-3 bg-gradient-brand text-white rounded-2xl px-4 py-2.5 shadow-lg">
+              {/* Floating badge bottom-left — clamped inside card on mobile */}
+              <div className="absolute bottom-2 left-2 sm:-bottom-3 sm:-left-3 bg-gradient-brand text-white rounded-2xl px-4 py-2.5 shadow-lg">
                 <div className="text-xs font-bold">Astrid Eugenia Hoyos</div>
                 <div className="text-[10px] opacity-80">Especialista en Belleza</div>
               </div>

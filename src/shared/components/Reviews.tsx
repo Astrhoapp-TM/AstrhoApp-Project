@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Star, Heart, MessageCircle, ThumbsUp, User } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -104,7 +104,7 @@ export function Reviews() {
   };
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-12 sm:py-20 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -116,9 +116,26 @@ export function Reviews() {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Sidebar - Rating Summary */}
-          <div className="lg:col-span-1">
+        {/* On mobile: horizontal service filter strip (replaces sidebar) */}
+        <div className="lg:hidden mb-6 overflow-x-auto flex gap-2 pb-2 -mx-4 px-4">
+          {services.map((service) => (
+            <button
+              key={service}
+              onClick={() => setSelectedService(service)}
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
+                selectedService === service
+                  ? 'bg-gradient-brand text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {service}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Left Sidebar - Rating Summary (desktop only) */}
+          <div className="hidden lg:block lg:col-span-1">
             <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl p-8 sticky top-8">
               <div className="text-center mb-8">
                 <div className="text-5xl font-bold text-gray-800 mb-2">
@@ -274,6 +291,7 @@ export function Reviews() {
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );

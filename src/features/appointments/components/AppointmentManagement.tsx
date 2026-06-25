@@ -168,16 +168,10 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       }
 
       const startAt = toDateTime(a.fechaCita, a.horaInicio);
-      const duration = getAppointmentDurationMinutesFromServices(a.servicios, serviciosDuracionMap);
-      const endAt = new Date(startAt.getTime() + duration * 60_000);
 
-      // Regla 1: toda cita no confirmada se cancela automáticamente al llegar su hora de inicio.
+      // Regla: toda cita no confirmada se cancela automáticamente una vez llegada su hora de inicio.
       const isConfirmed = estado === 'confirmado' || estado === 'confirmed';
       if (!isConfirmed && now >= startAt) return true;
-
-      // Regla 2: si no se completa dentro de 24h posteriores al fin, se cancela.
-      const completeLimit = new Date(endAt.getTime() + 24 * 60 * 60 * 1000);
-      if (now > completeLimit) return true;
 
       return false;
     });
@@ -202,7 +196,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
           fechaCita: apt.fechaCita,
           horaInicio: apt.horaInicio,
           metodoPagoId,
-          observaciones: 'Cancelación automática por reglas de negocio',
+          observaciones: 'Cancelación automática: cita no confirmada al llegar su hora de inicio',
           serviciosIds,
           estadoId: 3 // Cancelado
         });

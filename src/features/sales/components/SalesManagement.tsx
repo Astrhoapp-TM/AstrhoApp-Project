@@ -5,7 +5,7 @@ import {
   CreditCard, TrendingUp, Users, User,
   Ban, FileText, Scissors,
   AlertCircle, Save, Clock, ShoppingBag, Phone, Loader2, Info,
-  Check, ChevronsUpDown, Trash2, Briefcase, RefreshCw
+  Check, ChevronsUpDown, Trash2, Briefcase, RefreshCw, Banknote, ArrowRightLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesService, type SaleView } from '../services/salesService';
@@ -681,27 +681,42 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Método de Pago *</label>
-                    <div className="relative">
-                      <select
-                        value={paymentMethodId}
-                        onChange={(e) => setPaymentMethodId(parseInt(e.target.value))}
-                        className={cn(
-                          "w-full px-4 py-3 bg-gray-50/50 border rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all font-medium text-gray-700 appearance-none shadow-sm",
-                          errors.metodoPago ? 'border-red-300' : 'border-gray-200'
-                        )}
-                      >
-                        <option value={0}>Seleccionar método...</option>
-                        {availablePaymentMethods.map(method => (
-                          <option key={method.metodopagoId} value={method.metodopagoId}>
-                            {method.nombre}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                        <CreditCard className="w-4 h-4 text-brand-pink" />
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-8 h-8 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center">
+                        <CreditCard className="w-4 h-4" />
                       </div>
+                      <label className="text-sm font-bold text-gray-900">Método de Pago *</label>
                     </div>
+
+                    <div className={cn(
+                      "flex bg-gray-100/80 p-1 rounded-xl shadow-inner",
+                      errors.metodoPago ? 'ring-2 ring-red-300' : ''
+                    )}>
+                      {availablePaymentMethods.map(method => {
+                        const isSelected = paymentMethodId === method.metodopagoId;
+                        const isCash = (method.nombre || '').toLowerCase().includes('efectivo') ||
+                                       (method.nombre || '').toLowerCase().includes('cash');
+                        return (
+                          <button
+                            key={method.metodopagoId}
+                            type="button"
+                            onClick={() => setPaymentMethodId(method.metodopagoId)}
+                            className={`flex-1 relative flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-bold text-xs transition-all duration-300 ${
+                              isSelected
+                                ? 'text-brand-indigo shadow-md bg-white scale-[1.02] z-10'
+                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                            }`}
+                          >
+                            {isCash
+                              ? <Banknote className="w-4 h-4 shrink-0" />
+                              : <ArrowRightLeft className="w-4 h-4 shrink-0" />
+                            }
+                            <span className="truncate">{method.nombre}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
                     {errors.metodoPago && (
                       <p className="text-[10px] text-brand-pink mt-1 ml-1">{errors.metodoPago}</p>
                     )}
@@ -982,13 +997,27 @@ function ClientSearchSelect({ onSelect, selectedDocument, error, disabled }: any
   useEffect(() => {
     const fetchClients = async () => {
       if (!searchTerm.trim()) {
-        setSearchResults([]);
+        // Show 3 default clients when field is open and empty
+        setLoading(true);
+        try {
+          const res = await personService.getPersons('client', { pageSize: 3 });
+          const mapped = res.data.map((p: any) => ({
+            documentoCliente: p.documentId,
+            nombre: p.name,
+            telefono: p.phone
+          }));
+          setSearchResults(mapped);
+        } catch {
+          setSearchResults([]);
+        } finally {
+          setLoading(false);
+        }
         return;
       }
       setLoading(true);
       try {
         const res = await personService.getPersons('client', { search: searchTerm, pageSize: 20 });
-        const mapped = res.data.map(p => ({
+        const mapped = res.data.map((p: any) => ({
           documentoCliente: p.documentId,
           nombre: p.name,
           telefono: p.phone
@@ -1003,7 +1032,7 @@ function ClientSearchSelect({ onSelect, selectedDocument, error, disabled }: any
 
     const timer = setTimeout(fetchClients, 300);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -1063,7 +1092,7 @@ function ClientSearchSelect({ onSelect, selectedDocument, error, disabled }: any
               <div className="p-4 text-sm text-gray-500 text-center">Buscando...</div>
             ) : searchResults.length === 0 ? (
               <div className="p-4 text-sm text-gray-500 text-center">
-                {searchTerm ? 'No se encontraron clientes' : 'Escribe para buscar...'}
+                {searchTerm ? 'No se encontraron clientes' : 'Sin resultados'}
               </div>
             ) : (
               searchResults.map((client: any) => (
@@ -1140,13 +1169,27 @@ function ProfessionalSearchSelect({
   useEffect(() => {
     const fetchEmployees = async () => {
       if (!searchTerm.trim()) {
-        setSearchResults([]);
+        // Show 3 default employees when field is open and empty
+        setLoading(true);
+        try {
+          const res = await personService.getPersons('employee', { pageSize: 3 });
+          const mapped = res.data.map((p: any) => ({
+            documentoEmpleado: p.documentId,
+            nombre: p.name,
+            telefono: p.phone
+          }));
+          setSearchResults(mapped);
+        } catch {
+          setSearchResults([]);
+        } finally {
+          setLoading(false);
+        }
         return;
       }
       setLoading(true);
       try {
         const res = await personService.getPersons('employee', { search: searchTerm, pageSize: 20 });
-        const mapped = res.data.map(p => ({
+        const mapped = res.data.map((p: any) => ({
           documentoEmpleado: p.documentId,
           nombre: p.name,
           telefono: p.phone
@@ -1161,7 +1204,7 @@ function ProfessionalSearchSelect({
 
     const timer = setTimeout(fetchEmployees, 300);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -1224,7 +1267,7 @@ function ProfessionalSearchSelect({
               <div className="p-4 text-sm text-gray-500 text-center">Buscando...</div>
             ) : searchResults.length === 0 ? (
               <div className="p-4 text-sm text-gray-500 text-center">
-                {searchTerm ? 'No se encontraron profesionales' : 'Escribe para buscar...'}
+                {searchTerm ? 'No se encontraron profesionales' : 'Sin resultados'}
               </div>
             ) : (
               searchResults.map((emp: any) => {
@@ -1313,12 +1356,21 @@ function ServiceSearchSelect({
   useEffect(() => {
     const fetchServices = async () => {
       if (!searchTerm.trim()) {
-        setSearchResults([]);
+        // Show 3 default services when field is open and empty
+        setLoading(true);
+        try {
+          const res = await serviceService.getServices({ pageSize: 3 });
+          setSearchResults(res.data);
+        } catch {
+          setSearchResults([]);
+        } finally {
+          setLoading(false);
+        }
         return;
       }
       setLoading(true);
       try {
-        const res = await serviceService.getServices({ search: searchTerm, pageSize: 20 });
+        const res = await serviceService.getServices({ search: searchTerm, pageSize: 3 });
         setSearchResults(res.data);
       } catch (err) {
         console.error('Error searching services:', err);
@@ -1329,7 +1381,7 @@ function ServiceSearchSelect({
 
     const timer = setTimeout(fetchServices, 300);
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -1389,7 +1441,7 @@ function ServiceSearchSelect({
               <div className="p-4 text-sm text-gray-500 text-center">Buscando...</div>
             ) : searchResults.length === 0 ? (
               <div className="p-4 text-sm text-gray-500 text-center">
-                {searchTerm ? 'No se encontraron servicios' : 'Escribe para buscar...'}
+                {searchTerm ? 'No se encontraron servicios' : 'Sin resultados'}
               </div>
             ) : (
               searchResults.map((svc) => {

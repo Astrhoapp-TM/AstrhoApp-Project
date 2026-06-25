@@ -73,13 +73,10 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
           }
 
           const startAt = toDateTime(apt.fechaCita, apt.horaInicio);
-          const duration = apt.servicios.reduce((acc, svc) => acc + (serviceDurationMap.get(svc) ?? 30), 0) || 30;
-          const endAt = new Date(startAt.getTime() + duration * 60_000);
-          const completeLimit = new Date(endAt.getTime() + 24 * 60 * 60 * 1000);
           const isConfirmed = estado === 'confirmado' || estado === 'confirmed';
 
+          // Regla: toda cita no confirmada se cancela automáticamente una vez llegada su hora de inicio.
           if (!isConfirmed && now >= startAt) return true;
-          if (now > completeLimit) return true;
           return false;
         });
 
@@ -104,7 +101,7 @@ export function ClientAppointments({ currentUser, onBookNewAppointment, onResche
                 ? (apt.horaFin.length === 5 ? `${apt.horaFin}:00` : apt.horaFin)
                 : apt.horaInicio.length === 5 ? `${apt.horaInicio}:00` : apt.horaInicio,
               metodoPagoId: Number(metodoPagoId),
-              observaciones: apt.observaciones || 'Cancelación automática por reglas de negocio',
+              observaciones: 'Cancelación automática: cita no confirmada al llegar su hora de inicio',
               serviciosIds: serviceIds,
               estadoId: 3
             });

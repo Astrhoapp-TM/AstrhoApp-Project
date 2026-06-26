@@ -679,39 +679,48 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
     }
   };
 
-  const handleSaveAssignment = async (horarioDiaId: number, documentosEmpleado: string[]) => {
+  const handleSaveAssignment = async (
+    horarioDiaId: number,
+    toCreate: string[],
+    toDelete: number[]
+  ) => {
     setSaving(true);
-    showSectionLoading("Asignando personal...");
+    showSectionLoading("Guardando asignaciones...");
     try {
       if (!horarioDiaId || horarioDiaId === 0) {
         throw new Error("ID de día de horario no válido (0 o undefined)");
       }
 
-      const validEmpleados = documentosEmpleado.filter(doc => doc && doc.trim() !== "");
-
-      if (validEmpleados.length === 0) {
-        showAlert('error', 'No se ha seleccionado ningún empleado válido para asignar.');
-        setSaving(false);
-        return;
+      // 1. Process deletions
+      for (const assignmentId of toDelete) {
+        try {
+          await horarioEmpleadoService.delete(assignmentId);
+        } catch (err) {
+          console.error('[ScheduleManagement] Error deleting assignment:', err);
+        }
       }
 
-      const bulkData = {
-        dias: [
-          {
-            horarioDiaId,
-            empleados: validEmpleados
-          }
-        ]
-      };
+      // 2. Process bulk creations
+      const validEmpleados = toCreate.filter(doc => doc && doc.trim() !== "");
+      if (validEmpleados.length > 0) {
+        const bulkData = {
+          dias: [
+            {
+              horarioDiaId,
+              empleados: validEmpleados
+            }
+          ]
+        };
+        console.log('[ScheduleManagement] Enviando asignaciones bulk:', JSON.stringify(bulkData, null, 2));
+        await horarioEmpleadoService.createBulk(bulkData);
+      }
 
-      console.log('[ScheduleManagement] Enviando asignación individual bulk:', JSON.stringify(bulkData, null, 2));
-      await horarioEmpleadoService.createBulk(bulkData);
-      showAlert('success', `${validEmpleados.length} empleado(s) asignado(s) correctamente`);
+      showAlert('success', 'Asignaciones de personal actualizadas correctamente');
       setShowAssignModal(false);
       await loadData();
     } catch (error) {
-      console.error('[ScheduleManagement] Error assigning employees:', error);
-      showAlert('error', error instanceof Error ? error.message : 'Error al asignar el personal');
+      console.error('[ScheduleManagement] Error updating assignments:', error);
+      showAlert('error', error instanceof Error ? error.message : 'Error al guardar las asignaciones');
     } finally {
       setSaving(false);
       hideSectionLoading();
@@ -1109,6 +1118,23 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                         </button>
                       )}
 
+                      {/* Asignar Personal */}
+                      {canManageSchedules && (
+                        <button
+                          onClick={() => handleAssignEmployee(group)}
+                          disabled={!group.estado}
+                          className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            !group.estado
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                              : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                          )}
+                          title={!group.estado ? "No se puede asignar personal a un horario inactivo" : "Asignar personal"}
+                        >
+                          <UserPlus className="w-4 h-4" />
+                        </button>
+                      )}
+
                       {/* Editar */}
                       {canManageSchedules && (
                         <button
@@ -1189,12 +1215,9 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
         <ScheduleModal
           group={selectedGroup}
           horarios={selectedGroup ? getHorariosForGroup(selectedGroup) : []}
-          empleados={empleados}
-          existingAssignments={selectedGroup ? getAssignmentsForGroup(selectedGroup) : []}
           onClose={() => setShowScheduleModal(false)}
-          onSave={handleSaveSchedule}
+          onSave={(nombre, days, groupId) => handleSaveSchedule(nombre, days, [], [], groupId)}
           saving={saving}
-          checkOverlap={checkOverlap}
         />
       )}
 
@@ -1790,94 +1813,36 @@ function MotivoModal({ onClose, onSave, saving, isAdmin, empleados }: MotivoModa
 interface ScheduleModalProps {
   group: ScheduleGroup | null;
   horarios: Horario[];
-  empleados: Empleado[];
-  existingAssignments: HorarioEmpleado[];
   onClose: () => void;
-  onSave: (nombre: string, days: DaySchedule[], assignmentsToCreate: CreateHorarioEmpleadoData[], assignmentsToDelete: number[], groupId?: string) => void;
+  onSave: (nombre: string, days: DaySchedule[], groupId?: string) => void;
   saving: boolean;
-  checkOverlap: (doc: string, dia: string, inicio: string, fin: string, excludeScheduleId?: number) => boolean;
 }
 
-function ScheduleModal({ group, horarios, empleados, existingAssignments, onClose, onSave, saving, checkOverlap }: ScheduleModalProps) {
+function ScheduleModal({ group, horarios, onClose, onSave, saving }: ScheduleModalProps) {
   const [nombre, setNombre] = useState(group?.nombre || '');
 
   // Build initial days state
   const buildInitialDays = (): DaySchedule[] => {
     return DIAS_SEMANA_OPTIONS.map(dia => {
-      // Encontrar el día dentro de la lista de horarios del grupo
       let foundDay: HorarioDia | undefined;
       const normalizedTarget = normalizeDay(dia);
-
       for (const h of horarios) {
         const hDays = extractArray(h);
         foundDay = hDays.find(d => normalizeDay(d.diaSemana) === normalizedTarget);
         if (foundDay) break;
       }
-
-      // También verificar si hay asignaciones para este día, incluso si no se encontró en foundDay
-      // (aunque técnicamente no debería haber asignaciones sin un día de horario)
-      const hasAssignments = existingAssignments.some(a => normalizeDay(a.diaSemana) === normalizedTarget);
-
       return {
         horarioDiaId: foundDay?.horarioDiaId || 0,
         dia,
         horaInicio: foundDay?.horaInicio || '08:00',
         horaFin: foundDay?.horaFin || '18:00',
-        enabled: !!foundDay || hasAssignments
+        enabled: !!foundDay
       };
     });
   };
 
   const [days, setDays] = useState<DaySchedule[]>(buildInitialDays);
   const [validationError, setValidationError] = useState<string | null>(null);
-
-  // Employee assignment state
-  // Prioritize the first enabled day for the initial selection
-  const [selectedDayForAssign, setSelectedDayForAssign] = useState<string>(
-    days.find(d => d.enabled)?.dia || DIAS_SEMANA_OPTIONS[0]
-  );
-
-  // Local pending assignments
-  // We'll store the day name instead of ID to make mapping easier and safer
-  const [pendingCreates, setPendingCreates] = useState<{ documentoEmpleado: string; diaSemana: string }[]>([]);
-  const [pendingDeletes, setPendingDeletes] = useState<number[]>([]);
-
-  // Available employees search and pagination
-  const [availableEmpleadosFromApi, setAvailableEmpleadosFromApi] = useState<Empleado[]>([]);
-  const [totalAvailableRecords, setTotalAvailableRecords] = useState(0);
-  const [loadingAvailable, setLoadingAvailable] = useState(false);
-  const [searchTermAvailable, setSearchTermAvailable] = useState('');
-  const [availablePage, setAvailablePage] = useState(1);
-  const itemsPerPageAvailable = 5;
-
-  // Fetch available employees from API when search or page changes
-  useEffect(() => {
-    const fetchAvailable = async () => {
-      setLoadingAvailable(true);
-      try {
-        const response = await empleadoService.getAll(availablePage, itemsPerPageAvailable, searchTermAvailable);
-
-        setAvailableEmpleadosFromApi(extractArray(response));
-        const total = (data: any) => {
-          if (data && typeof data.totalCount === 'number') return data.totalCount;
-          if (data && typeof data.totalRecords === 'number') return data.totalRecords;
-          return Array.isArray(data) ? data.length : 0;
-        };
-        setTotalAvailableRecords(total(response));
-      } catch (error) {
-        console.error("Error fetching available employees:", error);
-      } finally {
-        setLoadingAvailable(false);
-      }
-    };
-
-    fetchAvailable();
-  }, [availablePage, searchTermAvailable]);
-
-  // Reset page when search changes
-  useEffect(() => {
-    setAvailablePage(1);
-  }, [searchTermAvailable]);
 
   const toggleDay = (dia: string) => {
     setDays(prev => prev.map(d =>
@@ -1899,29 +1864,6 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
     ));
   };
 
-  const handleLocalAssign = (documentoEmpleado: string) => {
-    const foundDay = days.find(d => d.dia === selectedDayForAssign);
-
-    if (foundDay && checkOverlap(documentoEmpleado, foundDay.dia, foundDay.horaInicio, foundDay.horaFin)) {
-      setValidationError(`El empleado ya tiene un horario asignado que se cruza con este día (${foundDay.dia} ${foundDay.horaInicio}-${foundDay.horaFin})`);
-      return;
-    }
-
-    setPendingCreates(prev => [...prev, { documentoEmpleado, diaSemana: selectedDayForAssign }]);
-    setValidationError(null);
-  };
-
-  const handleLocalRemove = (assignmentId: number) => {
-    // If it's an existing assignment, mark for deletion
-    if (existingAssignments.some(a => a.horarioEmpleadoId === assignmentId)) {
-      setPendingDeletes(prev => [...prev, assignmentId]);
-    }
-  };
-
-  const handleLocalRemovePendingCreate = (doc: string, dia: string) => {
-    setPendingCreates(prev => prev.filter(p => !(p.documentoEmpleado === doc && p.diaSemana === dia)));
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setValidationError(null);
@@ -1930,13 +1872,11 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
       setValidationError('El nombre del horario es obligatorio');
       return;
     }
-
     const enabledDays = days.filter(d => d.enabled);
     if (enabledDays.length === 0) {
       setValidationError('Debes seleccionar al menos un día');
       return;
     }
-
     for (const day of enabledDays) {
       if (!day.horaInicio || !day.horaFin) {
         setValidationError(`Las horas son obligatorias para ${day.dia}`);
@@ -1947,51 +1887,10 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
         return;
       }
     }
-
-    // Convert pendingCreates from {doc, dia} to CreateHorarioEmpleadoData format
-    const finalPendingCreates: CreateHorarioEmpleadoData[] = pendingCreates.map(p => {
-      // Find the current ID (might be 0, which handleSaveSchedule will fix)
-      const currentDayId = days.find(d => d.dia === p.diaSemana)?.horarioDiaId || 0;
-      return {
-        horarioId: currentDayId,
-        documentoEmpleado: p.documentoEmpleado,
-        diaSemana: p.diaSemana
-      };
-    });
-
-    onSave(nombre.trim(), days, finalPendingCreates, pendingDeletes, group?.id);
+    onSave(nombre.trim(), days, group?.id);
   };
 
   const enabledCount = days.filter(d => d.enabled).length;
-
-  // Employee helpers combining existing + pending UI state
-
-  // Existing assignments not locally deleted
-  const activeExistingAssignments = existingAssignments.filter(a => !pendingDeletes.includes(a.horarioEmpleadoId));
-
-  // Find the day name for the current selection
-  const normalizedSelected = normalizeDay(selectedDayForAssign);
-  const selectedDayRecord = horarios.flatMap(h => extractArray(h)).find(d => normalizeDay(d.diaSemana) === normalizedSelected);
-  const selectedDayName = normalizeDay(selectedDayRecord?.diaSemana || selectedDayForAssign);
-
-  const existingAssignmentsForDay = activeExistingAssignments.filter(a => normalizeDay(a.diaSemana) === selectedDayName);
-  const pendingAssignmentsForDay = pendingCreates.filter(p => p.diaSemana === selectedDayForAssign);
-
-  const assignedDocsForDay = [
-    ...existingAssignmentsForDay.map(a => a.documentoEmpleado),
-    ...pendingAssignmentsForDay.map(p => p.documentoEmpleado)
-  ];
-
-  const availableEmpleados = availableEmpleadosFromApi.filter(
-    e => e.estado && !assignedDocsForDay.includes(e.documentoEmpleado)
-  );
-
-  const totalAvailablePages = Math.ceil(totalAvailableRecords / itemsPerPageAvailable);
-  const paginatedAvailable = availableEmpleados; // Already paginated from API
-
-  useEffect(() => {
-    setAvailablePage(1);
-  }, [searchTermAvailable, selectedDayForAssign]);
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -2007,7 +1906,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
                 <h3 className="text-xl font-bold leading-tight">
                   {group ? 'Editar Horario' : 'Registrar Nuevo Horario'}
                 </h3>
-                <p className="text-pink-100 text-xs font-medium">Configura los días, horas y personal del salón</p>
+                <p className="text-pink-100 text-xs font-medium">Configura los días y horas del horario</p>
               </div>
             </div>
             <button
@@ -2026,8 +1925,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
           `}</style>
 
-          <form id="schedule-form" onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
-            {/* Validation error */}
+          <form id="schedule-form" onSubmit={handleSubmit} className="space-y-6">
             {validationError && (
               <div className="bg-gray-50 border border-red-100 text-brand-pink px-4 py-3 rounded-2xl flex items-center space-x-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
@@ -2035,277 +1933,94 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
               </div>
             )}
 
-            <div className="grid lg:grid-cols-2 gap-6">
-              {/* Left Column: Schedule Identity & Days */}
-              <div className="space-y-6">
-                {/* Name Card */}
-                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                  <div className="flex items-center space-x-2 text-brand-violet mb-4">
-                    <FileText className="w-4 h-4" />
-                    <h4 className="font-bold text-[10px] tracking-widest">Identidad del Horario</h4>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Nombre del Horario *</label>
-                    <input
-                      type="text"
-                      value={nombre}
-                      onChange={(e) => setNombre(e.target.value)}
-                      placeholder="Ej: Turno Matutino"
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
-                      required
-                    />
-                  </div>
+            {/* Name Card */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+              <div className="flex items-center space-x-2 text-brand-violet mb-4">
+                <FileText className="w-4 h-4" />
+                <h4 className="font-bold text-[10px] tracking-widest">Identidad del Horario</h4>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Nombre del Horario *</label>
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Ej: Turno Matutino"
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo transition-all text-sm font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Days Config Card */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2 text-brand-pink">
+                  <Calendar className="w-4 h-4" />
+                  <h4 className="font-bold text-[10px] tracking-widest">Configuración de Días</h4>
                 </div>
-
-                {/* Days Config Card */}
-                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2 text-brand-pink">
-                      <Calendar className="w-4 h-4" />
-                      <h4 className="font-bold text-[10px] tracking-widest">Configuración de Días</h4>
-                    </div>
-                    {enabledCount > 1 && (
-                      <button
-                        type="button"
-                        onClick={applyToAllEnabled}
-                        className="text-[9px] font-black tracking-widest text-brand-indigo hover:text-brand-indigo transition-colors flex items-center space-x-1"
-                      >
-                        <Copy className="w-3 h-3" />
-                        <span>Copiar a todos</span>
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="mb-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
-                    <p className="text-[10px] text-blue-700 leading-relaxed">
-                      Este horario es <span className="font-bold">recurrente</span>. Los días seleccionados se repiten semanalmente durante todo el año.
-                    </p>
-                  </div>
-
-                  {/* Day selection grid */}
-                  <div className="grid grid-cols-4 gap-2 mb-6">
-                    {days.map(day => (
-                      <button
-                        key={day.dia}
-                        type="button"
-                        onClick={() => toggleDay(day.dia)}
-                        className={`py-2 px-1 rounded-lg text-[10px] font-black tracking-tighter transition-all border ${day.enabled
-                          ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
-                          : 'bg-white border-gray-100 text-gray-400 hover:border-purple-200'
-                          }`}
-                      >
-                        {day.dia.substring(0, 3)}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Hours inputs */}
-                  <div className="space-y-3">
-                    {days.filter(d => d.enabled).map(day => (
-                      <div key={day.dia} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100 group transition-colors hover:bg-white hover:border-purple-100">
-                        <div className="w-8 font-black text-[10px] text-gray-400">{day.dia.substring(0, 3)}</div>
-                        <div className="flex-1 grid grid-cols-2 gap-2">
-                          <input
-                            type="time"
-                            value={day.horaInicio}
-                            onChange={(e) => updateDayTime(day.dia, 'horaInicio', e.target.value)}
-                            className="px-2 py-1.5 bg-white border border-gray-100 rounded-lg text-xs font-bold focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo outline-none"
-                          />
-                          <input
-                            type="time"
-                            value={day.horaFin}
-                            onChange={(e) => updateDayTime(day.dia, 'horaFin', e.target.value)}
-                            className="px-2 py-1.5 bg-white border border-gray-100 rounded-lg text-xs font-bold focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo outline-none"
-                          />
-                        </div>
-                      </div>
-                    ))}
-
-                    {enabledCount === 0 && (
-                      <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-2xl">
-                        <Calendar className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                        <p className="text-[10px] font-bold text-gray-400 tracking-widest">Selecciona días para configurar</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {enabledCount > 1 && (
+                  <button
+                    type="button"
+                    onClick={applyToAllEnabled}
+                    className="text-[9px] font-black tracking-widest text-brand-indigo hover:text-brand-indigo transition-colors flex items-center space-x-1"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>Copiar a todos</span>
+                  </button>
+                )}
               </div>
 
-              {/* Right Column: Personnel Assignment */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col h-full overflow-hidden">
-                  <div className="p-5 border-b border-gray-100 bg-gray-50/50">
-                    <div className="flex items-center space-x-2 text-blue-500 mb-4">
-                      <Users className="w-4 h-4" />
-                      <h4 className="font-bold text-[10px] tracking-widest">Asignación de Personal</h4>
+              <div className="mb-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                <p className="text-[10px] text-blue-700 leading-relaxed">
+                  Este horario es <span className="font-bold">recurrente</span>. Los días seleccionados se repiten semanalmente durante todo el año.
+                </p>
+              </div>
+
+              {/* Day selection grid */}
+              <div className="grid grid-cols-4 gap-2 mb-6">
+                {days.map(day => (
+                  <button
+                    key={day.dia}
+                    type="button"
+                    onClick={() => toggleDay(day.dia)}
+                    className={`py-2 px-1 rounded-lg text-[10px] font-black tracking-tighter transition-all border ${day.enabled
+                      ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
+                      : 'bg-white border-gray-100 text-gray-400 hover:border-purple-200'
+                    }`}
+                  >
+                    {day.dia.substring(0, 3)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Hours inputs */}
+              <div className="space-y-3">
+                {days.filter(d => d.enabled).map(day => (
+                  <div key={day.dia} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-100 group transition-colors hover:bg-white hover:border-purple-100">
+                    <div className="w-8 font-black text-[10px] text-gray-400">{day.dia.substring(0, 3)}</div>
+                    <div className="flex-1 grid grid-cols-2 gap-2">
+                      <input
+                        type="time"
+                        value={day.horaInicio}
+                        onChange={(e) => updateDayTime(day.dia, 'horaInicio', e.target.value)}
+                        className="px-2 py-1.5 bg-white border border-gray-100 rounded-lg text-xs font-bold focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo outline-none"
+                      />
+                      <input
+                        type="time"
+                        value={day.horaFin}
+                        onChange={(e) => updateDayTime(day.dia, 'horaFin', e.target.value)}
+                        className="px-2 py-1.5 bg-white border border-gray-100 rounded-lg text-xs font-bold focus:ring-2 focus:ring-brand-periwinkle/30 focus:border-brand-indigo outline-none"
+                      />
                     </div>
-
-                    {!group ? (
-                      <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl">
-                        <p className="text-[10px] text-amber-700 font-bold tracking-wider leading-relaxed">
-                          La asignación de personal estará disponible una vez registrado el horario.
-                        </p>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Day selector for assignment */}
-                        <div className="mb-4">
-                          <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-2">Ver personal por día:</label>
-                          <div className="flex flex-wrap gap-1.5">
-                            {days.filter(d => d.enabled).map(d => (
-                              <button
-                                key={d.dia}
-                                type="button"
-                                onClick={() => setSelectedDayForAssign(d.dia)}
-                                className={`px-2.5 py-1.5 rounded-lg text-[9px] font-black tracking-wider transition-all border ${selectedDayForAssign === d.dia
-                                  ? 'bg-blue-500 border-blue-500 text-white shadow-sm'
-                                  : 'bg-white border-gray-100 text-gray-400 hover:border-blue-200'
-                                  }`}
-                              >
-                                {d.dia.substring(0, 3)}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* List of currently assigned */}
-                        <div className="space-y-2 mb-4">
-                          <label className="block text-[10px] font-black text-gray-400 tracking-widest">Personal Asignado ({existingAssignmentsForDay.length + pendingAssignmentsForDay.length})</label>
-                          <div className="flex flex-wrap gap-2">
-                            {existingAssignmentsForDay.map(a => (
-                              <div key={a.horarioEmpleadoId} className="flex items-center space-x-2 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg border border-blue-100 group">
-                                <span className="text-[10px] font-bold">{a.empleadoNombre || a.documentoEmpleado}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleLocalRemove(a.horarioEmpleadoId)}
-                                  className="text-blue-300 hover:text-brand-pink transition-colors"
-                                >
-                                  <UserMinus className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ))}
-                            {pendingAssignmentsForDay.map(p => {
-                              const empName = empleados.find(e => e.documentoEmpleado === p.documentoEmpleado)?.nombre || p.documentoEmpleado;
-                              return (
-                                <div key={`pending-${p.documentoEmpleado}-${p.diaSemana}`} className="flex items-center space-x-2 px-2 py-1 bg-green-50 text-green-700 rounded-lg border border-green-100 animate-pulse">
-                                  <span className="text-[10px] font-bold">{empName} (NUEVO)</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleLocalRemovePendingCreate(p.documentoEmpleado, p.diaSemana)}
-                                    className="text-green-300 hover:text-brand-pink transition-colors"
-                                  >
-                                    <UserMinus className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Available personnel list */}
-                        <div className="flex-1 overflow-hidden flex flex-col">
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="block text-[10px] font-black text-gray-400 tracking-widest">Personal Disponible ({totalAvailableRecords})</label>
-                            <div className="relative">
-                              <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                              <input
-                                type="text"
-                                value={searchTermAvailable}
-                                onChange={(e) => setSearchTermAvailable(e.target.value)}
-                                placeholder="Buscar..."
-                                className="pl-8 pr-3 py-1.5 bg-white border border-gray-100 rounded-lg text-[9px] font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-40 transition-all"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-2 overflow-y-auto max-h-[300px] pr-2 no-scrollbar flex-1">
-                            {loadingAvailable ? (
-                              <div className="flex items-center justify-center py-8">
-                                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                              </div>
-                            ) : paginatedAvailable.length > 0 ? (
-                              paginatedAvailable.map(emp => {
-                                const currentDay = days.find(d => d.dia === selectedDayForAssign);
-                                const isOverlapping = currentDay ? checkOverlap(
-                                  emp.documentoEmpleado,
-                                  currentDay.dia,
-                                  currentDay.horaInicio,
-                                  currentDay.horaFin
-                                ) : false;
-
-                                return (
-                                  <div
-                                    key={emp.documentoEmpleado}
-                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isOverlapping
-                                      ? 'bg-gray-50 border-red-100 opacity-60'
-                                      : 'bg-white border-gray-100 hover:border-blue-200 hover:shadow-sm'
-                                      }`}
-                                  >
-                                    <div className="flex items-center space-x-3">
-                                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs ${isOverlapping ? 'bg-red-400' : 'bg-gradient-to-br from-blue-400 to-indigo-500'
-                                        }`}>
-                                        {(emp.nombre || 'E').charAt(0)}
-                                      </div>
-                                      <div>
-                                        <p className="text-[11px] font-bold text-gray-700 leading-none">{emp.nombre}</p>
-                                        <p className="text-[9px] font-medium text-gray-400 mt-1">
-                                          {isOverlapping ? '⚠️ Solapamiento de horario' : `Doc: ${emp.documentoEmpleado}`}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    {!isOverlapping && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleLocalAssign(emp.documentoEmpleado)}
-                                        className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                                      >
-                                        <UserPlus className="w-4 h-4" />
-                                      </button>
-                                    )}
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              <div className="text-center py-8">
-                                <Users className="w-8 h-8 text-gray-100 mx-auto mb-2" />
-                                <p className="text-[10px] font-bold text-gray-300 tracking-widest">
-                                  {searchTermAvailable ? 'No se encontraron resultados' : 'Sin personal disponible'}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Mini Pagination for Available Personnel */}
-                          {totalAvailablePages > 1 && (
-                            <div className="flex items-center justify-between mt-4 px-1">
-                              <p className="text-[9px] font-bold text-gray-400 tracking-widest">
-                                Página {availablePage} de {totalAvailablePages}
-                              </p>
-                              <div className="flex items-center space-x-1">
-                                <button
-                                  type="button"
-                                  onClick={() => setAvailablePage(p => Math.max(1, p - 1))}
-                                  disabled={availablePage === 1}
-                                  className="p-1.5 bg-white border border-gray-100 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all"
-                                >
-                                  <ChevronLeft className="w-3 h-3" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setAvailablePage(p => Math.min(totalAvailablePages, p + 1))}
-                                  disabled={availablePage === totalAvailablePages}
-                                  className="p-1.5 bg-white border border-gray-100 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all"
-                                >
-                                  <ChevronRight className="w-3 h-3" />
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
                   </div>
-                </div>
+                ))}
+                {enabledCount === 0 && (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-2xl">
+                    <Calendar className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                    <p className="text-[10px] font-bold text-gray-400 tracking-widest">Selecciona días para configurar</p>
+                  </div>
+                )}
               </div>
             </div>
           </form>
@@ -2320,7 +2035,7 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
+              className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
             >
               Cancelar
             </button>
@@ -2328,9 +2043,9 @@ function ScheduleModal({ group, horarios, empleados, existingAssignments, onClos
               type="submit"
               form="schedule-form"
               disabled={saving}
-              className="px-8 py-2.5 bg-gradient-brand text-white rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center space-x-2"
+              className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
             >
-              {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
               <span>{group ? 'Actualizar' : 'Registrar'}</span>
             </button>
           </div>
@@ -2600,7 +2315,7 @@ interface AssignEmployeeModalProps {
   empleados: Empleado[];
   existingAssignments: HorarioEmpleado[];
   onClose: () => void;
-  onSave: (horarioId: number, documentosEmpleado: string[]) => void;
+  onSave: (horarioDiaId: number, toCreate: string[], toDelete: number[]) => void;
   saving: boolean;
   checkOverlap: (doc: string, dia: string, inicio: string, fin: string, excludeScheduleId?: number) => boolean;
 }
@@ -2618,6 +2333,30 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
   const [searchTermAvailable, setSearchTermAvailable] = useState('');
   const [availablePage, setAvailablePage] = useState(1);
   const itemsPerPageAvailable = 5;
+
+  const selectedDayRecord = React.useMemo(() => {
+    return horarios.flatMap(h => extractArray(h)).find(d => d.horarioDiaId === selectedDayId);
+  }, [horarios, selectedDayId]);
+
+  const selectedDayName = React.useMemo(() => {
+    return normalizeDay(selectedDayRecord?.diaSemana);
+  }, [selectedDayRecord]);
+
+  const currentHorarioId = React.useMemo(() => {
+    return horarios.find(h => extractArray(h).some(d => d.horarioDiaId === selectedDayId))?.horarioId;
+  }, [horarios, selectedDayId]);
+
+  // Whenever selectedDayId changes, initialize the selected employees
+  useEffect(() => {
+    if (selectedDayId && selectedDayName) {
+      const alreadyAssigned = existingAssignments
+        .filter(a => normalizeDay(a.diaSemana) === selectedDayName && a.documentoEmpleado)
+        .map(a => a.documentoEmpleado as string);
+      setSelectedEmpleados(alreadyAssigned);
+    } else {
+      setSelectedEmpleados([]);
+    }
+  }, [selectedDayId, selectedDayName, existingAssignments]);
 
   // Fetch available employees from API when search or page changes
   useEffect(() => {
@@ -2680,24 +2419,30 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedEmpleados.length === 0 || !selectedDayId) return;
+    if (!selectedDayId || !selectedDayName) return;
 
-    onSave(selectedDayId, selectedEmpleados);
+    const initialAssignedDocs = existingAssignments
+      .filter(a => normalizeDay(a.diaSemana) === selectedDayName && a.documentoEmpleado)
+      .map(a => a.documentoEmpleado as string);
+
+    const toCreate = selectedEmpleados.filter(doc => !initialAssignedDocs.includes(doc));
+    const toDelete = existingAssignments
+      .filter(a => normalizeDay(a.diaSemana) === selectedDayName && a.documentoEmpleado && !selectedEmpleados.includes(a.documentoEmpleado))
+      .map(a => a.horarioEmpleadoId);
+
+    onSave(selectedDayId, toCreate, toDelete);
   };
 
-  const selectedDayRecord = horarios.flatMap(h => extractArray(h.dias)).find(d => d.horarioDiaId === selectedDayId);
-  const selectedDayName = normalizeDay(selectedDayRecord?.diaSemana);
-
-  const assignedDocsForDay = existingAssignments
-    .filter(a => normalizeDay(a.diaSemana) === selectedDayName)
-    .map(a => a.documentoEmpleado);
-
   const availableEmpleados = availableEmpleadosFromApi.filter(
-    e => e.estado && !assignedDocsForDay.includes(e.documentoEmpleado)
+    e => e.estado
+  );
+
+  const unassignedEmpleados = availableEmpleados.filter(
+    e => !selectedEmpleados.includes(e.documentoEmpleado)
   );
 
   const totalAvailablePages = Math.ceil(totalAvailableRecords / itemsPerPageAvailable);
-  const paginatedAvailable = availableEmpleados; // Already paginated from API
+  const paginatedAvailable = unassignedEmpleados; // Filtered to only show unassigned ones
 
   useEffect(() => {
     setAvailablePage(1);
@@ -2705,9 +2450,9 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-5 text-white shrink-0 shadow-md">
+        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm shadow-inner">
@@ -2727,179 +2472,245 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          {/* Day selector for assignment */}
-          <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <div className="flex items-center space-x-2 text-brand-violet mb-4">
-              <Calendar className="w-4 h-4" />
-              <h4 className="font-bold text-[10px] tracking-widest">Seleccionar Día</h4>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {horarios.flatMap(h => extractArray(h).map(d => (
-                <button
-                  key={d.horarioDiaId}
-                  type="button"
-                  onClick={() => { setSelectedDayId(d.horarioDiaId!); setSelectedEmpleados([]); }}
-                  className={`px-3 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all border ${selectedDayId === d.horarioDiaId
-                    ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
-                    : 'bg-white border-gray-100 text-gray-400 hover:border-purple-200'
-                    }`}
-                >
-                  {d.diaSemana?.substring(0, 3) || '---'}
-                </button>
-              )))}
-            </div>
-          </div>
+        {/* Scrollable Body */}
+        <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50/30 no-scrollbar">
+          <style>{`
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          `}</style>
 
-          <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2 text-blue-500">
-                <Users className="w-4 h-4" />
-                <h4 className="font-bold text-[10px] tracking-widest">Seleccionar Personal ({totalAvailableRecords})</h4>
-              </div>
-              <div className="relative">
-                <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTermAvailable}
-                  onChange={(e) => setSearchTermAvailable(e.target.value)}
-                  placeholder="Buscar..."
-                  className="pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-40 transition-all"
-                />
-              </div>
-            </div>
-
-            {loadingAvailable ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-brand-violet" />
-              </div>
-            ) : paginatedAvailable.length > 0 ? (
-              <div className="space-y-2 max-h-60 overflow-y-auto pr-2 no-scrollbar">
-                {paginatedAvailable.map(emp => {
-                  // Find the specific day for overlap check
-                  let foundDay: HorarioDia | undefined;
-                  for (const h of horarios) {
-                    const days = extractArray(h);
-                    foundDay = days.find(d => d.horarioDiaId === selectedDayId);
-                    if (foundDay) break;
-                  }
-
-                  const isOverlapping = foundDay ? checkOverlap(emp.documentoEmpleado, foundDay.diaSemana || '', foundDay.horaInicio || '', foundDay.horaFin || '') : false;
-
-                  return (
-                    <label
-                      key={emp.documentoEmpleado}
-                      className={`flex items-center space-x-3 p-3 rounded-xl border transition-all cursor-pointer group ${isOverlapping
-                        ? 'opacity-50 cursor-not-allowed bg-gray-50 border-red-100'
-                        : selectedEmpleados.includes(emp.documentoEmpleado)
-                          ? 'border-purple-500 bg-gray-50 shadow-sm'
-                          : 'border-gray-100 hover:border-purple-200 hover:bg-gray-50'
+          <form id="assign-form" onSubmit={handleSubmit} className="space-y-6">
+            {/* FILA 1: Dos columnas (Días a la izquierda, Asignados a la derecha) */}
+            <div className="grid md:grid-cols-2 gap-6">
+              
+              {/* Columna Izquierda: Selección de Días con hora inicio y fin */}
+              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col h-[280px]">
+                <div className="flex items-center space-x-2 text-brand-violet mb-4 shrink-0">
+                  <Calendar className="w-4 h-4" />
+                  <h4 className="font-bold text-[10px] tracking-widest uppercase">Días y Horarios</h4>
+                </div>
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 no-scrollbar">
+                  {horarios.flatMap(h => extractArray(h).map(d => {
+                    const isSelected = selectedDayId === d.horarioDiaId;
+                    return (
+                      <button
+                        key={d.horarioDiaId}
+                        type="button"
+                        onClick={() => { setSelectedDayId(d.horarioDiaId!); }}
+                        className={`p-3 rounded-xl text-left transition-all border w-full flex flex-col hover:border-purple-300 hover:shadow-sm ${
+                          isSelected
+                            ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
+                            : 'bg-white border-gray-100 text-gray-500'
                         }`}
-                    >
-                      <div className="relative flex items-center justify-center">
-                        <input
-                          type="checkbox"
-                          name="empleado"
-                          value={emp.documentoEmpleado}
-                          checked={selectedEmpleados.includes(emp.documentoEmpleado)}
-                          onChange={() => !isOverlapping && toggleEmpleado(emp.documentoEmpleado)}
-                          disabled={isOverlapping}
-                          className="sr-only"
-                        />
-                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${selectedEmpleados.includes(emp.documentoEmpleado)
-                          ? 'border-purple-600 bg-purple-600'
-                          : 'border-gray-300'
-                          }`}>
-                          {selectedEmpleados.includes(emp.documentoEmpleado) && (
-                            <CheckCircle className="w-3.5 h-3.5 text-white" />
-                          )}
-                        </div>
-                      </div>
-
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm ${isOverlapping ? 'bg-red-400' : 'bg-gradient-to-br from-blue-400 to-indigo-500'
+                      >
+                        <span className="text-xs font-black tracking-wider uppercase">{d.diaSemana}</span>
+                        <span className={`text-[10px] font-bold mt-1 ${
+                          isSelected ? 'text-purple-100' : 'text-gray-400'
                         }`}>
-                        {(emp.nombre || 'E').charAt(0)}
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="text-[11px] font-bold text-gray-700 leading-none">{emp.nombre}</div>
-                        <div className="text-[9px] font-medium text-gray-400 mt-1 tracking-wider">
-                          {isOverlapping ? (
-                            <span className="text-brand-pink flex items-center">
-                              <AlertCircle className="w-3 h-3 mr-1" />
-                              Ocupado en este horario
-                            </span>
-                          ) : (
-                            `Doc: ${emp.documentoEmpleado}`
-                          )}
-                        </div>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Users className="w-10 h-10 text-gray-100 mx-auto mb-2" />
-                <p className="text-[10px] font-bold text-gray-300 tracking-widest leading-relaxed">
-                  {searchTermAvailable ? 'No se encontraron resultados' : 'No hay personal disponible para este horario'}
-                </p>
-              </div>
-            )}
-
-            {/* Mini Pagination for Available Personnel */}
-            {totalAvailablePages > 1 && (
-              <div className="flex items-center justify-between mt-4 px-1">
-                <p className="text-[9px] font-bold text-gray-400 tracking-widest">
-                  Página {availablePage} de {totalAvailablePages}
-                </p>
-                <div className="flex items-center space-x-1">
-                  <button
-                    type="button"
-                    onClick={() => setAvailablePage(p => Math.max(1, p - 1))}
-                    disabled={availablePage === 1}
-                    className="p-1.5 bg-white border border-gray-100 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all"
-                  >
-                    <ChevronLeft className="w-3 h-3" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAvailablePage(p => Math.min(totalAvailablePages, p + 1))}
-                    disabled={availablePage === totalAvailablePages}
-                    className="p-1.5 bg-white border border-gray-100 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all"
-                  >
-                    <ChevronRight className="w-3 h-3" />
-                  </button>
+                          {d.horaInicio ? formatTo12Hour(d.horaInicio.substring(0, 5)) : '--:--'} - {d.horaFin ? formatTo12Hour(d.horaFin.substring(0, 5)) : '--:--'}
+                        </span>
+                      </button>
+                    );
+                  }))}
                 </div>
               </div>
-            )}
-          </div>
 
-          <div className="flex space-x-3 pt-2">
+              {/* Columna Derecha: Personal Asignado */}
+              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col h-[280px]">
+                <div className="flex items-center space-x-2 text-blue-500 mb-4 shrink-0">
+                  <Users className="w-4 h-4" />
+                  <h4 className="font-bold text-[10px] tracking-widest uppercase">Personal Asignado ({selectedEmpleados.length})</h4>
+                </div>
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 no-scrollbar">
+                  {selectedEmpleados.length > 0 ? (
+                    selectedEmpleados.map(doc => {
+                      const emp = empleados.find(e => e.documentoEmpleado === doc);
+                      const name = emp?.nombre || doc;
+                      return (
+                        <div
+                          key={doc}
+                          className="flex items-center justify-between p-2.5 bg-blue-50/50 border border-blue-100 rounded-xl hover:border-red-200 transition-colors group"
+                        >
+                          <div className="flex items-center space-x-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center font-bold text-white text-xs">
+                              {name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="text-[11px] font-bold text-gray-700 leading-none">{name}</p>
+                              <p className="text-[9px] font-medium text-gray-400 mt-1">Doc: {doc}</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => toggleEmpleado(doc)}
+                            className="p-1.5 text-blue-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                            title="Desasignar"
+                          >
+                            <UserMinus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center">
+                      <Users className="w-8 h-8 text-gray-200 mb-2" />
+                      <p className="text-[10px] font-bold text-gray-400 tracking-widest leading-relaxed">
+                        Ningún empleado asignado para este día
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+
+            {/* FILA 2: Empleados Disponibles */}
+            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-col">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 shrink-0">
+                <div className="flex items-center space-x-2 text-green-600">
+                  <UserPlus className="w-4 h-4" />
+                  <h4 className="font-bold text-[10px] tracking-widest uppercase">Personal Disponible para Asignar ({unassignedEmpleados.length})</h4>
+                </div>
+                <div className="relative">
+                  <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchTermAvailable}
+                    onChange={(e) => setSearchTermAvailable(e.target.value)}
+                    placeholder="Buscar..."
+                    className="pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-[9px] font-bold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none w-40 transition-all"
+                  />
+                </div>
+              </div>
+
+              {loadingAvailable ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin text-brand-violet" />
+                </div>
+              ) : unassignedEmpleados.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1 no-scrollbar">
+                  {unassignedEmpleados.map(emp => {
+                    // Find the specific day for overlap check
+                    let foundDay: HorarioDia | undefined;
+                    for (const h of horarios) {
+                      const days = extractArray(h);
+                      foundDay = days.find(d => d.horarioDiaId === selectedDayId);
+                      if (foundDay) break;
+                    }
+
+                    const isOverlapping = foundDay ? checkOverlap(emp.documentoEmpleado, foundDay.diaSemana || '', foundDay.horaInicio || '', foundDay.horaFin || '', currentHorarioId) : false;
+
+                    return (
+                      <div
+                        key={emp.documentoEmpleado}
+                        className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                          isOverlapping
+                            ? 'opacity-50 bg-gray-50 border-red-100'
+                            : 'border-gray-100 hover:border-purple-200 hover:bg-gray-50/50'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs ${
+                            isOverlapping ? 'bg-red-400' : 'bg-gradient-to-br from-green-400 to-emerald-500'
+                          }`}>
+                            {(emp.nombre || 'E').charAt(0)}
+                          </div>
+                          <div>
+                            <div className="text-[11px] font-bold text-gray-700 leading-none">{emp.nombre}</div>
+                            <div className="text-[9px] font-medium text-gray-400 mt-1 tracking-wider">
+                              {isOverlapping ? (
+                                <span className="text-brand-pink flex items-center">
+                                  <AlertCircle className="w-3 h-3 mr-1" />
+                                  Ocupado en este horario
+                                </span>
+                              ) : (
+                                `Doc: ${emp.documentoEmpleado}`
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {!isOverlapping && (
+                          <button
+                            type="button"
+                            onClick={() => toggleEmpleado(emp.documentoEmpleado)}
+                            className="p-1.5 bg-green-50 text-green-600 hover:bg-green-600 hover:text-white rounded-lg transition-all"
+                            title="Asignar"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="w-8 h-8 text-gray-100 mx-auto mb-2" />
+                  <p className="text-[10px] font-bold text-gray-300 tracking-widest leading-relaxed">
+                    {searchTermAvailable ? 'No se encontraron resultados' : 'No hay personal disponible para este día'}
+                  </p>
+                </div>
+              )}
+
+              {/* Mini Pagination for Available Personnel */}
+              {totalAvailablePages > 1 && (
+                <div className="flex items-center justify-between mt-4 px-1">
+                  <p className="text-[9px] font-bold text-gray-400 tracking-widest">
+                    Página {availablePage} de {totalAvailablePages}
+                  </p>
+                  <div className="flex items-center space-x-1">
+                    <button
+                      type="button"
+                      onClick={() => setAvailablePage(p => Math.max(1, p - 1))}
+                      disabled={availablePage === 1}
+                      className="p-1.5 bg-white border border-gray-100 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all"
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAvailablePage(p => Math.min(totalAvailablePages, p + 1))}
+                      disabled={availablePage === totalAvailablePages}
+                      className="p-1.5 bg-white border border-gray-100 rounded-lg text-gray-400 hover:bg-gray-50 disabled:opacity-30 transition-all"
+                    >
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 bg-white border-t border-gray-100 flex items-center justify-between shrink-0 z-20">
+          <p className="text-[10px] font-bold text-gray-400 tracking-widest">
+            * Selecciona el personal para este día
+          </p>
+          <div className="flex space-x-3">
             <button
               type="button"
               onClick={onClose}
-              disabled={saving}
-              className="flex-1 px-6 py-3 rounded-xl font-black text-gray-400 hover:bg-gray-100 transition-all text-[10px] tracking-widest"
+              className="px-8 py-2.5 rounded-xl font-black text-gray-500 hover:bg-gray-200 hover:text-gray-800 active:scale-95 transition-all text-sm tracking-widest shadow-sm"
             >
               Cancelar
             </button>
-            {availableEmpleados.length > 0 && (
-              <button
-                type="submit"
-                disabled={saving || selectedEmpleados.length === 0}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-black text-[10px] tracking-widest hover:shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
-              >
-                {saving ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <UserPlus className="w-3.5 h-3.5" />
-                )}
-                <span>Asignar {selectedEmpleados.length > 0 ? `(${selectedEmpleados.length})` : ''}</span>
-              </button>
-            )}
+            <button
+              type="submit"
+              form="assign-form"
+              disabled={saving}
+              className="px-8 py-2.5 rounded-xl font-black text-white bg-gradient-brand active:scale-95 transition-all text-sm tracking-widest shadow-lg hover:shadow-pink-200 disabled:opacity-50 flex items-center space-x-2"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle className="w-4 h-4 text-white" />
+              )}
+              <span>Guardar</span>
+            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

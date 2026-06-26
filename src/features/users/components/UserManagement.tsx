@@ -13,6 +13,8 @@ import { agendaService } from '@/features/appointments/services/agendaService';
 import { salesService } from '@/features/sales/services/salesService';
 import { roleService, type RolListDto } from '@/features/roles/services/roleService';
 import { apiClient } from '@/shared/services/apiClient';
+import { horarioEmpleadoService } from '@/features/schedule/services/scheduleService';
+import { personService } from '@/features/persons/services/personService';
 import { useLoading } from '@/shared/contexts/LoadingContext';
 import { SectionLoader } from '@/shared/components/GlobalLoader';
 
@@ -350,9 +352,22 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         if (needsClient && existingEmployee) {
           const empDocId = existingEmployee.documentoEmpleado;
           try {
-            const assignments = await horarioEmpleadoService.getByEmpleado(empDocId);
-            const list = Array.isArray(assignments) ? assignments
-              : (assignments as any)?.$values ?? (assignments as any)?.data ?? [];
+            // Try fetching assignments by employee endpoint
+            let list: any[] = [];
+            try {
+              const assignments = await horarioEmpleadoService.getByEmpleado(empDocId);
+              list = Array.isArray(assignments) ? assignments
+                : (assignments as any)?.$values ?? (assignments as any)?.data ?? [];
+            } catch {
+              // Fallback: scan all assignments and filter by documentoEmpleado
+              const all = await horarioEmpleadoService.getAll().catch(() => []);
+              const allArr = Array.isArray(all) ? all
+                : (all as any)?.$values ?? (all as any)?.data ?? [];
+              list = allArr.filter((a: any) =>
+                String(a.documentoEmpleado) === String(empDocId)
+              );
+            }
+
             await Promise.all(
               list.map((a: any) =>
                 horarioEmpleadoService.delete(a.horarioEmpleadoId).catch(() => {})
@@ -434,6 +449,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
           direccionEmpleado: userData.direccion || '',
           'dirección': userData.direccion || '',
           'direcciónEmpleado': userData.direccion || '',
+          agendable: userData.agendable !== undefined ? userData.agendable : true,
         });
       }
 
@@ -952,8 +968,18 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
   const isEditingSuperAdmin = user && (user.rol?.nombre || user.rolNombre || '').toLowerCase() === 'super admin';
   const availableRoles = isEditingSuperAdmin ? roles : roles.filter(r => r.nombre.toLowerCase() !== 'super admin');
 
+  // Resolve the rolId: prefer user.rol.rolId, then look up by rolNombre in the full roles list
+  const resolvedRolId = (() => {
+    if (user?.rol?.rolId) return user.rol.rolId;
+    if (user?.rolNombre) {
+      const match = roles.find(r => r.nombre.toLowerCase() === (user.rolNombre || '').toLowerCase());
+      if (match) return match.rolId;
+    }
+    return availableRoles.length > 0 ? availableRoles[0].rolId : 0;
+  })();
+
   const [formData, setFormData] = useState({
-    rolId: user?.rol?.rolId || (availableRoles.length > 0 ? availableRoles[0].rolId : 0),
+    rolId: resolvedRolId,
     documentType: 'CC',
     documentId: '',
     documento: user?.documento || '',
@@ -1296,9 +1322,23 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
       return;
     }
 
-    setFormData({
-      ...formData,
-      [name]: name === 'rolId' ? parseInt(sanitized) : sanitized,
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: name === 'rolId' ? parseInt(sanitized) : sanitized,
+      };
+
+      // When switching to a non-client role, default agendable to true
+      if (name === 'rolId') {
+        const newRolId = parseInt(sanitized);
+        const newRole = roles.find(r => r.rolId === newRolId);
+        const newRoleName = (newRole?.nombre || '').toLowerCase();
+        if (newRoleName !== 'cliente') {
+          updated.agendable = true;
+        }
+      }
+
+      return updated;
     });
   };
 
@@ -1396,8 +1436,33 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                     {fieldErrors.email && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.email}</p>}
                   </div>
 
+                  {/* Show Agendable switch only for admin and super admin roles */}
+                  {(() => {
+                    const selectedRole = roles.find(r => r.rolId === formData.rolId);
+                    const roleName = (selectedRole?.nombre || '').toLowerCase();
+                    const isAdminRole = roleName === 'administrador' || roleName.includes('super') || isEditingSuperAdmin;
+                    if (!isAdminRole) return null;
 
-
+                    return (
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Agendable</label>
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.agendable}
+                              onChange={(e) => setFormData(prev => ({ ...prev, agendable: e.target.checked }))}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                          </label>
+                          <span className="text-sm font-semibold text-gray-700">
+                            {formData.agendable ? 'Sí, se puede agendar' : 'No, no se puede agendar'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                 </div>
               </div>
@@ -1516,33 +1581,6 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                     </div>
                   </div>
 
-                  {/* Show Agendable switch only for non-client roles */}
-                  {(() => {
-                    const selectedRole = roles.find(r => r.rolId === formData.rolId);
-                    const roleName = (selectedRole?.nombre || '').toLowerCase();
-                    const isClientRole = roleName === 'cliente';
-                    if (isClientRole) return null;
-
-                    return (
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Agendable</label>
-                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formData.agendable}
-                              onChange={(e) => setFormData(prev => ({ ...prev, agendable: e.target.checked }))}
-                              className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                          </label>
-                          <span className="text-sm font-semibold text-gray-700">
-                            {formData.agendable ? 'Sí, se puede agendar' : 'No, no se puede agendar'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
                 </div>
               </div>
             </div>

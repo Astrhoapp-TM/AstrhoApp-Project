@@ -11,6 +11,7 @@ export interface Person {
     status: 'active' | 'inactive'; // Maps to estado (boolean)
     usuarioId?: number;
     email?: string;
+    agendable?: boolean;   // New field: indicates if employee can be scheduled
 }
 
 export interface CreatePersonData {
@@ -22,6 +23,7 @@ export interface CreatePersonData {
     address: string;
     usuarioId?: number;
     email?: string;
+    agendable?: boolean;
 }
 
 // Map Backend DTO to Frontend Model
@@ -42,7 +44,8 @@ const mapBackendToPerson = (data: any, type: 'client' | 'employee'): Person => (
     })(),
     status: data.estado !== false ? 'active' : 'inactive', // default true if missing
     usuarioId: data.usuarioId,
-    email: data.email || data.nombreUsuario
+    email: data.email || data.nombreUsuario,
+    agendable: data.agendable !== false // default true if missing
 });
 
 // Map Frontend Model to Backend DTO for Create/Update
@@ -70,6 +73,10 @@ const mapPersonToBackend = (person: CreatePersonData | Person) => {
         payload.direccionEmpleado = person.address;
         payload['direcciónEmpleado'] = person.address;
         payload['dirección'] = person.address;
+        // Include agendable field for employees
+        if ('agendable' in person) {
+            payload.agendable = person.agendable;
+        }
     }
 
     return payload;

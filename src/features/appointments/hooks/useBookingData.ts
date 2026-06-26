@@ -193,24 +193,27 @@ export function useEmpleados(pageSize: number = 6) {
         new Map(allProfessionals.map(p => [p.id, p])).values()
       );
 
-      // Filter active
-      let activeProfessionals = uniqueProfessionals.filter((p: any, index: number) => {
-        if (p._source === 'super-admin') {
-          // Super admin is always active
-          return true;
-        }
-        const originalData = employeesArray.find((e: any) => e.documentId === p.id);
-        if (!originalData) return true;
-        const est = originalData.status !== undefined ? originalData.status : originalData.Estado;
-        return est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
-      }).map((p: any, index: number) => ({
-        id: p.id,
-        name: p.name,
-        role: p.role,
-        rating: 4.8 + ((p._index || index) * 0.1) % 0.2,
-        color: ['bg-rose-500', 'bg-violet-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'][(p._index || index) % 5],
-        avatar: (p.name || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
-      }));
+      // Filter active and agendable
+        let activeProfessionals = uniqueProfessionals.filter((p: any, index: number) => {
+          if (p._source === 'super-admin') {
+            // Super admin is always active and agendable
+            return true;
+          }
+          const originalData = employeesArray.find((e: any) => e.documentId === p.id);
+          if (!originalData) return true;
+          const est = originalData.status !== undefined ? originalData.status : originalData.Estado;
+          const isActive = est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
+          // Only include if agendable is true or undefined (default true)
+          const isAgendable = originalData.agendable !== false;
+          return isActive && isAgendable;
+        }).map((p: any, index: number) => ({
+          id: p.id,
+          name: p.name,
+          role: p.role,
+          rating: 4.8 + ((p._index || index) * 0.1) % 0.2,
+          color: ['bg-rose-500', 'bg-violet-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'][(p._index || index) % 5],
+          avatar: (p.name || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+        }));
 
       // Update total count and pages
       if (searchTerm) {

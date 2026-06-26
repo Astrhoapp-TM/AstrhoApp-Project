@@ -2208,12 +2208,13 @@ function ProfessionalSearchSelect({
       setLoading(true);
       try {
         const res = await personService.getPersons('employee', { search: searchTerm, pageSize: 20 });
-        const mapped = res.data.map(p => ({
+        const mapped = res.data.filter(p => p.agendable !== false).map(p => ({
           documentoEmpleado: p.documentId,
           tipoDocumento: p.documentType,
           nombre: p.name,
           telefono: p.phone,
-          estado: p.status === 'active'
+          estado: p.status === 'active',
+          agendable: p.agendable
         }));
         setSearchResults(mapped);
       } catch (err) {

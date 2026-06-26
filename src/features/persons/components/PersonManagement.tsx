@@ -868,6 +868,22 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                                             </span>
                                         </div>
                                     </div>
+
+                                    {personType === 'employee' && (
+                                        <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                                            <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Agendable</span>
+                                            <div className="flex items-center space-x-3">
+                                                <div className="flex items-center space-x-2">
+                                                    <div className={`w-11 h-6 rounded-full relative ${person.agendable !== false ? 'bg-gradient-to-r from-pink-400 to-purple-500' : 'bg-gray-200'}`}>
+                                                        <div className={`absolute top-[2px] bg-white rounded-full h-5 w-5 shadow-sm transition-all ${person.agendable !== false ? 'right-[2px]' : 'left-[2px]'}`} />
+                                                    </div>
+                                                    <span className="font-bold text-gray-700">
+                                                        {person.agendable !== false ? 'Sí' : 'No'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -899,7 +915,8 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
         email: '',
         type: personType as 'client' | 'employee',
         roleId: (personType === 'employee' ? (roles.find(r => r.nombre.toLowerCase() === 'administrador')?.rolId || roles.find(r => r.nombre.toLowerCase() === 'asistente')?.rolId || 3) : 2),
-        authData: undefined
+        authData: undefined,
+        agendable: editingPerson ? editingPerson.agendable : true // default true for new employees
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -1238,6 +1255,26 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                                         </option>
                                                     ))}
                                                 </select>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {personType === 'employee' && (
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Agendable</label>
+                                            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.agendable}
+                                                        onChange={(e) => handleChange('agendable', e.target.checked)}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                                                </label>
+                                                <span className="text-sm font-semibold text-gray-700">
+                                                    {formData.agendable ? 'Sí, se puede agendar' : 'No, no se puede agendar'}
+                                                </span>
                                             </div>
                                         </div>
                                     )}

@@ -317,7 +317,7 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
           const empDocId = existingEmployee ? existingEmployee.documentoEmpleado : documentId;
           // Employee is active only when the new role IS a staff role; otherwise deactivate it
           const empEstado = needsEmployee ? newEstado : false;
-          const empPayload = {
+          const empPayload: any = {
             documentoEmpleado: empDocId,
             usuarioId: userId,
             tipoDocumento: existingEmployee ? existingEmployee.tipoDocumento : documentType,
@@ -329,6 +329,15 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             'direcciónEmpleado': direccion,
             estado: empEstado,
           };
+
+          // If editing, use the form value if provided, otherwise preserve existing
+          if (existingEmployee) {
+            empPayload.agendable = userData.agendable !== undefined ? userData.agendable : existingEmployee.agendable;
+          } else {
+            // For new employees, use the form value (default to true)
+            empPayload.agendable = userData.agendable !== undefined ? userData.agendable : true;
+          }
+
           if (existingEmployee) {
             await apiClient.put(`/api/Empleados/${empDocId}`, empPayload);
           } else {
@@ -954,6 +963,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
     direccion: '',
     estado: user?.estado !== undefined ? user.estado : true,
     password: '',
+    agendable: true, // default true
   });
   const [originalData, setOriginalData] = useState<{ email: string; documentId: string } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -976,6 +986,17 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
           };
           
           if (data) {
+            // If it's an employee, fetch full employee data to get agendable value
+            let agendableValue = true;
+            if (data.type === 'employee') {
+              try {
+                const empData = await personService.getPersonByDocument(data.documentId, 'employee');
+                agendableValue = empData.agendable !== false;
+              } catch (err) {
+                console.warn("Error fetching employee data:", err);
+              }
+            }
+            
             setFormData(prev => ({
               ...prev,
               documentType: mapDocTypeBack(data.documentType),
@@ -983,6 +1004,7 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
               nombre: data.name,
               phone: data.phone,
               direccion: data.address || '',
+              agendable: agendableValue,
             }));
             setOriginalData({
               email: user.email || '',
@@ -1493,6 +1515,34 @@ function UserModal({ user, onClose, onSave, roles }: { user: any; onClose: () =>
                       {fieldErrors.direccion && <p className="text-[9px] text-brand-pink mt-1">{fieldErrors.direccion}</p>}
                     </div>
                   </div>
+
+                  {/* Show Agendable switch only for non-client roles */}
+                  {(() => {
+                    const selectedRole = roles.find(r => r.rolId === formData.rolId);
+                    const roleName = (selectedRole?.nombre || '').toLowerCase();
+                    const isClientRole = roleName === 'cliente';
+                    if (isClientRole) return null;
+
+                    return (
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Agendable</label>
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.agendable}
+                              onChange={(e) => setFormData(prev => ({ ...prev, agendable: e.target.checked }))}
+                              className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
+                          </label>
+                          <span className="text-sm font-semibold text-gray-700">
+                            {formData.agendable ? 'Sí, se puede agendar' : 'No, no se puede agendar'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

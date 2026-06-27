@@ -467,45 +467,53 @@ interface ModalProps {
 }
 
 function ServicesModal({ onClose, onBookAppointment }: ModalProps) {
-  const [search,     setSearch]     = useState('');
-  const [debouncedQ, setDebouncedQ] = useState('');
-  const [page,       setPage]       = useState(1);
-  const [items,      setItems]      = useState<any[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total,      setTotal]      = useState(0);
-  const [loading,    setLoading]    = useState(true);
+  const [search,   setSearch]   = useState('');
+  const [page,     setPage]     = useState(1);
+  const [allItems, setAllItems] = useState<any[]>([]);
+  const [loading,  setLoading]  = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Debounce search, reset to page 1
-  useEffect(() => {
-    const t = setTimeout(() => { setDebouncedQ(search); setPage(1); }, 350);
-    return () => clearTimeout(t);
-  }, [search]);
+  // Reset to page 1 on search change
+  useEffect(() => { setPage(1); }, [search]);
 
-  // Server-side fetch on page / query change
+  // Fetch ALL active services once on mount using getAllPages (client-side pagination)
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       try {
-        const data = await serviceService.getServices({
-          page,
-          search: debouncedQ || undefined,
-        }) as any;
+        // getAllPages fetches every server page and concatenates results
+        const all = await (serviceService as any).getAllPages
+          ? (serviceService as any).getAllPages()
+          : null;
+
+        // Fallback: iterate manually if getAllPages isn't available on serviceService
+        let arr: any[] = [];
+        if (all && Array.isArray(all)) {
+          arr = all;
+        } else {
+          let p = 1;
+          while (true) {
+            const data = await serviceService.getServices({ page: p }) as any;
+            const pageItems: any[] = Array.isArray(data)
+              ? data
+              : data.data || data.$values || [];
+            arr = arr.concat(pageItems);
+            const totalPags: number = data.totalPaginas ?? data.totalPages ?? 1;
+            if (p >= totalPags) break;
+            p++;
+          }
+        }
+
         if (cancelled) return;
 
-        // The API always paginates with its own pageSize (5).
-        // Read server-provided pagination metadata.
-        const arr: any[] = Array.isArray(data)
-          ? data
-          : data.data || data.$values || [];
+        // Filter active only
+        arr = arr.filter(s => {
+          const a = s.estado ?? s.Estado ?? s.activo ?? s.Activo ?? true;
+          return a === true || a === 1 || a === '1' || a === 'Activo' || a === 'activo';
+        });
 
-        const tp: number = data.totalPaginas ?? data.totalPages ?? 1;
-        const tr: number = data.totalRegistros ?? data.totalCount ?? data.total ?? arr.length;
-
-        setItems(arr.map(mapService));
-        setTotalPages(Math.max(1, tp));
-        setTotal(tr);
+        setAllItems(arr.map((s, i) => mapService(s, i)));
       } catch {
         toast.error('Error al cargar servicios');
       } finally {
@@ -513,7 +521,7 @@ function ServicesModal({ onClose, onBookAppointment }: ModalProps) {
       }
     })();
     return () => { cancelled = true; };
-  }, [page, debouncedQ]);
+  }, []);
 
   // Focus input & block body scroll
   useEffect(() => {
@@ -528,6 +536,15 @@ function ServicesModal({ onClose, onBookAppointment }: ModalProps) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  // Client-side filter + paginate
+  const PAGE_SIZE = 6;
+  const q = search.trim().toLowerCase();
+  const filtered   = q ? allItems.filter(s => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q)) : allItems;
+  const total      = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage   = Math.min(page, totalPages);
+  const items      = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   return (
     /* Backdrop */
@@ -614,8 +631,8 @@ function ServicesModal({ onClose, onBookAppointment }: ModalProps) {
             <div className="flex flex-col items-center justify-center h-48 text-center gap-3">
               <Scissors className="w-8 h-8 text-gray-300" />
               <p className="text-sm font-medium text-gray-400">
-                {debouncedQ
-                  ? `Sin resultados para "${debouncedQ}"`
+                {q
+                  ? `Sin resultados para "${q}"`
                   : 'No hay servicios disponibles'}
               </p>
             </div>
@@ -632,6 +649,38 @@ function ServicesModal({ onClose, onBookAppointment }: ModalProps) {
                   />
                 );
               })}
+
+              {/* Filler CTA — fills the empty slot when items don't complete the last row */}
+              {items.length % 3 !== 0 && (
+                <div
+                  className="rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-4 p-6 text-center"
+                  style={{
+                    background:  'linear-gradient(135deg, rgba(242,121,222,0.07), rgba(132,119,217,0.07))',
+                    border:      '1.5px dashed rgba(242,121,222,0.35)',
+                    gridColumn:  items.length % 3 === 1 ? 'span 2' : 'span 1',
+                  }}
+                >
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg, rgba(242,121,222,0.15), rgba(132,119,217,0.15))' }}
+                  >
+                    <Sparkles className="w-5 h-5" style={{ color: '#F279DE' }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-gray-800 mb-1">¿No encuentras lo que buscas?</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      Contáctanos y personalizamos un servicio para ti.
+                    </p>
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="mt-1 px-5 py-2 rounded-xl text-xs font-semibold text-white transition-all duration-200 hover:opacity-90 active:scale-95"
+                    style={{ background: 'linear-gradient(to right, #F279DE, #8477D9)' }}
+                  >
+                    Contáctanos
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -648,7 +697,7 @@ function ServicesModal({ onClose, onBookAppointment }: ModalProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1 || loading}
+              disabled={safePage === 1 || loading}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               style={{ background: '#f3f4f6', color: '#374151' }}
             >
@@ -673,7 +722,7 @@ function ServicesModal({ onClose, onBookAppointment }: ModalProps) {
                       onClick={() => setPage(n as number)}
                       className="w-8 h-8 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
                       style={
-                        page === n
+                        safePage === n
                           ? { background: 'linear-gradient(to right, #F279DE, #8477D9)', color: '#fff' }
                           : { background: '#f3f4f6', color: '#6b7280' }
                       }
@@ -687,7 +736,7 @@ function ServicesModal({ onClose, onBookAppointment }: ModalProps) {
 
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages || loading}
+              disabled={safePage === totalPages || loading}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               style={{ background: '#f3f4f6', color: '#374151' }}
             >

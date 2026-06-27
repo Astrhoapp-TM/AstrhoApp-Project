@@ -128,7 +128,7 @@ export function Footer() {
                     Visítanos
                   </p>
                   <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                    Cl. 55 # 42-14, Medellín, Antioquia
+                    Cl. 55 # 42-16, Medellín, Antioquia
                   </p>
                 </div>
               </div>

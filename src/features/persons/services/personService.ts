@@ -23,7 +23,7 @@ export interface CreatePersonData {
     address: string;
     usuarioId?: number;
     email?: string;
-    agendable?: boolean;
+    agendable?: boolean;   // New field: indicates if employee can be scheduled
 }
 
 // Map Backend DTO to Frontend Model
@@ -73,9 +73,9 @@ const mapPersonToBackend = (person: CreatePersonData | Person) => {
         payload.direccionEmpleado = person.address;
         payload['direcciónEmpleado'] = person.address;
         payload['dirección'] = person.address;
-        // Include agendable field for employees
-        if ('agendable' in person) {
-            payload.agendable = person.agendable;
+        // Only add agendable for employees
+        if ((person as any).agendable !== undefined) {
+            payload.agendable = (person as any).agendable;
         }
     }
 

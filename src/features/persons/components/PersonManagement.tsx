@@ -744,6 +744,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                     person={selectedPerson}
                     onClose={() => setShowPersonModal(false)}
                     personType={personType}
+                    roles={roles}
                 />
             )}
 
@@ -765,7 +766,28 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
 }
 
 // Person Profile Modal Component
-function PersonProfileModal({ person, onClose, personType }: { person: Person, onClose: () => void, personType: string }) {
+function PersonProfileModal({ person, onClose, personType, roles }: { person: Person, onClose: () => void, personType: string, roles: RolListDto[] }) {
+    const [roleName, setRoleName] = useState<string>('');
+
+    useEffect(() => {
+        const fetchRole = async () => {
+            if (personType === 'employee' && person.usuarioId) {
+                try {
+                    const user = await apiClient.get<any>(`/api/Usuarios/${person.usuarioId}`);
+                    if (user?.rol?.rolId) {
+                        const role = roles.find(r => r.rolId === user.rol.rolId);
+                        setRoleName(role?.nombre || 'Rol no encontrado');
+                    }
+                } catch (err) {
+                    console.warn("Error fetching user role", err);
+                    setRoleName('');
+                }
+            }
+        };
+
+        fetchRole();
+    }, [person.usuarioId, personType, roles]);
+
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
@@ -869,12 +891,22 @@ function PersonProfileModal({ person, onClose, personType }: { person: Person, o
                                         </div>
                                     </div>
 
+                                    {personType === 'employee' && roleName && (
+                                        <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                                            <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Rol</span>
+                                            <div className="flex items-center space-x-3">
+                                                <Shield className="w-4 h-4 text-violet-400" />
+                                                <span className="font-bold text-gray-700">{roleName}</span>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {personType === 'employee' && (
                                         <div className="p-4 bg-gray-50/50 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors">
                                             <span className="text-[10px] font-black text-gray-400 tracking-widest block mb-1">Agendable</span>
                                             <div className="flex items-center space-x-3">
                                                 <div className="flex items-center space-x-2">
-                                                    <div className={`w-11 h-6 rounded-full relative ${person.agendable !== false ? 'bg-gradient-to-r from-pink-400 to-purple-500' : 'bg-gray-200'}`}>
+                                                    <div className={`w-11 h-6 rounded-full relative ${person.agendable !== false ? 'bg-gradient-to-r from-pink-500 to-purple-600' : 'bg-gray-200'}`}>
                                                         <div className={`absolute top-[2px] bg-white rounded-full h-5 w-5 shadow-sm transition-all ${person.agendable !== false ? 'right-[2px]' : 'left-[2px]'}`} />
                                                     </div>
                                                     <span className="font-bold text-gray-700">
@@ -1258,26 +1290,6 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                             </div>
                                         </div>
                                     )}
-
-                                    {personType === 'employee' && (
-                                        <div>
-                                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Agendable</label>
-                                            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                                                <label className="relative inline-flex items-center cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.agendable}
-                                                        onChange={(e) => handleChange('agendable', e.target.checked)}
-                                                        className="sr-only peer"
-                                                    />
-                                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-400 peer-checked:to-purple-500"></div>
-                                                </label>
-                                                <span className="text-sm font-semibold text-gray-700">
-                                                    {formData.agendable ? 'Sí, se puede agendar' : 'No, no se puede agendar'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 
@@ -1324,6 +1336,26 @@ function NewPersonModal({ onClose, onSave, editingPerson, personType, roles }: {
                                             />
                                         </div>
                                     </div>
+
+                                    {personType === 'employee' && (
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1 ml-1">Agendable</label>
+                                            <div className="flex items-center space-x-3 p-3 bg-gray-50/50 rounded-xl border border-gray-200">
+                                                <label className="relative inline-flex items-center cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={formData.agendable}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, agendable: e.target.checked }))}
+                                                        className="sr-only peer"
+                                                    />
+                                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-periwinkle/300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-pink-500 peer-checked:to-purple-600"></div>
+                                                </label>
+                                                <span className="text-sm font-semibold text-gray-700">
+                                                    {formData.agendable ? 'Sí, se puede agendar' : 'No, no se puede agendar'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {!editingPerson && (
                                         <div>

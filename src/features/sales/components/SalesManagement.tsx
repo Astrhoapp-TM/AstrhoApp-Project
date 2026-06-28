@@ -5,7 +5,7 @@ import {
   CreditCard, TrendingUp, Users, User,
   Ban, FileText, Scissors,
   AlertCircle, Save, Clock, ShoppingBag, Phone, Loader2, Info,
-  Check, ChevronsUpDown, Trash2, Briefcase, RefreshCw, Banknote, ArrowRightLeft
+  Check, ChevronsUpDown, Trash2, Briefcase, RefreshCw, Banknote, ArrowRightLeft, ArrowDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { salesService, type SaleView } from '../services/salesService';
@@ -520,6 +520,8 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
   currentUser: any;
 }) {
   const [submitting, setSubmitting] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Form state
   const [selectedClientId, setSelectedClientId] = useState('');
@@ -546,15 +548,25 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
     fetchMethods();
   }, []);
 
-  // Set default employee if currentUser is an employee
+  // Handle scroll to show/hide indicator
   useEffect(() => {
-    if (currentUser?.role === 'asistente' && currentUser?.documentId && !selectedEmployeeId) {
-      setSelectedEmployeeId(currentUser.documentId);
-    } else if (currentUser?.documentId && !selectedEmployeeId) {
-      // For other employees, also default if not set
-      setSelectedEmployeeId(currentUser.documentId);
+    const handleScroll = () => {
+      if (scrollContainerRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+        // Show indicator only if user hasn't scrolled down much (less than 10% of scrollable content)
+        const hasScrolledSignificantly = scrollTop > scrollHeight * 0.1;
+        setShowScrollIndicator(!hasScrolledSignificantly);
+      }
+    };
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, [currentUser, selectedEmployeeId]);
+  }, []);
+
+
 
   const addService = (service: any) => {
     // Permite servicios duplicados en ventas si se desea, 
@@ -615,7 +627,7 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 relative">
         {/* Header - Fixed at top */}
         <div className="bg-gradient-brand p-5 text-white shrink-0 shadow-md z-20">
           <div className="flex items-center justify-between">
@@ -638,7 +650,7 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50/30 no-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 lg:p-8 bg-gray-50/30 no-scrollbar relative" ref={scrollContainerRef}>
           <style>{`
             .no-scrollbar::-webkit-scrollbar { display: none; }
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -853,6 +865,17 @@ function NewSaleModal({ onClose, onSubmit, currentUser }: {
             <span>{submitting ? 'Procesando...' : 'Finalizar Venta'}</span>
           </button>
         </div>
+
+        {/* Scroll Down Indicator - Positioned absolutely above footer */}
+        {showScrollIndicator && (
+          <div
+            className="absolute bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-2 text-brand-pink animate-bounce pointer-events-none opacity-60 transition-opacity duration-300"
+            aria-hidden="true"
+          >
+            <ArrowDown className="w-6 h-6" />
+            <span className="text-xs font-black tracking-widest">Continuar</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1176,8 +1199,7 @@ function ProfessionalSearchSelect({
           const mapped = res.data.filter((p: any) => p.agendable !== false).map((p: any) => ({
             documentoEmpleado: p.documentId,
             nombre: p.name,
-            telefono: p.phone,
-            agendable: p.agendable
+            telefono: p.phone
           }));
           setSearchResults(mapped);
         } catch {
@@ -1193,8 +1215,7 @@ function ProfessionalSearchSelect({
         const mapped = res.data.filter((p: any) => p.agendable !== false).map((p: any) => ({
           documentoEmpleado: p.documentId,
           nombre: p.name,
-          telefono: p.phone,
-          agendable: p.agendable
+          telefono: p.phone
         }));
         setSearchResults(mapped);
       } catch (err) {

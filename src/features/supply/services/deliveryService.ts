@@ -22,7 +22,6 @@ export interface Delivery {
 
 export interface CreateDeliveryData {
     usuarioId: number;
-    fechaEntrega: string;
     documentoEmpleado: string;
     detalles: {
         insumoId: number;
@@ -148,6 +147,7 @@ export const deliveryService = {
     // CREATE
     async createDelivery(data: CreateDeliveryData): Promise<Delivery> {
         // The API Expects CrearEntregaDto: { documentoEmpleado, detalles: [ { insumoId, cantidad } ] }
+        // Note: fechaEntrega is now assigned automatically by the API to the registration date
         const response = await apiClient.post('/api/Entregas', data);
         return mapBackendToDelivery(response);
     },

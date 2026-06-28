@@ -213,9 +213,9 @@ export function SupplyDeliveryManagement({ hasPermission, currentUser }: SupplyD
       }
 
       // Format data for the backend API - matching CrearEntregaDto exactly
+      // Note: fechaEntrega is now automatically assigned by the API to the registration date
       const payload = {
         usuarioId: currentUser?.id || currentUser?.usuarioId || 1,
-        fechaEntrega: new Date(deliveryData.deliveryDate).toISOString(),
         documentoEmpleado: person.documentId.toString(),
         detalles: deliveryData.items.map((item: any) => ({
           insumoId: Number(item.supplyId),
@@ -810,7 +810,6 @@ function ProductSearchSelect({ supplies, onSelect, selectedSupplyId, error, plac
 // Create Delivery Modal Component
 function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isProcessing }: any) {
   const [formData, setFormData] = useState({
-    deliveryDate: new Date().toISOString().split('T')[0],
     notes: '',
     items: []
   });
@@ -1141,21 +1140,12 @@ function CreateDeliveryModal({ onClose, onSave, supplies, currentUserPerson, isP
                     <h4 className="font-bold text-gray-700 text-sm tracking-wider">Información de Entrega</h4>
                   </div>
                   <div className="p-6">
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 tracking-widest mb-1.5 ml-1">Fecha de Entrega *</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                          type="date"
-                          name="deliveryDate"
-                          value={formData.deliveryDate}
-                          onChange={handleInputChange}
-                          min={new Date().toISOString().split('T')[0]}
-                          className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-transparent transition-all outline-none"
-                          required
-                        />
-                      </div>
-                    </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      <span className="font-semibold">Fecha de Registro:</span> {new Date().toLocaleDateString('es-CO')}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      La fecha se asigna automáticamente al momento del registro
+                    </p>
                   </div>
                 </div>
 

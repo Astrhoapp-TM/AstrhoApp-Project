@@ -273,11 +273,13 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
         (currentUser.role === 'asistente' || currentUser.role === 'admin' || currentUser.role === 'super_admin') && 
         professionals.length > 0 && 
         !selectedProfessional) {
-      // Match by all possible id fields
+      // Match by all possible id fields, including usuarioId now preserved in professionals
+      const userId = currentUser.usuarioId || currentUser.id;
       const currentProf = professionals.find(p => 
         String(p.id) === String(currentUser.documentId) || 
         String(p.id) === String(currentUser.documento) ||
         String(p.id) === String(currentUser.documentoEmpleado) ||
+        (userId && p.usuarioId && String(p.usuarioId) === String(userId)) ||
         String(p.id) === String(currentUser.usuarioId) ||
         String(p.id) === String(currentUser.id)
       );
@@ -286,6 +288,67 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
       }
     }
   }, [appointmentToReschedule, initialService, services, professionals, currentUser, selectedProfessional, allServicesCatalog]);
+
+  // Fallback auto-select: if asistente/admin has no selectedProfessional after professionals loaded,
+  // try to match by known documentId first, then resolve via getPersonForUser if needed
+  useEffect(() => {
+    if (
+      !currentUser ||
+      selectedProfessional ||
+      professionals.length === 0 ||
+      !(currentUser.role === 'asistente' || currentUser.role === 'admin' || currentUser.role === 'super_admin')
+    ) return;
+
+    let cancelled = false;
+
+    const tryMatch = async () => {
+      // First try with any known doc field directly
+      const knownDoc = currentUser.documentId || currentUser.documento || currentUser.documentoEmpleado;
+      const userId = currentUser.usuarioId || currentUser.id;
+
+      if (knownDoc) {
+        const prof = professionals.find(p => String(p.id) === String(knownDoc));
+        if (prof) {
+          setSelectedProfessional(prof);
+          return;
+        }
+      }
+
+      // Try matching by usuarioId (now preserved in professionals array)
+      if (userId) {
+        const prof = professionals.find(p => p.usuarioId && String(p.usuarioId) === String(userId));
+        if (prof) {
+          setSelectedProfessional(prof);
+          return;
+        }
+      }
+
+      // Last resort: resolve documentId via API
+      try {
+        const person = await userService.getPersonForUser(currentUser);
+        if (cancelled || !person?.documentId) return;
+        let prof: any = professionals.find(p => String(p.id) === String(person.documentId));
+        // Not in professionals list — build it directly from resolved person data
+        if (!prof) {
+          prof = {
+            id: person.documentId,
+            name: person.name || currentUser?.name || currentUser?.firstName || 'Asistente',
+            role: 'Asistente',
+            usuarioId: userId,
+            rating: 4.9,
+            color: 'bg-violet-500',
+            avatar: (person.name || 'A').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+          };
+        }
+        if (!cancelled) setSelectedProfessional(prof);
+      } catch {
+        // silently fail
+      }
+    };
+
+    tryMatch();
+    return () => { cancelled = true; };
+  }, [professionals, currentUser, selectedProfessional]);
 
   // Helper to extract array from API responses
   const extractArray = (data: any): any[] => {
@@ -1491,7 +1554,49 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
                           </button>
                         )}
                         <button
-                          onClick={() => setStep(isAsistente ? 3 : 2)}
+                          onClick={async () => {
+                            if (!isAsistente) {
+                              setStep(2);
+                              return;
+                            }
+                            // For asistente: ensure selectedProfessional is resolved before going to step 3
+                            if (selectedProfessional) {
+                              setStep(3);
+                              return;
+                            }
+                            // Try to resolve now
+                            const userId = currentUser?.usuarioId || currentUser?.id;
+                            const knownDoc = currentUser?.documentId || currentUser?.documento || currentUser?.documentoEmpleado;
+                            let prof = null;
+                            if (knownDoc) {
+                              prof = professionals.find((p: any) => String(p.id) === String(knownDoc)) || null;
+                            }
+                            if (!prof && userId) {
+                              prof = professionals.find((p: any) => p.usuarioId && String(p.usuarioId) === String(userId)) || null;
+                            }
+                            if (!prof) {
+                              try {
+                                const person = await userService.getPersonForUser(currentUser);
+                                if (person?.documentId) {
+                                  prof = professionals.find((p: any) => String(p.id) === String(person.documentId)) || null;
+                                  // If still not found in professionals list, build it directly from person data
+                                  if (!prof && person.documentId) {
+                                    prof = {
+                                      id: person.documentId,
+                                      name: person.name || currentUser?.name || currentUser?.firstName || 'Asistente',
+                                      role: 'Asistente',
+                                      usuarioId: userId,
+                                      rating: 4.9,
+                                      color: 'bg-violet-500',
+                                      avatar: (person.name || 'A').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+                                    };
+                                  }
+                                }
+                              } catch { /* ignore */ }
+                            }
+                            if (prof) setSelectedProfessional(prof);
+                            setStep(3);
+                          }}
                           className="flex-1 bg-gradient-brand text-white py-3 rounded-xl font-bold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                         >
                           <span>Continuar</span>

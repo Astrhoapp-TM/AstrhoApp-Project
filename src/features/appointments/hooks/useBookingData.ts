@@ -170,20 +170,30 @@ export function useEmpleados(pageSize: number = 6) {
           name: p.name,
           role: 'Estilista Profesional',
           _source: 'employee',
-          _index: index
+          _index: index,
+          _usuarioId: p.usuarioId  // preserve for auto-select matching
         })),
         ...(await Promise.all(adminAndSuperAdminUsers.map(async (u: any, index: number) => {
-          // Try to get person data for name
+          // Try to get person data for name and agendable
           const person = await userService.getPersonForUser(u).catch(() => null);
           const name = person?.name || u.nombre || u.Nombre || u.email || 'Administrador';
           const roleName = (u.rolNombre || u.rol?.nombre || '').toLowerCase().trim();
           const isSuper = roleName.includes('super');
+          // Check agendable from employeesArray first (already loaded), fallback to true
+          const resolvedDocId = person?.documentId || u.documentoEmpleado;
+          const empRecord = resolvedDocId
+            ? employeesArray.find((e: any) => String(e.documentId) === String(resolvedDocId))
+            : null;
+          const agendable = empRecord ? empRecord.agendable !== false : true;
+          const finalId = resolvedDocId || u.documentoCliente || String(u.usuarioId || u.id);
           return {
-            id: person?.documentId || u.documentoEmpleado || u.documentoCliente || String(u.usuarioId || u.id),
+            id: finalId,
             name,
             role: isSuper ? 'Super Administradora' : 'Administradora',
             _source: isSuper ? 'super-admin' : 'admin',
-            _index: employeesArray.length + index
+            _index: employeesArray.length + index,
+            _agendable: agendable,
+            _usuarioId: u.usuarioId || u.id
           };
         })))
       ];
@@ -199,19 +209,18 @@ export function useEmpleados(pageSize: number = 6) {
         if (!originalData) return true;
         const est = originalData.status !== undefined ? originalData.status : originalData.Estado;
         const isActive = est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
-        
         // Check if employee is agendable (default true if not specified)
         const agendable = originalData.agendable !== false;
         
         return isActive && agendable;
       }).map((p: any, index: number) => ({
-        id: p.id,
-        name: p.name,
-        role: p.role,
-        rating: 4.8 + ((p._index || index) * 0.1) % 0.2,
-        color: ['bg-rose-500', 'bg-violet-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'][(p._index || index) % 5],
-        avatar: (p.name || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
-      }));
+          id: p.id,
+          name: p.name,
+          role: p.role,
+          rating: 4.8 + ((p._index || index) * 0.1) % 0.2,
+          color: ['bg-rose-500', 'bg-violet-500', 'bg-emerald-500', 'bg-blue-500', 'bg-amber-500'][(p._index || index) % 5],
+          avatar: (p.name || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+        }));
 
       // Update total count and pages
       if (searchTerm) {

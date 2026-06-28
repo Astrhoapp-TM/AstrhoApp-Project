@@ -169,8 +169,12 @@ export const userService = {
             const targetId = Number(userId);
             console.log('🔍 [getPersonForUser] targetId:', targetId);
 
-            // Try direct fetch if the user object contains a document ID
-            let docId = user.documento || user.documentId || user.documentoCliente || user.documentoEmpleado;
+            // Try direct fetch only with the specific person document (NOT user.documento which is the user-level doc)
+            // user.documentoEmpleado / user.documentoCliente come from the Empleados/Clientes table directly
+            // user.documento / user.documentId is the user-level document and may differ from the person record key
+            let docId = isClient
+                ? (user.documentoCliente || user.documentId)
+                : (user.documentoEmpleado || user.documentId);
 
             // Helper: fetch full detail and extract address from it
             const fetchDetail = async (documentId: string, type: 'client' | 'employee', fallbackData: any) => {
@@ -200,7 +204,10 @@ export const userService = {
                 try {
                     console.log('🔍 [getPersonForUser] No docId in user object, fetching user detail from /api/Usuarios/', targetId);
                     const userDetail = await userService.getById(targetId);
-                    docId = userDetail?.documento || userDetail?.documentoCliente || userDetail?.documentoEmpleado;
+                    // Use the specific person document, not the generic user.documento
+                    docId = isClient
+                        ? (userDetail?.documentoCliente)
+                        : (userDetail?.documentoEmpleado);
                     console.log('🔍 [getPersonForUser] Obtained docId from user detail:', docId);
                 } catch (err) {
                     console.error('❌ [getPersonForUser] Error fetching user detail:', err);

@@ -819,16 +819,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
                             <Edit className="w-4 h-4" />
                           </button>
                         )}
-                        {!isAsistente && (
-                          <button
-                            onClick={() => handleDeleteAppointment(apt)}
-                            disabled={!canDeleteAppointment(apt)}
-                            className={`p-2 rounded-lg transition-colors ${!canDeleteAppointment(apt) ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-100 text-brand-pink hover:bg-red-200'}`}
-                            title="Eliminar cita"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+
                       </div>
                     </td>
                   </tr>

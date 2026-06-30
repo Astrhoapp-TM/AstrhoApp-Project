@@ -1954,21 +1954,11 @@ function ScheduleModal({ group, horarios, onClose, onSave, saving }: ScheduleMod
 
             {/* Days Config Card */}
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center mb-4">
                 <div className="flex items-center space-x-2 text-brand-pink">
                   <Calendar className="w-4 h-4" />
                   <h4 className="font-bold text-[10px] tracking-widest">Configuración de Días</h4>
                 </div>
-                {enabledCount > 1 && (
-                  <button
-                    type="button"
-                    onClick={applyToAllEnabled}
-                    className="text-[9px] font-black tracking-widest text-brand-indigo hover:text-brand-indigo transition-colors flex items-center space-x-1"
-                  >
-                    <Copy className="w-3 h-3" />
-                    <span>Copiar a todos</span>
-                  </button>
-                )}
               </div>
 
               <div className="mb-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">

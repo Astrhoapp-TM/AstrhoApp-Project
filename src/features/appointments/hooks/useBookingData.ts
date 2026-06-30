@@ -115,6 +115,7 @@ export function useServicios(pageSize: number = 6) {
 }
 
 export function useEmpleados(pageSize: number = 6) {
+  const [allData, setAllData] = useState<any[]>([]); // full unfiltered cache
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -122,8 +123,9 @@ export function useEmpleados(pageSize: number = 6) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
 
-  const fetchEmpleados = useCallback(async (currentPage: number, searchTerm: string, abortSignal?: AbortSignal) => {
+  const fetchEmpleados = useCallback(async (abortSignal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
@@ -131,7 +133,7 @@ export function useEmpleados(pageSize: number = 6) {
       const response = await personService.getPersons('employee', {
         page: 1,
         pageSize: 1000,
-        search: searchTerm
+        search: ''
       });
 
       let employeesArray = [];
@@ -204,14 +206,12 @@ export function useEmpleados(pageSize: number = 6) {
       );
 
       // Filter active and agendable
-      let activeProfessionals = uniqueProfessionals.filter((p: any, index: number) => {
+      const activeProfessionals = uniqueProfessionals.filter((p: any) => {
         const originalData = employeesArray.find((e: any) => e.documentId === p.id);
         if (!originalData) return true;
         const est = originalData.status !== undefined ? originalData.status : originalData.Estado;
         const isActive = est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
-        // Check if employee is agendable (default true if not specified)
         const agendable = originalData.agendable !== false;
-        
         return isActive && agendable;
       }).map((p: any, index: number) => ({
           id: p.id,
@@ -222,24 +222,14 @@ export function useEmpleados(pageSize: number = 6) {
           avatar: (p.name || 'P').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
         }));
 
-      // Update total count and pages
-      if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        activeProfessionals = activeProfessionals.filter((p: any) => 
-          p.name.toLowerCase().includes(term) || 
-          p.role.toLowerCase().includes(term)
-        );
-      }
-      
-      const totalFiltered = activeProfessionals.length;
-      setTotalPages(Math.ceil(totalFiltered / pageSize) || 1);
-      setTotalCount(totalFiltered);
-      
-      const start = (currentPage - 1) * pageSize;
-      const end = start + pageSize;
-      activeProfessionals = activeProfessionals.slice(start, end);
+      // Cache the full list
+      setAllData(activeProfessionals);
+      setHasFetched(true);
 
-      setData(activeProfessionals);
+      // Apply initial pagination (no search yet)
+      setTotalCount(activeProfessionals.length);
+      setTotalPages(Math.ceil(activeProfessionals.length / pageSize) || 1);
+      setData(activeProfessionals.slice(0, pageSize));
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error('Error fetching employees:', error);
@@ -250,17 +240,30 @@ export function useEmpleados(pageSize: number = 6) {
     }
   }, [pageSize]);
 
+  // Initial fetch only — no re-fetch on search
   useEffect(() => {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      fetchEmpleados(page, search, controller.signal);
-    }, 300);
+    fetchEmpleados(controller.signal);
+    return () => { controller.abort(); };
+  }, [fetchEmpleados]);
 
-    return () => {
-      clearTimeout(timeoutId);
-      controller.abort();
-    };
-  }, [page, search, fetchEmpleados]);
+  // Client-side filtering and pagination whenever search or page changes
+  useEffect(() => {
+    if (!hasFetched) return;
+    let filtered = allData;
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      filtered = allData.filter((p: any) =>
+        p.name.toLowerCase().includes(term) ||
+        p.role.toLowerCase().includes(term)
+      );
+    }
+    const total = filtered.length;
+    setTotalCount(total);
+    setTotalPages(Math.ceil(total / pageSize) || 1);
+    const start = (page - 1) * pageSize;
+    setData(filtered.slice(start, start + pageSize));
+  }, [search, page, allData, hasFetched, pageSize]);
 
   // Reset page when search changes
   useEffect(() => {

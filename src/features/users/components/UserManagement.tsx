@@ -180,8 +180,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
               salesService.getAll()
             ]);
 
-            const appointments = appointmentsRes?.data || [];
-            const sales = salesRes?.data || [];
+            const appointments = appointmentsRes?.data || appointmentsRes || [];
+            const sales = salesRes?.data || salesRes || [];
 
             hasAppointments = appointments.some(apt => {
               const personIdStr = String(userToDelete.usuarioId);
@@ -189,13 +189,13 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
 
               return String(apt.documentoCliente) === personDocStr || 
                      String(apt.documentoEmpleado) === personDocStr ||
-                     (apt as any).customer_id === userToDelete.usuarioId ||
-                     (apt as any).assigned_to === userToDelete.usuarioId;
+                     String((apt as any).customerId || (apt as any).customer_id || '') === personIdStr ||
+                     String((apt as any).assignedTo || (apt as any).assigned_to || '') === personIdStr;
             });
 
             hasSales = sales.some(sale => {
-              const saleCustId = String(sale.customerId || '');
-              const saleEmpId = String(sale.employeeId || '');
+              const saleCustId = String(sale.customerId || sale.customer_id || '');
+              const saleEmpId = String(sale.employeeId || sale.employee_id || '');
               const personIdStr = String(userToDelete.usuarioId);
               const personDocStr = String(personInfo?.documentId || '');
 
@@ -208,8 +208,8 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
             console.warn('Could not check dependencies, proceeding to delete user', e);
         }
 
-        if (hasAppointments) {
-          toast.error("Este usuario tiene citas asociadas y no puede ser eliminado");
+        if (hasAppointments || hasSales) {
+          showAlert('error', 'Error: Este Usuario está asociado a citas y/o ventas');
           setLoading(false);
           hideSectionLoading();
           setShowDeleteModal(false);
@@ -221,19 +221,14 @@ export function UserManagement({ hasPermission }: UserManagementProps) {
         await userService.delete(userToDelete.usuarioId);
         setShowDeleteModal(false);
         setUserToDelete(null);
-        toast.success('Usuario eliminado correctamente');
+        showAlert('success', 'Usuario eliminado correctamente');
         await fetchUsers();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error deleting user:', error);
-        // Even if there's an error, let's try to fetch users to see if it was actually deleted
-        try {
-            await fetchUsers();
-            toast.success('Usuario eliminado correctamente');
-            setShowDeleteModal(false);
-            setUserToDelete(null);
-        } catch (fetchError) {
-            toast.error('Error al eliminar el usuario. Verifique que no existan dependencias activas.');
-        }
+        // Cualquier error al eliminar, asumo que es por dependencias
+        showAlert('error', 'Error: Este Usuario está asociado a citas y/o ventas');
+        setShowDeleteModal(false);
+        setUserToDelete(null);
       } finally {
         setLoading(false);
         hideSectionLoading();

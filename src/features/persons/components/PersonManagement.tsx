@@ -183,8 +183,8 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                     salesService.getAll()
                 ]);
 
-                const appointments = appointmentsRes?.data || [];
-                const sales = salesRes?.data || [];
+                const appointments = appointmentsRes?.data || appointmentsRes || [];
+                const sales = salesRes?.data || salesRes || [];
 
                 const hasAppointments = appointments.some(apt =>
                     personType === 'client'
@@ -193,8 +193,8 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 );
 
                 const hasSales = sales.some(sale => {
-                    const saleCustId = String(sale.customerId || '');
-                    const saleEmpId = String(sale.employeeId || '');
+                    const saleCustId = String(sale.customerId || sale.customer_id || '');
+                    const saleEmpId = String(sale.employeeId || sale.employee_id || '');
                     const personId = String(personToDelete.usuarioId || '');
                     const personDocId = String(personToDelete.documentId || '');
 
@@ -206,7 +206,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                 });
 
                 if (hasAppointments || hasSales) {
-                    alert("Esta persona ya esta asociada a una Cita o Venta");
+                    showAlert('error', `Error: Este ${personType === 'client' ? 'Cliente' : 'Empleado'} está asociado a citas y/o ventas`);
                     setLoading(false);
                     hideSectionLoading();
                     setShowDeleteModal(false);
@@ -261,7 +261,7 @@ export function PersonManagement({ hasPermission, initialType = 'client' }: Pers
                     setPersons(persons.filter(p => p.documentId !== personToDelete.documentId));
                     showAlert('success', `${personType === 'client' ? 'Cliente' : 'Empleado'} eliminado exitosamente`);
                 } else {
-                    showAlert('error', 'Error al eliminar. Verifique que no existan dependencias activas.');
+                    showAlert('error', `Error: Este ${personType === 'client' ? 'Cliente' : 'Empleado'} está asociado a citas y/o ventas`);
                 }
             } finally {
                 setLoading(false);

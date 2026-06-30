@@ -12,6 +12,7 @@ import { AuthModal } from "@/features/auth/components/AuthModal";
 import { UserProfile } from "@/features/user/components/UserProfile";
 import { ClientPurchases } from "@/features/sales/components/ClientPurchases";
 import { Toaster } from "@/shared/components/ui/sonner";
+import { toast } from "sonner";
 import { userService } from "@/features/users/services/userService";
 import { useLoading } from "@/shared/contexts/LoadingContext";
 

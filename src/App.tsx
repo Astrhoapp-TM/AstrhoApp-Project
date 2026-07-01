@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { clearAuthToken } from "@/shared/services/apiClient";
+import { clearAuthToken, setAuthToken } from "@/shared/services/apiClient";
 import { AlertCircle, LogOut } from "lucide-react";
 import { Navigation } from "@/shared/components/Navigation";
 import { ServiceList } from "@/features/services/components/ServiceList";
@@ -29,17 +29,63 @@ function App() {
   const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
   const { showLoading, hideLoading } = useLoading();
 
-  // Restaurar sesión al recargar: el token ya se lee en apiClient desde localStorage.
+  // Restaurar sesión al recargar y recargar datos del usuario desde la API.
   useEffect(() => {
-    try {
-      const persistedUser = localStorage.getItem(AUTH_USER_STORAGE_KEY);
-      if (persistedUser) {
-        setCurrentUser(JSON.parse(persistedUser));
+    const restoreAndRefreshSession = async () => {
+      try {
+        const persistedUser = localStorage.getItem(AUTH_USER_STORAGE_KEY);
+        if (persistedUser) {
+          const parsedUser = JSON.parse(persistedUser);
+          
+          // Primero, configuramos el token en el apiClient
+          if (parsedUser.token) {
+            setAuthToken(parsedUser.token);
+          }
+          
+          // Establecemos el usuario primero para mantener la UI
+          setCurrentUser({ ...parsedUser, _dataFetched: false });
+          
+          // Recargamos los datos actualizados del usuario desde la API
+          try {
+            showLoading("Sincronizando tu perfil...");
+            const person = await userService.getPersonForUser(parsedUser);
+            const userDetail = await userService.getById(parsedUser.usuarioId || parsedUser.id);
+            
+            const resolvedDoc = person?.documentId || userDetail?.documento || userDetail?.documentoCliente || userDetail?.documentoEmpleado || parsedUser.documentId || parsedUser.documento;
+            
+            setCurrentUser(prev => ({
+                ...prev,
+                documentId: resolvedDoc,
+                documento: resolvedDoc,
+                name: person?.name || prev.name,
+                firstName: person?.name ? person.name.split(' ')[0] : prev.firstName,
+                lastName: person?.name ? person.name.split(' ').slice(1).join(' ') : prev.lastName,
+                phone: person?.phone || prev.phone,
+                _dataFetched: true // Add a flag to prevent re-fetching
+            }));
+          } catch (error: any) {
+            console.error("Error recargando datos del usuario al restaurar sesión:", error);
+            // Si el error es 401, limpiamos la sesión completamente
+            if (error.status === 401) {
+                clearAuthToken();
+                localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+                setCurrentUser(null);
+            } else {
+                // Si falla por otro motivo, mantenemos los datos guardados pero marcamos para recargar
+                setCurrentUser(prev => ({ ...prev, _dataFetched: true }));
+            }
+          } finally {
+            hideLoading();
+          }
+        }
+      } catch (error) {
+        console.warn("No se pudo restaurar la sesión persistida:", error);
+        localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+        clearAuthToken();
       }
-    } catch (error) {
-      console.warn("No se pudo restaurar la sesión persistida:", error);
-      localStorage.removeItem(AUTH_USER_STORAGE_KEY);
-    }
+    };
+
+    restoreAndRefreshSession();
   }, []);
 
   // Persistir usuario autenticado para mantener sesión tras refresh.
@@ -51,36 +97,42 @@ function App() {
     }
   }, [currentUser]);
 
-  // Fetch full user person data when logged in
-    useEffect(() => {
-        const fetchFullUserData = async () => {
-            if (currentUser && !currentUser._dataFetched && (!currentUser.documentId || !currentUser.documento)) {
-                try {
-                    showLoading("Sincronizando tu perfil...");
-                    const person = await userService.getPersonForUser(currentUser);
-                    const userDetail = await userService.getById(currentUser.usuarioId || currentUser.id);
-                    
-                    const resolvedDoc = person?.documentId || userDetail?.documento || userDetail?.documentoCliente || userDetail?.documentoEmpleado || prev.documentId || prev.documento;
-                    
-                    setCurrentUser(prev => ({
-                        ...prev,
-                        documentId: resolvedDoc,
-                        documento: resolvedDoc,
-                        name: person?.name || prev.name,
-                        firstName: person?.name ? person.name.split(' ')[0] : prev.firstName,
-                        lastName: person?.name ? person.name.split(' ').slice(1).join(' ') : prev.lastName,
-                        phone: person?.phone || prev.phone,
-                        _dataFetched: true // Add a flag to prevent re-fetching
-                    }));
-                } catch (error) {
-                    console.error("Error fetching full user data in App:", error);
-                } finally {
-                    hideLoading();
-                }
-            }
-        };
-        fetchFullUserData();
-    }, [currentUser?.usuarioId, currentUser?.id]); // Only depend on user ID
+  // Fetch full user person data when logged in (solo para logins nuevos)
+  useEffect(() => {
+      const fetchFullUserData = async () => {
+          if (currentUser && !currentUser._dataFetched && (!currentUser.documentId || !currentUser.documento)) {
+              try {
+                  showLoading("Sincronizando tu perfil...");
+                  const person = await userService.getPersonForUser(currentUser);
+                  const userDetail = await userService.getById(currentUser.usuarioId || currentUser.id);
+                  
+                  const resolvedDoc = person?.documentId || userDetail?.documento || userDetail?.documentoCliente || userDetail?.documentoEmpleado || '';
+                  
+                  setCurrentUser(prev => ({
+                      ...prev,
+                      documentId: resolvedDoc,
+                      documento: resolvedDoc,
+                      name: person?.name || prev.name,
+                      firstName: person?.name ? person.name.split(' ')[0] : prev.firstName,
+                      lastName: person?.name ? person.name.split(' ').slice(1).join(' ') : prev.lastName,
+                      phone: person?.phone || prev.phone,
+                      _dataFetched: true // Add a flag to prevent re-fetching
+                  }));
+              } catch (error: any) {
+                  console.error("Error fetching full user data in App:", error);
+                  // Si el error es 401 (no autorizado), limpiamos la sesión
+                  if (error.status === 401) {
+                      clearAuthToken();
+                      localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+                      setCurrentUser(null);
+                  }
+              } finally {
+                  hideLoading();
+              }
+          }
+      };
+      fetchFullUserData();
+  }, [currentUser?.usuarioId, currentUser?.id, currentUser?._dataFetched]); // Dependemos del flag también
 
   // Redirect admin/assistant users to admin panel automatically
   useEffect(() => {

@@ -115,105 +115,115 @@ export function useServicios(pageSize: number = 6) {
 }
 
 export function useEmpleados(pageSize: number = 6) {
-  const [allData, setAllData] = useState<any[]>([]); // full unfiltered cache
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [hasFetched, setHasFetched] = useState(false);
+    const [allData, setAllData] = useState<any[]>([]); // full unfiltered cache
+    const [data, setData] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState('');
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const [error, setError] = useState<string | null>(null);
+    const [hasFetched, setHasFetched] = useState(false);
 
-  const fetchEmpleados = useCallback(async (abortSignal?: AbortSignal) => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Get employees from personService, which already applies role filtering!
-      const response = await personService.getPersons('employee', {
-        page: 1,
-        pageSize: 1000,
-        search: ''
-      });
+    const fetchEmpleados = useCallback(async (abortSignal?: AbortSignal) => {
+        setLoading(true);
+        setError(null);
+        try {
+            // Get employees from personService, which already applies role filtering!
+            const response = await personService.getPersons('employee', {
+                page: 1,
+                pageSize: 1000,
+                search: ''
+            });
 
-      let employeesArray = [];
-      if (Array.isArray(response)) {
-        employeesArray = response;
-      } else if (response && response.data) {
-        employeesArray = response.data;
-      }
+            let employeesArray = [];
+            if (Array.isArray(response)) {
+                employeesArray = response;
+            } else if (response && response.data) {
+                employeesArray = response.data;
+            }
 
-      // Also get users and check for super admins
-      const usersResponse = await userService.getAll({ page: 1, pageSize: 100 });
-      let usersArray = [];
-      if (Array.isArray(usersResponse)) {
-        usersArray = usersResponse;
-      } else if (usersResponse && usersResponse.data) {
-        usersArray = usersResponse.data;
-      }
+            // Also get users and check for super admins
+            const usersResponse = await userService.getAll({ page: 1, pageSize: 100 });
+            let usersArray = [];
+            if (Array.isArray(usersResponse)) {
+                usersArray = usersResponse;
+            } else if (usersResponse && usersResponse.data) {
+                usersArray = usersResponse.data;
+            }
 
-      // Filter admin and super admin users
-      const adminAndSuperAdminUsers = usersArray.filter((u: any) => {
-        const roleName = (u.rolNombre || u.rol?.nombre || '').toLowerCase().trim();
-        return (
-          roleName.includes('super admin') || 
-          roleName.includes('superadmin') || 
-          roleName.includes('super_admin') || 
-          roleName.includes('admin') || 
-          roleName.includes('administrador') || 
-          roleName.includes('administradora')
-        );
-      });
+            // Filter admin and super admin users
+            const adminAndSuperAdminUsers = usersArray.filter((u: any) => {
+                const roleName = (u.rolNombre || u.rol?.nombre || '').toLowerCase().trim();
+                return (
+                    roleName.includes('super admin') || 
+                    roleName.includes('superadmin') || 
+                    roleName.includes('super_admin') || 
+                    roleName.includes('admin') || 
+                    roleName.includes('administrador') || 
+                    roleName.includes('administradora')
+                );
+            });
 
-      // Map employees, super admins, and admins to professional format
-      const allProfessionals = [
-        ...employeesArray.map((p: any, index: number) => ({
-          id: p.documentId,
-          name: p.name,
-          role: 'Estilista Profesional',
-          _source: 'employee',
-          _index: index,
-          _usuarioId: p.usuarioId  // preserve for auto-select matching
-        })),
-        ...(await Promise.all(adminAndSuperAdminUsers.map(async (u: any, index: number) => {
-          // Try to get person data for name and agendable
-          const person = await userService.getPersonForUser(u).catch(() => null);
-          const name = person?.name || u.nombre || u.Nombre || u.email || 'Administrador';
-          const roleName = (u.rolNombre || u.rol?.nombre || '').toLowerCase().trim();
-          const isSuper = roleName.includes('super');
-          // Check agendable from employeesArray first (already loaded), fallback to true
-          const resolvedDocId = person?.documentId || u.documentoEmpleado;
-          const empRecord = resolvedDocId
-            ? employeesArray.find((e: any) => String(e.documentId) === String(resolvedDocId))
-            : null;
-          const agendable = empRecord ? empRecord.agendable !== false : true;
-          const finalId = resolvedDocId || u.documentoCliente || String(u.usuarioId || u.id);
-          return {
-            id: finalId,
-            name,
-            role: isSuper ? 'Super Administradora' : 'Administradora',
-            _source: isSuper ? 'super-admin' : 'admin',
-            _index: employeesArray.length + index,
-            _agendable: agendable,
-            _usuarioId: u.usuarioId || u.id
-          };
-        })))
-      ];
+            // Map employees, super admins, and admins to professional format
+            const allProfessionals = [
+                ...employeesArray.map((p: any, index: number) => ({
+                    id: p.documentId,
+                    name: p.name,
+                    role: 'Estilista Profesional',
+                    _source: 'employee',
+                    _index: index,
+                    _usuarioId: p.usuarioId,  // preserve for auto-select matching
+                    _agendable: p.agendable
+                })),
+                ...(await Promise.all(adminAndSuperAdminUsers.map(async (u: any, index: number) => {
+                    // Try to get person data for name and agendable
+                    const person = await userService.getPersonForUser(u).catch(() => null);
+                    const name = person?.name || u.nombre || u.Nombre || u.email || 'Administrador';
+                    const roleName = (u.rolNombre || u.rol?.nombre || '').toLowerCase().trim();
+                    const isSuper = roleName.includes('super');
+                    // Check agendable from person first, then employeesArray, only show if explicitly true
+                    const resolvedDocId = person?.documentId || u.documentoEmpleado;
+                    const empRecord = resolvedDocId
+                        ? employeesArray.find((e: any) => String(e.documentId) === String(resolvedDocId))
+                        : null;
+                    let agendable = false; // Default to false
+                    if (empRecord && empRecord.agendable === true) {
+                        agendable = true;
+                    } else if (person && person.agendable === true) {
+                        agendable = true;
+                    }
+                    const finalId = resolvedDocId || u.documentoCliente || String(u.usuarioId || u.id);
+                    return {
+                        id: finalId,
+                        name,
+                        role: isSuper ? 'Super Administradora' : 'Administradora',
+                        _source: isSuper ? 'super-admin' : 'admin',
+                        _index: employeesArray.length + index,
+                        _agendable: agendable,
+                        _usuarioId: u.usuarioId || u.id
+                    };
+                })))
+            ];
 
-      // Remove duplicates by id
-      const uniqueProfessionals = Array.from(
-        new Map(allProfessionals.map(p => [p.id, p])).values()
-      );
+            // Remove duplicates by id
+            const uniqueProfessionals = Array.from(
+                new Map(allProfessionals.map(p => [p.id, p])).values()
+            );
 
-      // Filter active and agendable
-      const activeProfessionals = uniqueProfessionals.filter((p: any) => {
-        const originalData = employeesArray.find((e: any) => e.documentId === p.id);
-        if (!originalData) return true;
-        const est = originalData.status !== undefined ? originalData.status : originalData.Estado;
-        const isActive = est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
-        const agendable = originalData.agendable !== false;
-        return isActive && agendable;
-      }).map((p: any, index: number) => ({
+            // Filter active and agendable (only show if agendable === true explicitly, like AppointmentManagement/SalesManagement)
+            const activeProfessionals = uniqueProfessionals.filter((p: any) => {
+                const originalData = employeesArray.find((e: any) => String(e.documentId) === String(p.id));
+                if (originalData) {
+                    const est = originalData.status !== undefined ? originalData.status : originalData.Estado;
+                    const isActive = est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
+                    const agendable = originalData.agendable === true; // Only show if explicitly true!
+                    return isActive && agendable;
+                } else {
+                    // For admin/super admin users without originalData, use p._agendable (only show if true!)
+                    return p._agendable === true;
+                }
+            }).map((p: any, index: number) => ({
           id: p.id,
           name: p.name,
           role: p.role,

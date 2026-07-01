@@ -326,7 +326,7 @@ export function AppointmentManagement({ hasPermission, currentUser }: Appointmen
       setTotalCount(enrichedAppointments.length);
       setTotalPages(Math.max(1, Math.ceil(enrichedAppointments.length / itemsPerPage)));
 
-      setEmpleados(extract(results[1]).filter((e: any) => e.estado && e.agendable !== false));
+      setEmpleados(extract(results[1]).filter((e: any) => e.estado && e.agendable === true));
       setServicios(extract(results[2]).filter((s: any) => s.estado));
       setMetodosPago(extract(results[3]));
       setHorariosEmpleado(enrichedHorariosEmpleado);

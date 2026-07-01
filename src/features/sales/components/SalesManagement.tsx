@@ -1196,7 +1196,7 @@ function ProfessionalSearchSelect({
         setLoading(true);
         try {
           const res = await personService.getPersons('employee', { pageSize: 3 });
-          const mapped = res.data.filter((p: any) => p.agendable !== false).map((p: any) => ({
+          const mapped = res.data.filter((p: any) => p.agendable === true).map((p: any) => ({
             documentoEmpleado: p.documentId,
             nombre: p.name,
             telefono: p.phone
@@ -1212,7 +1212,7 @@ function ProfessionalSearchSelect({
       setLoading(true);
       try {
         const res = await personService.getPersons('employee', { search: searchTerm, pageSize: 20 });
-        const mapped = res.data.filter((p: any) => p.agendable !== false).map((p: any) => ({
+        const mapped = res.data.filter((p: any) => p.agendable === true).map((p: any) => ({
           documentoEmpleado: p.documentId,
           nombre: p.name,
           telefono: p.phone

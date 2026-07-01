@@ -140,7 +140,8 @@ export const userService = {
         name: string;
         phone: string;
         address: string;
-        type: 'client' | 'employee' 
+        type: 'client' | 'employee';
+        agendable?: boolean;
     } | null> => {
         try {
             console.log('🔍 [getPersonForUser] Starting with user:', user);
@@ -176,7 +177,7 @@ export const userService = {
                 ? (user.documentoCliente || user.documentId)
                 : (user.documentoEmpleado || user.documentId);
 
-            // Helper: fetch full detail and extract address from it
+            // Helper: fetch full detail and extract address and agendable from it
             const fetchDetail = async (documentId: string, type: 'client' | 'employee', fallbackData: any) => {
                 try {
                     const endpoint = type === 'client'
@@ -188,14 +189,17 @@ export const userService = {
                     const address = type === 'client'
                         ? (d.direccionCliente || d.direccion_cliente || d['direcciónCliente'] || common)
                         : (d.direccionEmpleado || d.direccion_empleado || d['direcciónEmpleado'] || common);
-                    return address;
+                    const agendable = d.agendable;
+                    return { address, agendable };
                 } catch {
                     // Fallback to list data if detail fetch fails
                     const d = fallbackData;
                     const common = d.direccion || d.address || d.Direccion || d['dirección'] || d['Dirección'] || '';
-                    return type === 'client'
+                    const address = type === 'client'
                         ? (d.direccionCliente || d.direccion_cliente || d['direcciónCliente'] || common)
                         : (d.direccionEmpleado || d.direccion_empleado || d['direcciónEmpleado'] || common);
+                    const agendable = d.agendable;
+                    return { address, agendable };
                 }
             };
 
@@ -219,7 +223,7 @@ export const userService = {
                 console.log('🔍 [getPersonForUser] Attempting direct fetch using docId:', docId);
                 try {
                     const type = isClient ? 'client' : 'employee';
-                    const address = await fetchDetail(docId, type, {});
+                    const { address, agendable } = await fetchDetail(docId, type, {});
                     const endpoint = isClient ? `/api/Clientes/${docId}` : `/api/Empleados/${docId}`;
                     const person = await apiClient.get<any>(endpoint);
                     
@@ -231,7 +235,8 @@ export const userService = {
                             name: person.nombre || (isClient ? 'Cliente' : 'Empleado'),
                             phone: person.telefono || '',
                             address,
-                            type: isClient ? 'client' : 'employee'
+                            type: isClient ? 'client' : 'employee',
+                            agendable: person.agendable
                         };
                     }
                 } catch (err) {
@@ -250,7 +255,7 @@ export const userService = {
                 
                 if (client) {
                     const docId = client.documentoCliente;
-                    const address = await fetchDetail(docId, 'client', client);
+                    const { address, agendable } = await fetchDetail(docId, 'client', client);
                     console.log('✅ [getPersonForUser] Client address from detail:', address);
                     return {
                         documentId: docId,
@@ -258,7 +263,8 @@ export const userService = {
                         name: client.nombre || 'Cliente',
                         phone: client.telefono || '',
                         address,
-                        type: 'client'
+                        type: 'client',
+                        agendable
                     };
                 }
             } else {
@@ -271,7 +277,7 @@ export const userService = {
                 
                 if (employee) {
                     const docId = employee.documentoEmpleado;
-                    const address = await fetchDetail(docId, 'employee', employee);
+                    const { address, agendable } = await fetchDetail(docId, 'employee', employee);
                     console.log('✅ [getPersonForUser] Employee address from detail:', address);
                     return {
                         documentId: docId,
@@ -279,7 +285,8 @@ export const userService = {
                         name: employee.nombre || 'Empleado',
                         phone: employee.telefono || '',
                         address,
-                        type: 'employee'
+                        type: 'employee',
+                        agendable
                     };
                 }
             }
@@ -294,7 +301,7 @@ export const userService = {
             const foundClient = allClients.find((x: any) => Number(x.usuarioId) === targetId);
             if (foundClient) {
                 const docId = foundClient.documentoCliente;
-                const address = await fetchDetail(docId, 'client', foundClient);
+                const { address, agendable } = await fetchDetail(docId, 'client', foundClient);
                 console.log('✅ [getPersonForUser] Cross-search client address from detail:', address);
                 return {
                     documentId: docId,
@@ -302,14 +309,15 @@ export const userService = {
                     name: foundClient.nombre || 'Cliente',
                     phone: foundClient.telefono || '',
                     address,
-                    type: 'client'
+                    type: 'client',
+                    agendable
                 };
             }
 
             const foundEmployee = allEmployees.find((x: any) => Number(x.usuarioId) === targetId);
             if (foundEmployee) {
                 const docId = foundEmployee.documentoEmpleado;
-                const address = await fetchDetail(docId, 'employee', foundEmployee);
+                const { address, agendable } = await fetchDetail(docId, 'employee', foundEmployee);
                 console.log('✅ [getPersonForUser] Cross-search employee address from detail:', address);
                 return {
                     documentId: docId,
@@ -317,7 +325,8 @@ export const userService = {
                     name: foundEmployee.nombre || 'Empleado',
                     phone: foundEmployee.telefono || '',
                     address,
-                    type: 'employee'
+                    type: 'employee',
+                    agendable
                 };
             }
 

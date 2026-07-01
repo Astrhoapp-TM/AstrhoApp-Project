@@ -147,7 +147,7 @@ export function AppDownload({ scrollY = 0, sectionOffsetTop = 0 }: AppDownloadPr
             </div>
 
             <a
-              href="/apk/astrhoapp 1.0.2.apk"
+              href="/apk/astrhoapp 1.0.3.apk"
               download
               className="inline-flex items-center space-x-2.5 bg-gradient-brand text-white px-8 py-3.5 rounded-xl font-semibold shadow-lg shadow-brand-pink/20 hover:shadow-xl hover:opacity-90 hover:-translate-y-0.5 transition-all duration-200"
             >

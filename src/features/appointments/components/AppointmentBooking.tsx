@@ -1655,6 +1655,30 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
+            {/* Search Bar — always visible, never hidden by loading state */}
+            <div className="mb-8 relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar por nombre o especialidad..."
+                value={professionalSearchTerm}
+                onChange={(e) => setProfessionalSearchTerm(e.target.value)}
+                className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-periwinkle focus:bg-white transition-all text-lg"
+                autoComplete="off"
+              />
+              {professionalSearchTerm && (
+                <button 
+                  onClick={() => setProfessionalSearchTerm('')}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-pink"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Results area — only this section shows the loading spinner */}
             {isLoadingProfessionals ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-12 h-12 text-brand-pink animate-spin mb-4" />
@@ -1662,28 +1686,6 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
               </div>
             ) : (
               <>
-                {/* Search Bar for Professionals */}
-                <div className="mb-8 relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Buscar por nombre o especialidad..."
-                    value={professionalSearchTerm}
-                    onChange={(e) => setProfessionalSearchTerm(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-periwinkle focus:bg-white transition-all text-lg"
-                  />
-                  {professionalSearchTerm && (
-                    <button 
-                      onClick={() => setProfessionalSearchTerm('')}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-pink"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  )}
-                </div>
-
                 {professionalsWithSchedules.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
@@ -2755,6 +2757,30 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
           </div>
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
+            {/* Search Bar — always visible, never hidden by loading state */}
+            <div className="mb-8 relative group">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar por nombre o especialidad..."
+                value={professionalSearchTerm}
+                onChange={(e) => setProfessionalSearchTerm(e.target.value)}
+                className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-periwinkle focus:bg-white transition-all text-lg"
+                autoComplete="off"
+              />
+              {professionalSearchTerm && (
+                <button 
+                  onClick={() => setProfessionalSearchTerm('')}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-pink"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Results area — only this section shows the loading spinner */}
             {isLoadingProfessionals ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-12 h-12 text-brand-pink animate-spin mb-4" />
@@ -2762,28 +2788,6 @@ export function AppointmentBooking({ currentUser, onBookingComplete, onBack, ini
               </div>
             ) : (
               <>
-                {/* Search Bar for Professionals */}
-                <div className="mb-8 relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400 group-focus-within:text-brand-pink transition-colors" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Buscar por nombre o especialidad..."
-                    value={professionalSearchTerm}
-                    onChange={(e) => setProfessionalSearchTerm(e.target.value)}
-                    className="block w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-periwinkle/300 focus:border-brand-periwinkle focus:bg-white transition-all text-lg"
-                  />
-                  {professionalSearchTerm && (
-                    <button 
-                      onClick={() => setProfessionalSearchTerm('')}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-pink"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
-                  )}
-                </div>
-
                 {professionalsWithSchedules.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">

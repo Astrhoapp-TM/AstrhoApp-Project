@@ -64,6 +64,43 @@ const formatTo12Hour = (timeStr: string): string => {
   return `${hour}:${minuteStr} ${ampm}`;
 };
 
+// Fetch all employees by looping through all pages
+async function fetchAllEmpleados(): Promise<Empleado[]> {
+  let allEmpleados: Empleado[] = [];
+  let currentPage = 1;
+  const pageSize = 100;
+
+  try {
+    while (true) {
+      const response = await empleadoService.getAll(currentPage, pageSize);
+      const pageData = extractArray(response);
+      if (pageData.length === 0) break;
+      
+      allEmpleados = [...allEmpleados, ...pageData];
+      
+      // Check if there are more pages (using totalRecords if available)
+      let hasMorePages = true;
+      if ('totalRecords' in response && typeof response.totalRecords === 'number') {
+        const totalPages = Math.ceil(response.totalRecords / pageSize);
+        hasMorePages = currentPage < totalPages;
+      } else if ('totalPages' in response && typeof response.totalPages === 'number') {
+        hasMorePages = currentPage < response.totalPages;
+      } else {
+        // If we can't get pagination info, stop if page has less than pageSize items
+        hasMorePages = pageData.length === pageSize;
+      }
+      
+      if (!hasMorePages) break;
+      currentPage++;
+    }
+  } catch (error) {
+    console.error('[ScheduleManagement] Error fetching all employees:', error);
+  }
+  
+  console.log('[ScheduleManagement] Total employees fetched:', allEmpleados.length);
+  return allEmpleados;
+}
+
 export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManagementProps) {
   // Data states
   const [horarios, setHorarios] = useState<Horario[]>([]);
@@ -213,18 +250,20 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
       const [horariosData, asignacionesData, empleadosData, motivosData] = await Promise.all([
         horarioService.getAll(),
         horarioEmpleadoService.getAll(),
-        empleadoService.getAll(1, 1000), // Fetch up to 1000 employees to handle frontend search/pagination
+        fetchAllEmpleados(), // Fetch ALL employees across all pages
         motivoService.getAll()
       ]);
 
       const hData = extractArray(horariosData);
       setHorarios(hData);
       setHorarioEmpleados(extractArray(asignacionesData));
-      setEmpleados(extractArray(empleadosData));
+      
+      console.log('[ScheduleManagement] empleadosData:', empleadosData);
+      setEmpleados(empleadosData);
 
       // Process motivos to map estadoId to estado text and include employee name
       const rawMotivos = extractArray(motivosData);
-      const empleadosList = extractArray(empleadosData); // Extract empleados array
+      const empleadosList = empleadosData; // Extract empleados array
       const processedMotivos = rawMotivos.map((motivo: any) => {
         // Find employee by documentoEmpleado
         const matchingEmpleado = empleadosList.find(
@@ -1073,11 +1112,15 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
                             });
                             return (
                               <>
-                                {unique.slice(0, 3).map(a => (
-                                  <span key={a.documentoEmpleado} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs">
-                                    {a.empleadoNombre || a.documentoEmpleado}
-                                  </span>
-                                ))}
+                                {unique.slice(0, 3).map(a => {
+                                  const emp = empleados.find(e => String(e.documentoEmpleado) === String(a.documentoEmpleado));
+                                  const name = emp?.nombre || a.empleadoNombre || a.documentoEmpleado;
+                                  return (
+                                    <span key={a.documentoEmpleado} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs">
+                                      {name}
+                                    </span>
+                                  );
+                                })}
                                 {unique.length > 3 && (
                                   <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
                                     +{unique.length - 3} más
@@ -1226,6 +1269,7 @@ export function ScheduleManagement({ hasPermission, currentUser }: ScheduleManag
           group={selectedGroup}
           horarios={getHorariosForGroup(selectedGroup)}
           assignments={getAssignmentsForGroup(selectedGroup)}
+          empleados={empleados}
           onClose={() => setShowDetailModal(false)}
         />
       )}
@@ -2053,10 +2097,11 @@ interface ScheduleDetailModalProps {
   group: ScheduleGroup;
   horarios: Horario[];
   assignments: HorarioEmpleado[];
+  empleados: Empleado[];
   onClose: () => void;
 }
 
-function ScheduleDetailModal({ group, horarios, assignments, onClose }: ScheduleDetailModalProps) {
+function ScheduleDetailModal({ group, horarios, assignments, empleados, onClose }: ScheduleDetailModalProps) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
@@ -2176,17 +2221,21 @@ function ScheduleDetailModal({ group, horarios, assignments, onClose }: Schedule
                             </h5>
                           </div>
                           <div className="grid md:grid-cols-2 gap-4">
-                            {dayAssignments.map((a) => (
-                              <div key={a.horarioEmpleadoId} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-colors">
-                                <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500 font-bold text-xl">
-                                  {(a.empleadoNombre || 'E').charAt(0)}
+                            {dayAssignments.map((a) => {
+                              const emp = empleados.find(e => String(e.documentoEmpleado) === String(a.documentoEmpleado));
+                              const name = emp?.nombre || a.empleadoNombre || 'Empleado';
+                              return (
+                                <div key={a.horarioEmpleadoId} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:bg-gray-100 transition-colors">
+                                  <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-500 font-bold text-xl">
+                                    {name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-gray-800">{name}</p>
+                                    <p className="text-xs text-gray-500 font-mono">Doc: {a.documentoEmpleado}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="font-bold text-gray-800">{a.empleadoNombre || 'Empleado'}</p>
-                                  <p className="text-xs text-gray-500 font-mono">Doc: {a.documentoEmpleado}</p>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -2315,14 +2364,13 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
     horarios.flatMap(h => extractArray(h))[0]?.horarioDiaId || 0
   );
   const [selectedEmpleados, setSelectedEmpleados] = useState<string[]>([]);
-
-  // Available employees search and pagination from API
-  const [availableEmpleadosFromApi, setAvailableEmpleadosFromApi] = useState<Empleado[]>([]);
-  const [totalAvailableRecords, setTotalAvailableRecords] = useState(0);
-  const [loadingAvailable, setLoadingAvailable] = useState(false);
+  
+  // All employees (already fetched from ScheduleManagement)
+  const [allAvailableEmpleados, setAllAvailableEmpleados] = useState<Empleado[]>([]);
+  const [loadingAvailable, setLoadingAvailable] = useState(true);
   const [searchTermAvailable, setSearchTermAvailable] = useState('');
   const [availablePage, setAvailablePage] = useState(1);
-  const itemsPerPageAvailable = 5;
+  const itemsPerPageAvailable = 6; // Show exactly 6 per page!
 
   const selectedDayRecord = React.useMemo(() => {
     return horarios.flatMap(h => extractArray(h)).find(d => d.horarioDiaId === selectedDayId);
@@ -2335,6 +2383,31 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
   const currentHorarioId = React.useMemo(() => {
     return horarios.find(h => extractArray(h).some(d => d.horarioDiaId === selectedDayId))?.horarioId;
   }, [horarios, selectedDayId]);
+  
+  // Filter all employees: active, not clients, not already selected
+  const filteredAvailableEmpleados = React.useMemo(() => {
+    // First filter out already selected employees
+    const unassigned = allAvailableEmpleados.filter(e => 
+      !selectedEmpleados.includes(String(e.documentoEmpleado))
+    );
+    
+    // Then apply search
+    if (!searchTermAvailable.trim()) return unassigned;
+    const term = searchTermAvailable.toLowerCase();
+    return unassigned.filter(e => 
+      (e.nombre || '').toLowerCase().includes(term) ||
+      String(e.documentoEmpleado).includes(term)
+    );
+  }, [allAvailableEmpleados, selectedEmpleados, searchTermAvailable]);
+  
+  // Calculate pagination for filtered employees
+  const totalAvailableRecords = filteredAvailableEmpleados.length;
+  const totalAvailablePages = Math.ceil(totalAvailableRecords / itemsPerPageAvailable) || 1;
+  const paginatedAvailableEmpleados = React.useMemo(() => {
+    const start = (availablePage - 1) * itemsPerPageAvailable;
+    const end = start + itemsPerPageAvailable;
+    return filteredAvailableEmpleados.slice(start, end);
+  }, [filteredAvailableEmpleados, availablePage]);
 
   // Whenever selectedDayId changes, initialize the selected employees
   useEffect(() => {
@@ -2347,28 +2420,14 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
       setSelectedEmpleados([]);
     }
   }, [selectedDayId, selectedDayName, existingAssignments]);
-
-  // Fetch available employees from API when search or page changes
+  
+  // Initialize all available employees from the 'empleados' prop (already all fetched!)
   useEffect(() => {
-    const fetchAvailable = async () => {
+    const initAvailable = async () => {
       setLoadingAvailable(true);
       try {
-        const response = await empleadoService.getAll(availablePage, itemsPerPageAvailable, searchTermAvailable);
-        const extract = (data: any) => {
-          if (!data) return [];
-          if (Array.isArray(data)) return data;
-          if (data && Array.isArray(data.data)) return data.data;
-          return [];
-        };
-        const total = (data: any) => {
-          if (data && typeof data.totalCount === 'number') return data.totalCount;
-          if (data && typeof data.totalRecords === 'number') return data.totalRecords;
-          return Array.isArray(data) ? data.length : 0;
-        };
-
-        let fetchedEmpleados: Empleado[] = extract(response);
-
-        // Filter out employees whose user has role 'Cliente'
+        // First, filter out employees with user role 'Cliente'
+        let filtered = [...empleados];
         try {
           const usersRes = await userService.getAll({ pageSize: 1000 });
           const users = usersRes.data || [];
@@ -2377,24 +2436,19 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
               .filter(u => (u.rolNombre || '').toLowerCase() === 'cliente')
               .map(u => u.usuarioId)
           );
-          fetchedEmpleados = fetchedEmpleados.filter(
+          filtered = filtered.filter(
             e => !clienteUserIds.has(e.usuarioId)
           );
         } catch {
-          // If user fetch fails, show all employees (better than showing none)
+          // ignore
         }
-
-        setAvailableEmpleadosFromApi(fetchedEmpleados);
-        setTotalAvailableRecords(total(response));
-      } catch (error) {
-        console.error("Error fetching available employees:", error);
+        setAllAvailableEmpleados(filtered);
       } finally {
         setLoadingAvailable(false);
       }
     };
-
-    fetchAvailable();
-  }, [availablePage, searchTermAvailable]);
+    initAvailable();
+  }, [empleados]);
 
   // Reset page when search changes
   useEffect(() => {
@@ -2423,17 +2477,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
     onSave(selectedDayId, toCreate, toDelete);
   };
 
-  const availableEmpleados = availableEmpleadosFromApi.filter(
-    e => e.estado
-  );
-
-  const unassignedEmpleados = availableEmpleados.filter(
-    e => !selectedEmpleados.includes(e.documentoEmpleado)
-  );
-
-  const totalAvailablePages = Math.ceil(totalAvailableRecords / itemsPerPageAvailable);
-  const paginatedAvailable = unassignedEmpleados; // Filtered to only show unassigned ones
-
+  // Reset page when search changes or day changes
   useEffect(() => {
     setAvailablePage(1);
   }, [searchTermAvailable, selectedDayId]);
@@ -2514,7 +2558,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 no-scrollbar">
                   {selectedEmpleados.length > 0 ? (
                     selectedEmpleados.map(doc => {
-                      const emp = empleados.find(e => e.documentoEmpleado === doc);
+                      const emp = empleados.find(e => String(e.documentoEmpleado) === String(doc));
                       const name = emp?.nombre || doc;
                       return (
                         <div
@@ -2559,7 +2603,7 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 shrink-0">
                 <div className="flex items-center space-x-2 text-green-600">
                   <UserPlus className="w-4 h-4" />
-                  <h4 className="font-bold text-[10px] tracking-widest uppercase">Personal Disponible para Asignar ({unassignedEmpleados.length})</h4>
+                  <h4 className="font-bold text-[10px] tracking-widest uppercase">Personal Disponible para Asignar ({filteredAvailableEmpleados.length})</h4>
                 </div>
                 <div className="relative">
                   <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -2577,9 +2621,9 @@ function AssignEmployeeModal({ group, horarios, empleados, existingAssignments, 
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-8 h-8 animate-spin text-brand-violet" />
                 </div>
-              ) : unassignedEmpleados.length > 0 ? (
+              ) : paginatedAvailableEmpleados.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[220px] overflow-y-auto pr-1 no-scrollbar">
-                  {unassignedEmpleados.map(emp => {
+                  {paginatedAvailableEmpleados.map(emp => {
                     // Find the specific day for overlap check
                     let foundDay: HorarioDia | undefined;
                     for (const h of horarios) {

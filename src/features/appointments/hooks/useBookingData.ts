@@ -129,19 +129,24 @@ export function useEmpleados(pageSize: number = 6) {
         setLoading(true);
         setError(null);
         try {
-            // Get employees from personService, which already applies role filtering!
-            const response = await personService.getPersons('employee', {
-                page: 1,
-                pageSize: 1000,
-                search: ''
-            });
-
-            let employeesArray = [];
-            if (Array.isArray(response)) {
-                employeesArray = response;
-            } else if (response && response.data) {
-                employeesArray = response.data;
-            }
+            // Get ALL employees from personService across ALL pages!
+            let employeesArray: any[] = [];
+            let currentPage = 1;
+            let totalPages = 1;
+            
+            do {
+                const response = await personService.getPersons('employee', {
+                    page: currentPage,
+                    pageSize: 100,
+                    search: ''
+                });
+                
+                if (response.data && Array.isArray(response.data)) {
+                    employeesArray = [...employeesArray, ...response.data];
+                }
+                totalPages = response.totalPages || 1;
+                currentPage++;
+            } while (currentPage <= totalPages);
 
             // Also get users and check for super admins
             const usersResponse = await userService.getAll({ page: 1, pageSize: 100 });
@@ -294,6 +299,7 @@ export function useEmpleados(pageSize: number = 6) {
 }
 
 export function useClientes(pageSize: number = 6) {
+  const [allData, setAllData] = useState<any[]>([]);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -301,29 +307,33 @@ export function useClientes(pageSize: number = 6) {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
 
-  const fetchClientes = useCallback(async (currentPage: number, searchTerm: string, abortSignal?: AbortSignal) => {
+  const fetchClientes = useCallback(async (abortSignal?: AbortSignal) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await personService.getPersons('client', {
-        page: currentPage,
-        pageSize,
-        search: searchTerm
-      });
+      // Fetch ALL clients across all API pages!
+      let allClientsArray: any[] = [];
+      let currentPage = 1;
+      let totalPages = 1;
+      
+      do {
+        const response = await personService.getPersons('client', {
+          page: currentPage,
+          pageSize: 100,
+          search: ''
+        });
+        
+        if (response.data && Array.isArray(response.data)) {
+          allClientsArray = [...allClientsArray, ...response.data];
+        }
+        totalPages = response.totalPages || 1;
+        currentPage++;
+      } while (currentPage <= totalPages);
 
-      let clientsArray = [];
-      if (Array.isArray(response)) {
-        clientsArray = response;
-        setTotalPages(1);
-        setTotalCount(response.length);
-      } else if (response && response.data) {
-        clientsArray = response.data;
-        setTotalPages(response.totalPages || 1);
-        setTotalCount(response.totalCount || response.data.length);
-      }
-
-      let activeClients = clientsArray
+      // Process clients: filter active and map to display format
+      const activeClients = allClientsArray
         .filter((c: any) => {
           const est = c.status !== undefined ? c.status : c.Estado;
           return est === 'active' || est === true || est === 1 || String(est).toLowerCase() === 'activo' || est === undefined || est === null;
@@ -337,26 +347,8 @@ export function useClientes(pageSize: number = 6) {
           avatar: (c.name || 'C').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
         }));
 
-      // Apply client-side search and pagination if it's a raw array response
-      if (Array.isArray(response)) {
-        if (searchTerm) {
-          const term = searchTerm.toLowerCase();
-          activeClients = activeClients.filter((c: any) => 
-            c.name.toLowerCase().includes(term) || 
-            c.phone.toLowerCase().includes(term)
-          );
-        }
-        
-        const totalFiltered = activeClients.length;
-        setTotalPages(Math.ceil(totalFiltered / pageSize) || 1);
-        setTotalCount(totalFiltered);
-        
-        const start = (currentPage - 1) * pageSize;
-        const end = start + pageSize;
-        activeClients = activeClients.slice(start, end);
-      }
-
-      setData(activeClients);
+      setAllData(activeClients);
+      setHasFetched(true);
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error('Error fetching clients:', error);
@@ -365,19 +357,37 @@ export function useClientes(pageSize: number = 6) {
     } finally {
       setLoading(false);
     }
-  }, [pageSize]);
+  }, []);
 
+  // Initial fetch of all clients
   useEffect(() => {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      fetchClientes(page, search, controller.signal);
-    }, 300);
+    fetchClientes(controller.signal);
+    return () => controller.abort();
+  }, [fetchClientes]);
 
-    return () => {
-      clearTimeout(timeoutId);
-      controller.abort();
-    };
-  }, [page, search, fetchClientes]);
+  // Client-side filtering and pagination
+  useEffect(() => {
+    if (!hasFetched) return;
+    
+    let filtered = allData;
+    if (search.trim()) {
+      const term = search.toLowerCase();
+      filtered = allData.filter((c: any) => 
+        c.name.toLowerCase().includes(term) || 
+        (c.phone || '').toLowerCase().includes(term)
+      );
+    }
+    
+    const total = filtered.length;
+    setTotalCount(total);
+    const totalPgs = Math.ceil(total / pageSize) || 1;
+    setTotalPages(totalPgs);
+    
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    setData(filtered.slice(start, end));
+  }, [search, page, allData, hasFetched, pageSize]);
 
   // Reset page when search changes
   useEffect(() => {
